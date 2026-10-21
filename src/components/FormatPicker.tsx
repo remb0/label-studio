@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { isDesignOnlyModel } from "../features/printers/model-catalog.ts";
 import {
   getFormatPresets,
   type FormatPreset,
@@ -43,6 +44,7 @@ export function FormatPicker({
               54 / preset.heightMm,
             );
             const tooWide =
+              !isDesignOnlyModel(modelId) &&
               maxPixels !== undefined &&
               exceedsPrintWidth(preset, preset.rollDirection, maxPixels);
             return (

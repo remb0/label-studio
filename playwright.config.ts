@@ -6,6 +6,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
+    locale: "nl-NL",
     baseURL: process.env.PRODUCTION_URL || "http://127.0.0.1:4173",
     trace: "retain-on-failure",
   },

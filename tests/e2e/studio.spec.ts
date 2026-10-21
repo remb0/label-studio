@@ -17,7 +17,7 @@ test("editor boots and navigation reaches local address workflows", async ({
   await expect(page.locator("input[type=file]").first()).toBeAttached();
   await page.getByRole("button", { name: "Printer", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Jouw printer" }),
+    page.getByRole("heading", { name: "Jouw printer", exact: true }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });

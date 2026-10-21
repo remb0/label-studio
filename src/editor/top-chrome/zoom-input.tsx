@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 
 /** Editable zoom percentage; commit on Enter/blur and restore on Escape. */
@@ -7,8 +7,14 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
   const setZoom = useEditorV2Store((s) => s.setZoom);
   const [draft, setDraft] = useState(String(Math.round(zoom * 100)));
   const [editing, setEditing] = useState(false);
+  const cancelBlur = useRef(false);
 
   function commit() {
+    if (cancelBlur.current) {
+      cancelBlur.current = false;
+      setEditing(false);
+      return;
+    }
     const parsed = Number(draft.trim().replace("%", "").replace(",", "."));
     if (Number.isFinite(parsed) && parsed > 0) setZoom(parsed / 100);
     setEditing(false);
@@ -33,8 +39,10 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
         onChange={(event) => setDraft(event.target.value)}
         onBlur={commit}
         onKeyDown={(event) => {
+          event.stopPropagation();
           if (event.key === "Enter") event.currentTarget.blur();
           if (event.key === "Escape") {
+            cancelBlur.current = true;
             setDraft(String(Math.round(zoom * 100)));
             setEditing(false);
             event.currentTarget.blur();

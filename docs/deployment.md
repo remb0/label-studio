@@ -26,7 +26,7 @@ De self-hosted runner is alleen bestemd voor vertrouwde deploymentjobs vanaf `ma
 
 De service draait als Linux-gebruiker `label-studio-runner`, lid van de Docker-groep. Docker-toegang geeft veel bevoegdheden op de host: beperk repositoryschrijfrechten tot vertrouwde gebruikers. Er is geen langlevend GitHub-token in de applicatie. De releasejob gebruikt zijn tijdelijke `GITHUB_TOKEN` om de private image te pullen; de Docker-login wordt in een tijdelijke map bewaard en na de job verwijderd.
 
-De officiële runner wordt eenmalig via `scripts/bootstrap-runner.sh` geplaatst in `/opt/actions-runner-label-studio`; de download wordt met SHA-256 gecontroleerd. De runner update niet automatisch: onderhoud de runner-versie bewust (GitHub kan verouderde runners weigeren).
+De officiële runner wordt eenmalig via `scripts/bootstrap-runner.sh` geplaatst in `/opt/actions-runner-label-studio`; de eerste download wordt met SHA-256 gecontroleerd. Daarna gebruikt de runner de officiële automatische GitHub-updates. Controleer bij onderhoud of de service online is en bij de actuele runner-versie blijft.
 
 ## Verificatie
 

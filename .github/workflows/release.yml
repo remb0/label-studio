@@ -63,7 +63,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.publish.outputs.commit }}
+      - name: Skip an outdated main release
+        id: freshness
+        env:
+          EXPECTED_COMMIT: ${{ needs.publish.outputs.commit }}
+        run: |
+          current_main=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [[ "$current_main" == "$EXPECTED_COMMIT" ]]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping outdated release $EXPECTED_COMMIT; main is $current_main"
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
       - name: Pull and deploy immutable image
+        if: steps.freshness.outputs.current == 'true'
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}

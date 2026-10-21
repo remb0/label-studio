@@ -17,7 +17,7 @@ tar xzf "$archive" -C "$RUNNER_DIR"
 chown -R "$RUNNER_USER:$RUNNER_USER" "$RUNNER_DIR"
 cd "$RUNNER_DIR"
 ./bin/installdependencies.sh
-runuser -u "$RUNNER_USER" -- ./config.sh --unattended --url https://github.com/remb0/label-studio --token "$RUNNER_REGISTRATION_TOKEN" --name label-studio-dockerhost --labels label-studio-deploy --work _work --disableupdate
+runuser -u "$RUNNER_USER" -- ./config.sh --unattended --url https://github.com/remb0/label-studio --token "$RUNNER_REGISTRATION_TOKEN" --name label-studio-dockerhost --labels label-studio-deploy --work _work
 unset RUNNER_REGISTRATION_TOKEN
 ./svc.sh install "$RUNNER_USER"
 ./svc.sh start

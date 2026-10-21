@@ -6,4 +6,4 @@ De applicatie heeft geen backend voor adresgegevens. CSV-rijen worden in browser
 
 HTTPS is vereist voor Web Bluetooth buiten localhost. De Dockerimage draait zonder root; de productiecontainer gebruikt een read-only filesystem en geen Docker-socket. De afzonderlijke deployment-runner heeft wel Docker-toegang en accepteert alleen de vertrouwde main-releaseworkflow.
 
-Houd dependencies, de officiële GitHub-runner en basisimages bijgewerkt. De runner is bewust op een gecontroleerde versie geïnstalleerd; werk die bij wanneer GitHub een nieuwe versie vereist.
+Houd dependencies, de officiële GitHub-runner en basisimages bijgewerkt. De runner is op een met checksum gecontroleerde versie geïnstalleerd en gebruikt daarna de officiële automatische updates.

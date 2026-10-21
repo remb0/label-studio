@@ -3,13 +3,6 @@ import { ALL_PRINTER_MODELS, isDesignOnlyModel } from "./model-catalog.ts";
 import { getCompatibilityLevel } from "./compatibility-status.ts";
 import { useLanguage, t } from "../../lib/i18n.ts";
 const repo = "https://github.com/remb0/label-studio/issues/new";
-export type CompatibilityLevel =
-  "untested" | "community-reported" | "studio-certified";
-const CERTIFIED_IDS: ReadonlySet<string> = new Set(); // Hardware certification requires maintainer-reviewed evidence.
-export function getCompatibilityLevel(modelId: string): CompatibilityLevel {
-  if (CERTIFIED_IDS.has(modelId)) return "studio-certified";
-  return "untested"; // Issue submissions cannot upgrade this status automatically.
-}
 export function PrinterCompatibility() {
   const lang = useLanguage((s) => s.language);
   const [id, setId] = useState<string>(ALL_PRINTER_MODELS[0].id);

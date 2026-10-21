@@ -44,6 +44,19 @@ test("custom label settings save and export a clean bitmap without selection or 
   });
   expect(document.settings.rollDirection).toBe("vertical");
 
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Instellingen", exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByLabel("Doorvoerrichting", { exact: true }),
+  ).toHaveValue("vertical");
+  await expect(
+    page.getByLabel("Documentresolutie", { exact: true }),
+  ).toHaveValue("300");
+  await page.getByRole("button", { name: "Instellingen sluiten" }).click();
+
   await page.getByRole("button", { name: /^Nieuw label/ }).click();
   const downloadPromise = page.waitForEvent("download");
   await page

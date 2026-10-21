@@ -23,13 +23,7 @@ import { useEditorV2Store } from "./store/editor-store.ts";
   const cur =
     lib.labels.find((l) => l.id === lib.currentLabelId) ?? lib.labels[0];
   if (cur) {
-    useEditorV2Store.setState({
-      currentLabelId: cur.id,
-      currentLabelName: cur.name,
-      currentLabelDirty: false,
-      elements: structuredClone(cur.elements),
-      label: { ...cur.label },
-    });
+    useEditorV2Store.getState().openLabel(cur.id);
   }
 }
 

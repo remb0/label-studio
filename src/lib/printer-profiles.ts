@@ -1,6 +1,7 @@
 import type { BlePeripheral } from "@thermoprint/core";
 import type { PrintSettings } from "../store/types.ts";
 import { getDevice } from "@thermoprint/core";
+import { isDesignOnlyModel } from "../features/printers/model-catalog.ts";
 
 export interface SavedPrinterProfile {
   peripheral: BlePeripheral;
@@ -13,7 +14,9 @@ const MODEL_KEY = "label-studio:preferred-printer:v1";
 export function loadPreferredPrinterModel(): string | null {
   try {
     const modelId = localStorage.getItem(MODEL_KEY);
-    return modelId && getDevice(modelId) ? modelId : null;
+    return modelId && (getDevice(modelId) || isDesignOnlyModel(modelId))
+      ? modelId
+      : null;
   } catch {
     return null;
   }

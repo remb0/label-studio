@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Printer, ChevronDown, X, Plus, Minus } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
+import { isDesignOnlyModel } from "../../features/printers/model-catalog.ts";
 import {
   usePrintSession,
   isPrintSessionBusy,
@@ -76,6 +77,12 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
     )
       return;
     setPrintError("");
+    if (isDesignOnlyModel(usePrinterStore.getState().preferredModelId)) {
+      setPrintError(
+        "Dit printerprofiel ondersteunt momenteel alleen labelontwerp. Direct printen naar dit model is nog niet beschikbaar.",
+      );
+      return;
+    }
     // If no printer is connected, open the connect flow instead
     if (!printer.connected) {
       setOpen(false);

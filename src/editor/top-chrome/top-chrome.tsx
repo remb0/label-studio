@@ -15,6 +15,7 @@ import { PrinterChip } from "./printer-chip.tsx";
 import { FileChip } from "./file-chip.tsx";
 import { ThemePicker } from "./theme-picker.tsx";
 import logoSvg from "../../assets/logo.svg";
+import { ZoomInput } from "./zoom-input.tsx";
 
 interface TopChromeProps {
   onPrint: (copies: number) => Promise<boolean>;
@@ -89,9 +90,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           >
             <ZoomOut size={15} />
           </button>
-          <div className="px-2 font-mono text-ui-sm text-ink-200 tabular-nums w-[52px] text-center">
-            {Math.round(zoom * 100)}%
-          </div>
+          <ZoomInput />
           <button
             onClick={() => setZoom(zoom + 0.2)}
             className="w-7 h-full flex items-center justify-center text-ink-300 hover:bg-ink-700"
@@ -180,9 +179,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
             >
               <ZoomOut size={12} />
             </button>
-            <div className="px-1 font-mono text-ui-2xs text-ink-200 tabular-nums text-center">
-              {Math.round(zoom * 100)}%
-            </div>
+            <ZoomInput compact />
             <button
               onClick={() => setZoom(zoom + 0.2)}
               className="w-6 h-full flex items-center justify-center text-ink-300 hover:bg-ink-700"

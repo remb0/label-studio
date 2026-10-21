@@ -7,7 +7,10 @@ import "@fontsource/inter/700.css";
 import "@fontsource-variable/jetbrains-mono";
 import "./index.css";
 import { App } from "./App.tsx";
+import { useLanguage } from "./lib/i18n.ts";
 import { useEditorV2Store } from "./store/editor-store.ts";
+
+document.documentElement.lang = useLanguage.getState().language;
 
 // Apply saved UI scale before first paint
 {

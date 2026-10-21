@@ -1,0 +1,59 @@
+export interface FlowControlOptions {
+  starvationTimeoutMs: number;
+  packetDelayMs: number;
+}
+
+export interface LabelSizePreset {
+  widthMm: number;
+  heightMm: number;
+}
+
+export interface DeviceLabelConfig {
+  supportedPaperTypes: ("gap" | "continuous")[];
+  defaultPaperType: "gap" | "continuous";
+  gapSizes: LabelSizePreset[];
+  continuousSizes: LabelSizePreset[];
+  defaultSize: LabelSizePreset;
+}
+
+export interface DeviceProfile {
+  modelId: string;
+  protocolId: string;
+  serviceUuid: string;
+  alternateServices?: { serviceUuid: string; tx: string; rx: string }[];
+  notificationsOptional?: boolean;
+  printWidth?: number;
+  dpi?: number;
+  /** Some protocols cannot acknowledge physical completion. */
+  completionMode?: "acknowledged" | "transmitted";
+  characteristics: { tx: string; rx: string; cx?: string };
+  packetSize?: number;
+  flowControl: Partial<FlowControlOptions>;
+  defaults: { density: number; paperType: "gap" | "continuous" };
+  /** Which command to use for print darkness: "density" (1F 70 02) or "thickness" (10 FF 10 00) */
+  densityCommand?: "density" | "thickness";
+  namePrefixes: string[];
+  /** Optional stricter model boundary check after browser name-prefix filtering. */
+  namePattern?: string;
+  labelConfig?: DeviceLabelConfig;
+}
+
+export interface PrintOptions {
+  density?: number;
+  paperType?: "gap" | "continuous";
+  copies?: number;
+  dither?: "floyd-steinberg" | "threshold" | "none";
+  threshold?: number;
+}
+
+export interface PrinterStatus {
+  status: string;
+  raw: Uint8Array;
+}
+
+export interface PrinterEventMap {
+  status: PrinterStatus;
+  disconnected: { reason?: string };
+  progress: { bytesSent: number; totalBytes: number };
+  printing: { isPrinting: boolean };
+}

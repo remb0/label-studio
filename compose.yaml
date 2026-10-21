@@ -1,0 +1,18 @@
+services:
+  label-studio:
+    image: ${LABEL_STUDIO_IMAGE:-label-studio:local}
+    build:
+      context: .
+      args:
+        COMMIT_SHA: ${COMMIT_SHA:-local}
+    container_name: label-studio
+    restart: unless-stopped
+    ports:
+      - "${LABEL_STUDIO_BIND:-127.0.0.1}:${LABEL_STUDIO_PORT:-3022}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

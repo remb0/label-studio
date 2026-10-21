@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 
 /** Editable zoom percentage; commit on Enter/blur and restore on Escape. */
@@ -7,10 +7,6 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
   const setZoom = useEditorV2Store((s) => s.setZoom);
   const [draft, setDraft] = useState(String(Math.round(zoom * 100)));
   const [editing, setEditing] = useState(false);
-
-  useEffect(() => {
-    if (!editing) setDraft(String(Math.round(zoom * 100)));
-  }, [zoom, editing]);
 
   function commit() {
     const parsed = Number(draft.trim().replace("%", "").replace(",", "."));
@@ -28,8 +24,9 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
         title="Typ een zoompercentage en druk op Enter"
         type="text"
         inputMode="decimal"
-        value={draft}
+        value={editing ? draft : String(Math.round(zoom * 100))}
         onFocus={(event) => {
+          setDraft(String(Math.round(zoom * 100)));
           setEditing(true);
           event.currentTarget.select();
         }}

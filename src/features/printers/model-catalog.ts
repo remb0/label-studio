@@ -41,6 +41,7 @@ export const DESIGN_ONLY_MODELS = [
   { id: "dymo-550", name: "DYMO LabelWriter 550", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
   { id: "dymo-550-turbo", name: "DYMO LabelWriter 550 Turbo", subtitle: "USB/LAN · alleen ontwerpen", silhouette: "wide" },
   { id: "dymo-5xl", name: "DYMO LabelWriter 5XL", subtitle: "USB/LAN · alleen ontwerpen", silhouette: "wide" },
+  { id: "fichero-d11s", name: "Fichero D11s (Action)", subtitle: "14 × 30 mm · alleen ontwerpen", silhouette: "slim" },
   { id: "action-pocket-300", name: "Action mini thermal pocket printer (300 dpi)", subtitle: "50 × 15 mm · alleen ontwerpen", silhouette: "compact" },
 ] as const;
 
@@ -56,6 +57,15 @@ const dymoSizes = [
 const wideDymoSizes = [...dymoSizes, { widthMm: 102, heightMm: 152 }];
 
 export function getDesignModelConfig(id: string) {
+  if (id === "fichero-d11s") return {
+    supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
+    defaultPaperType: "gap" as const,
+    gapSizes: [{ widthMm: 14, heightMm: 30 }],
+    continuousSizes: [],
+    defaultSize: { widthMm: 14, heightMm: 30 },
+    printWidth: 96,
+    dpi: 203,
+  };
   if (id === "action-pocket-300") return {
     supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
     defaultPaperType: "gap" as const,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ALL_PRINTER_MODELS, isDesignOnlyModel } from "./model-catalog.ts";
+import { getCompatibilityLevel } from "./compatibility-status.ts";
 import { useLanguage, t } from "../../lib/i18n.ts";
 const repo = "https://github.com/remb0/label-studio/issues/new";
 export type CompatibilityLevel =

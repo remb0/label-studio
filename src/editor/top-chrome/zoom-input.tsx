@@ -20,7 +20,9 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className={compact ? "flex items-center px-1" : "flex items-center px-1"}>
+    <div
+      className={compact ? "flex items-center px-1" : "flex items-center px-1"}
+    >
       <input
         aria-label="Zoompercentage"
         title="Typ een zoompercentage en druk op Enter"
@@ -43,7 +45,13 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
         }}
         className={`bg-transparent outline-none rounded text-center font-mono text-ink-200 tabular-nums focus:ring-1 focus:ring-accent ${compact ? "w-9 text-ui-2xs" : "w-11 text-ui-sm"}`}
       />
-      <span className={compact ? "text-ui-2xs text-ink-400" : "text-ui-sm text-ink-400"}>%</span>
+      <span
+        className={
+          compact ? "text-ui-2xs text-ink-400" : "text-ui-sm text-ink-400"
+        }
+      >
+        %
+      </span>
     </div>
   );
 }

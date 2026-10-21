@@ -4,7 +4,11 @@ import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
 import { getCompatibilityLevel } from "./PrinterCompatibility.tsx";
 import { useLanguage, t } from "../../lib/i18n.ts";
-import { getPrinterModelDefaults, ALL_PRINTER_MODELS, isDesignOnlyModel } from "./model-catalog.ts";
+import {
+  getPrinterModelDefaults,
+  ALL_PRINTER_MODELS,
+  isDesignOnlyModel,
+} from "./model-catalog.ts";
 
 function PrinterIllustration({
   shape,
@@ -138,11 +142,20 @@ export function PrinterModelPicker({ className = "" }: { className?: string }) {
               <span className="text-ui-xs text-ink-400 mt-1">
                 {model.subtitle}
               </span>
-              <span className="text-ui-xs text-ink-500 mt-1">{t(language,getCompatibilityLevel(model.id)==="studio-certified" ? "certified" : "unknown")}</span>
               <span className="text-ui-xs text-ink-500 mt-1">
-                {isDesignOnlyModel(model.id) ? "Ontwerpprofiel · printen nog niet ondersteund" : config.supportedPaperTypes.includes("continuous")
-                  ? "Losse labels en doorlopend papier"
-                  : "Losse labels"}
+                {t(
+                  language,
+                  getCompatibilityLevel(model.id) === "studio-certified"
+                    ? "certified"
+                    : "unknown",
+                )}
+              </span>
+              <span className="text-ui-xs text-ink-500 mt-1">
+                {isDesignOnlyModel(model.id)
+                  ? "Ontwerpprofiel · printen nog niet ondersteund"
+                  : config.supportedPaperTypes.includes("continuous")
+                    ? "Losse labels en doorlopend papier"
+                    : "Losse labels"}
               </span>
             </button>
           );
@@ -150,7 +163,8 @@ export function PrinterModelPicker({ className = "" }: { className?: string }) {
       </div>
       {defaults && (
         <p className="mt-3 text-ui-sm text-ink-400">
-          {selected && isDesignOnlyModel(selected) ? "Alleen ontwerpen · " : ""}Aanbevolen label: {defaults.recommendedSize.widthMm} ×{" "}
+          {selected && isDesignOnlyModel(selected) ? "Alleen ontwerpen · " : ""}
+          Aanbevolen label: {defaults.recommendedSize.widthMm} ×{" "}
           {defaults.recommendedSize.heightMm} mm · {defaults.dpi} dpi ·
           dichtheid {defaults.density}. Pas de labelmaat aan bij Formaat.
         </p>

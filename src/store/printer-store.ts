@@ -8,7 +8,11 @@ import {
   savePrinterProfile,
 } from "../lib/printer-profiles.ts";
 import { isPrintSessionBusy } from "../lib/print-session.ts";
-import { getModelLabelConfig, getDesignModelConfig, isDesignOnlyModel } from "../features/printers/model-catalog.ts";
+import {
+  getModelLabelConfig,
+  getDesignModelConfig,
+  isDesignOnlyModel,
+} from "../features/printers/model-catalog.ts";
 
 interface PrinterState {
   peripheral: BlePeripheral | null;
@@ -62,7 +66,8 @@ export function applyModelDefaults(modelId: string): void {
   usePrinterStore.getState().updateSettings({
     paperType: lc.defaultPaperType,
     density: (profile?.defaults.density ?? 2) as 1 | 2 | 3,
-    printWidth: profile?.printWidth ?? getDesignModelConfig(modelId)?.printWidth ?? 384,
+    printWidth:
+      profile?.printWidth ?? getDesignModelConfig(modelId)?.printWidth ?? 384,
   });
 }
 
@@ -122,7 +127,12 @@ export const usePrinterStore = create<PrinterState>((set) => ({
       state.isPrinting
     )
       return;
-    if (preferredModelId && !getDevice(preferredModelId) && !isDesignOnlyModel(preferredModelId)) return;
+    if (
+      preferredModelId &&
+      !getDevice(preferredModelId) &&
+      !isDesignOnlyModel(preferredModelId)
+    )
+      return;
     savePreferredPrinterModel(preferredModelId);
     set({ preferredModelId });
     if (preferredModelId) applyModelDefaults(preferredModelId);

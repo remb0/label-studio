@@ -250,14 +250,27 @@ export function App() {
             <span>{t(language, "settings")}</span>
           </button>
         </div>
-        <label className="studio-language" title={t(language,"language")}><Languages size={14} /><select aria-label={t(language,"language")} value={language} onChange={(e) => setLanguage(e.target.value as Language)}>{LANGUAGES.map((lang)=><option key={lang} value={lang}>{lang.toUpperCase()}</option>)}</select></label>
+        <label className="studio-language" title={t(language, "language")}>
+          <Languages size={14} />
+          <select
+            aria-label={t(language, "language")}
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+          >
+            {LANGUAGES.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </label>
         <button
           className="studio-connection"
           disabled={busy}
           onClick={() => (connected ? setPage("printer") : openConnect())}
         >
           <span className={connected ? "connected" : ""} />
-          {t(language,connected ? "connected" : "connect")}
+          {t(language, connected ? "connected" : "connect")}
         </button>
       </nav>
       {!window.isSecureContext && (

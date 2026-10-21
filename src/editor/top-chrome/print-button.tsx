@@ -78,7 +78,9 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
       return;
     setPrintError("");
     if (isDesignOnlyModel(usePrinterStore.getState().preferredModelId)) {
-      setPrintError("Dit printerprofiel ondersteunt momenteel alleen labelontwerp. Direct printen naar dit model is nog niet beschikbaar.");
+      setPrintError(
+        "Dit printerprofiel ondersteunt momenteel alleen labelontwerp. Direct printen naar dit model is nog niet beschikbaar.",
+      );
       return;
     }
     // If no printer is connected, open the connect flow instead

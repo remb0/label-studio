@@ -1,4 +1,4 @@
-import { getDevice } from "@thermoprint/core";
+import { getModelLabelConfig } from "../features/printers/model-catalog.ts";
 import type { LabelSize } from "../store/editor-store.ts";
 import { resizeLabel, toPixels } from "./document.ts";
 
@@ -88,10 +88,13 @@ export const FORMAT_PRESETS: FormatPreset[] = [
 ];
 
 export function getFormatPresets(modelId: string | null): FormatPreset[] {
-  const config = modelId ? getDevice(modelId)?.labelConfig : undefined;
-  const presets = FORMAT_PRESETS.filter(
-    (p) => !config || config.supportedPaperTypes.includes(p.paperType),
-  );
+  const config = getModelLabelConfig(modelId);
+  const presets = FORMAT_PRESETS.filter((p) => {
+    if (!config) return true;
+    if (!config.supportedPaperTypes.includes(p.paperType)) return false;
+    const sizes = p.paperType === "gap" ? config.gapSizes : config.continuousSizes;
+    return sizes.some((size) => size.widthMm === p.widthMm && size.heightMm === p.heightMm);
+  });
   for (const paperType of ["gap", "continuous"] as const) {
     const sizes =
       paperType === "gap" ? config?.gapSizes : config?.continuousSizes;

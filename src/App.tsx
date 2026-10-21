@@ -186,9 +186,9 @@ export function App() {
   const connected = usePrinterStore((s) => s.isConnected);
   const busy = usePrintSession();
   const navigation = [
-    ["editor", "Ontwerpen", PenTool],
-    ["single", "Adreslabels", Mail],
-    ["bulk", "Bulklabels", Rows3],
+    ["editor", "editor", PenTool],
+    ["single", "single", Mail],
+    ["bulk", "bulk", Rows3],
     ["printer", "printer", PrinterIcon],
     ["about", "about", Info],
     ["account", "account", UserRound],

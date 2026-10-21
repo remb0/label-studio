@@ -7,6 +7,9 @@ import {
   Settings,
   Printer as PrinterIcon,
   PenTool,
+  Info,
+  UserRound,
+  Languages,
 } from "lucide-react";
 import { Editor } from "./editor/editor.tsx";
 import { ConnectFlow } from "./editor/connect-flow/connect-flow.tsx";
@@ -25,12 +28,17 @@ import {
   isPrintSessionBusy,
   usePrintSession,
 } from "./lib/print-session.ts";
+import { useLanguage, t, LANGUAGES, type Language } from "./lib/i18n.ts";
+import { AboutPage } from "./features/about/AboutPage.tsx";
+import { AccountPage } from "./features/account/AccountPage.tsx";
+import { PrinterSubmission } from "./features/printers/PrinterSubmission.tsx";
+import { PrinterCompatibility } from "./features/printers/PrinterCompatibility.tsx";
 import "./studio.css";
 
 declare const __APP_VERSION__: string;
 declare const __COMMIT_SHA__: string;
 
-type Page = "editor" | "single" | "bulk" | "printer";
+type Page = "editor" | "single" | "bulk" | "printer" | "about" | "account";
 
 function openConnect() {
   if (isPrintSessionBusy()) return;
@@ -159,6 +167,8 @@ function PrinterWorkspace() {
           {diagnostic && <pre aria-live="polite">{diagnostic}</pre>}
         </article>
       </div>
+      <PrinterCompatibility />
+      <PrinterSubmission />
       <CalibrationWizard />
       <p className="studio-footnote">
         Label Studio {__APP_VERSION__} · commit {__COMMIT_SHA__.slice(0, 12)} ·
@@ -170,6 +180,8 @@ function PrinterWorkspace() {
 
 export function App() {
   const [page, setPage] = useState<Page>("editor");
+  const language = useLanguage((s) => s.language);
+  const setLanguage = useLanguage((s) => s.setLanguage);
   const [panel, setPanel] = useState<"library" | "settings" | null>(null);
   const connected = usePrinterStore((s) => s.isConnected);
   const busy = usePrintSession();
@@ -177,7 +189,9 @@ export function App() {
     ["editor", "Ontwerpen", PenTool],
     ["single", "Adreslabels", Mail],
     ["bulk", "Bulklabels", Rows3],
-    ["printer", "Printer", PrinterIcon],
+    ["printer", "printer", PrinterIcon],
+    ["about", "about", Info],
+    ["account", "account", UserRound],
   ] as const;
   useEffect(() => {
     const formats = () => {
@@ -224,25 +238,26 @@ export function App() {
               }}
             >
               <Icon size={15} />
-              <span>{name}</span>
+              <span>{t(language, name)}</span>
             </button>
           ))}
           <button disabled={busy} onClick={() => setPanel("library")}>
             <LayoutTemplate size={15} />
-            <span>Sjablonen</span>
+            <span>{t(language, "templates")}</span>
           </button>
           <button disabled={busy} onClick={() => setPanel("settings")}>
             <Settings size={15} />
-            <span>Instellingen</span>
+            <span>{t(language, "settings")}</span>
           </button>
         </div>
+        <label className="studio-language" title={t(language,"language")}><Languages size={14} /><select aria-label={t(language,"language")} value={language} onChange={(e) => setLanguage(e.target.value as Language)}>{LANGUAGES.map((lang)=><option key={lang} value={lang}>{lang.toUpperCase()}</option>)}</select></label>
         <button
           className="studio-connection"
           disabled={busy}
           onClick={() => (connected ? setPage("printer") : openConnect())}
         >
           <span className={connected ? "connected" : ""} />
-          {connected ? "Verbonden" : "Verbinden"}
+          {t(language,connected ? "connected" : "connect")}
         </button>
       </nav>
       {!window.isSecureContext && (
@@ -262,6 +277,10 @@ export function App() {
           <Editor />
         ) : page === "printer" ? (
           <PrinterWorkspace />
+        ) : page === "about" ? (
+          <AboutPage />
+        ) : page === "account" ? (
+          <AccountPage />
         ) : null}
         <div
           style={{

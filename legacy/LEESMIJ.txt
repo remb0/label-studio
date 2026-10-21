@@ -1,0 +1,37 @@
+FICHERO ADRESLABELS VOOR MAC
+
+Open start.command met een dubbelklik. De app opent in Google Chrome.
+Laat het Terminal-venster open zolang je de app gebruikt.
+
+1. Kies 52 mm doorlopende rol of 52 x 30 mm etiketten.
+2. Vul een adres in, of importeer een gebruikers-CSV. Alleen Actief = Ja
+   wordt overgenomen. Klik op een adres of zijn vinkje om dat adres in het
+   grote voorbeeld te zien. Rechts staan ook alle geselecteerde etiketten
+   als afzonderlijke voorbeelden, met hetzelfde logo op dezelfde positie.
+3. Kies staand of liggend en versleep tekst of logo in het voorbeeld.
+   Tekstgrootte, vet, cursief en onderstrepen zijn instelbaar.
+4. Zet de Fichero 3561 aan en klik op Verbind via Bluetooth.
+5. Kies LuckP_D1S_F828_BLE in Chrome. Print het adres in het grote voorbeeld
+   met Print etiket, of print de geselecteerde complete adressen onder de
+   voorbeeldgalerij. Een onvolledige, niet geselecteerde rij blokkeert de
+   overige geselecteerde adressen niet.
+
+Open de app niet als los index.html-bestand in de ingebouwde browser.
+Bluetooth werkt via de start.command-launcher op localhost in Chrome.
+
+De printkop is circa 48 mm breed op 203 dpi. De doorlopende stand gebruikt
+een ontwerp van 56 mm per adres; de etikettenstand gebruikt 30 mm.
+Bij zakelijk gebruikt de CSV Bedrijfsnaam en T.a.v. Naam. Als een van de
+vereiste adresvelden ontbreekt, is die rij gemarkeerd en niet voorgeselecteerd.
+Je kunt de gegevens bovenaan aanvullen en de rij daarna selecteren.
+Probeer eerst één adres voordat je een batch afdrukt. De Bluetooth-route
+gebruikt het gepubliceerde DP_D1/LuckPrinter-protocol; de uitkomst en
+snelheid verschillen per firmware en BLE-verbinding.
+
+Bewaar PNG maakt een afbeelding die je ook in andere software kunt gebruiken.
+Mac-afdrukdialoog werkt alleen als de printer via macOS al is geïnstalleerd.
+De app gebruikt geen internet en verstuurt adressen of afbeeldingen nergens heen.
+
+Protocolbronnen:
+https://github.com/0xMH/fichero-printer/blob/main/docs/PROTOCOL.md
+https://github.com/ChiaraCannolee/thermal-pocket-printer-basic/blob/main/PROTOCOL.md

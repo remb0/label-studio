@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+playwright-report/
+test-results/
+coverage/
+# Original loose files remain on disk; their preserved baseline is in legacy/.
+/app.js
+/csv.js
+/style.css
+/LEESMIJ.txt
+/BoxCare BW.png
+/BoxCare_thermisch.jpeg
+/BoxCare_thermisch.png
+/boxcare-logo.png
+/boxcare-box.webp

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fichero adreslabels</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div><span class="eyebrow">FICHERO 3561 / LUCKP_D1S · 203 DPI · VERSIE 8</span><h1>Adreslabels</h1></div>
+    <span id="connection" class="connection">Niet verbonden</span>
+  </header>
+  <main>
+    <section class="controls" aria-label="Etiket instellen">
+      <h2>Adres</h2>
+      <label>Bedrijfsnaam <span class="muted">alleen zakelijk</span><input id="company" placeholder="Bedrijfsnaam"></label>
+      <label>Naam / contactpersoon<input id="name" autocomplete="name" placeholder="Naam"></label>
+      <label>Straat en huisnummer<input id="street" autocomplete="street-address" placeholder="Straat 12"></label>
+      <div class="split"><label>Postcode<input id="postal" autocomplete="postal-code" placeholder="1234 AB"></label><label>Plaats<input id="city" autocomplete="address-level2" placeholder="Amsterdam"></label></div>
+      <label>Extra regel <span class="muted">optioneel</span><input id="extra" placeholder="Land of toevoeging"></label>
+
+      <h2>CSV-adressen</h2>
+      <label class="filelabel">Importeer gebruikers-CSV<input id="csvFile" type="file" accept=".csv,text/csv,text/plain"></label>
+      <p id="importSummary" class="note">De CSV wordt alleen in deze browser gelezen. Alleen rijen met Actief = Ja worden getoond.</p>
+      <div class="actions compact"><button id="selectAll" class="secondary" type="button" disabled>Selecteer geldige</button><button id="clearSelection" class="secondary" type="button" disabled>Deselecteer alle</button></div>
+      <div id="addressList" class="address-list" aria-label="Geïmporteerde adressen"></div>
+
+      <h2>Logo of afbeelding</h2>
+      <div class="split"><button id="useLogo" class="secondary" type="button">BoxCare-logo</button><button id="useIcon" class="secondary" type="button">Alleen box-icoon</button></div>
+      <label class="filelabel">Of kies een eigen afbeelding<input id="image" type="file" accept="image/*"></label>
+      <label>Grootte <output id="scaleValue" for="imageScale">100%</output><input id="imageScale" type="range" min="20" max="250" value="100" step="5"></label>
+      <label>Laag<select id="imageLayer"><option value="front">Voor de tekst</option><option value="back" selected>Achter de tekst</option></select></label>
+      <p class="note">Sleep het logo in het voorbeeld naar elke gewenste plek. Met de schuifregelaar kun je het ook groter dan het etiket maken.</p>
+      <div class="split"><button id="resetPosition" class="secondary" type="button">Midden plaatsen</button><button id="removeImage" class="secondary" type="button">Afbeelding verwijderen</button></div>
+
+      <h2>Opmaak</h2>
+      <label>Papier<select id="paperFormat"><option value="continuous" selected>52 mm breed · doorlopende rol</option><option value="labels30">52 × 30 mm · losse etiketten</option></select></label>
+      <label>Voorbeeldrichting<select id="layout"><option value="landscape" selected>Liggend · tekst over de rolbreedte</option><option value="portrait">Staand · tekst 90° gedraaid</option></select></label>
+      <label>Tekstgrootte <output id="fontSizeValue" for="fontSize">24 px</output><input id="fontSize" type="range" min="12" max="48" value="24" step="1"></label>
+      <div class="actions compact format-buttons"><button id="bold" class="secondary active" type="button" aria-pressed="true"><strong>Vet</strong></button><button id="italic" class="secondary" type="button" aria-pressed="false"><em>Cursief</em></button><button id="underline" class="secondary" type="button" aria-pressed="false"><u>Onderstreept</u></button></div>
+      <label>Versleep op voorbeeld<select id="dragTarget"><option value="text" selected>Tekstblok</option><option value="image">Logo / afbeelding</option></select></label>
+      <div class="actions compact"><button id="resetTextPosition" class="secondary" type="button">Tekst naar midden</button><label>Afdruksterkte<select id="density"><option value="0">Licht</option><option value="1" selected>Normaal</option><option value="2">Donker</option></select></label></div>
+      <label class="checkbox"><input id="border" type="checkbox"> Rand om het etiket</label>
+      <p class="note">Op het papier van 52 mm gebruikt de app de printbare breedte van circa 48 mm. Op de doorlopende rol is één adres 56 mm lang; de 52 × 30 mm stand gebruikt één etiket per adres.</p>
+    </section>
+
+    <section class="preview" aria-label="Voorbeeld en afdrukken">
+      <div class="previewhead"><div><h2>Voorbeeld <span id="previewName" class="muted"></span></h2><p id="dimensions">52 × 56 mm papier · zwart-wit · 384 × 448 afdrukpunten</p></div></div>
+      <div class="paper"><canvas id="label" width="384" height="448" aria-label="Voorbeeld van het adreslabel"></canvas></div>
+      <p id="warning" class="warning" role="status"></p>
+      <section class="batch-preview" aria-label="Voorbeelden van geselecteerde adressen">
+        <h3>Geselecteerde adressen <span id="previewCount" class="muted"></span></h3>
+        <p class="note">Elk voorbeeld toont het etiket dat geprint wordt, inclusief het logo op dezelfde positie. Klik op een voorbeeld om dat adres te bewerken.</p>
+        <div id="selectedPreviews" class="preview-grid"></div>
+        <button id="printBatch" type="button" disabled>Print geselecteerde adressen</button>
+      </section>
+      <div class="actions"><button id="connect" type="button">Verbind via Bluetooth</button><button id="print" type="button" disabled>Print etiket</button></div>
+      <div class="actions"><button id="testPrint" class="secondary" type="button" disabled>Print vierkant testpatroon</button><button id="diagnose" class="secondary" type="button" disabled>Lees printerdiagnose</button></div>
+      <p class="note">Het testpatroon hoort een vierkant van 20 × 20 mm te zijn. Daarmee kun je zien of de afdruk vervormt.</p>
+      <pre id="diagnosticResult" class="status" aria-live="polite"></pre>
+      <div class="actions secondary-actions"><button id="download" class="secondary" type="button">Bewaar PNG</button><button id="systemPrint" class="secondary" type="button">Mac-afdrukdialoog</button></div>
+      <p id="status" class="status" role="status">Vul een adres in en kies eventueel een afbeelding. Open de app via start.command in Chrome voor Bluetooth.</p>
+      <details><summary>Afdrukken en papier</summary><p>Kies 52 mm doorlopend of 52 × 30 mm etiketten. Kies bij directe Bluetooth-afdruk LuckP_D1S_F828_BLE. Open de app via start.command in Chrome. De Mac-afdrukdialoog werkt alleen als de printer al als macOS-printer is geïnstalleerd.</p></details>
+    </section>
+  </main>
+  <script src="csv.js?v=8"></script>
+  <script src="app.js?v=8"></script>
+</body>
+</html>

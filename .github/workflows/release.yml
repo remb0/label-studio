@@ -1,0 +1,89 @@
+name: Release
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: label-studio-production
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.ref }}
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Resolve source
+        id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/remb0/label-studio:${{ steps.source.outputs.commit }}
+          build-args: COMMIT_SHA=${{ steps.source.outputs.commit }}
+      - id: image
+        run: echo 'ref=ghcr.io/remb0/label-studio@${{ steps.build.outputs.digest }}' >> "$GITHUB_OUTPUT"
+  deploy:
+    needs: publish
+    # Only the trusted main branch may run Docker commands on the LAN runner.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, label-studio-deploy]
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.publish.outputs.commit }}
+      - name: Skip an outdated main release
+        id: freshness
+        env:
+          EXPECTED_COMMIT: ${{ needs.publish.outputs.commit }}
+        run: |
+          current_main=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [[ "$current_main" == "$EXPECTED_COMMIT" ]]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping outdated release $EXPECTED_COMMIT; main is $current_main"
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pull and deploy immutable image
+        if: steps.freshness.outputs.current == 'true'
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          LABEL_STUDIO_IMAGE: ${{ needs.publish.outputs.image }}
+          EXPECTED_COMMIT: ${{ needs.publish.outputs.commit }}
+        run: |
+          export DOCKER_CONFIG="$(mktemp -d)"
+          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          bash scripts/deploy-image.sh

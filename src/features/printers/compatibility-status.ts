@@ -1,4 +1,5 @@
-export type CompatibilityLevel = "untested" | "community-reported" | "studio-certified";
+export type CompatibilityLevel =
+  "untested" | "community-reported" | "studio-certified";
 
 /** Only maintainer-reviewed, physically tested printers should be added here. */
 const CERTIFIED_IDS: ReadonlySet<string> = new Set();

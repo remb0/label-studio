@@ -159,4 +159,8 @@ test("generate README screenshots with fictional demo content", async ({
     page.getByRole("region", { name: "Printermodel kiezen" }),
   ).toBeVisible();
   await page.screenshot({ path: "docs/images/printers.png" });
+  await page.getByRole("button", { name: "Kalibratie starten" }).click();
+  await page.getByRole("button", { name: "Verder naar testlabel" }).click();
+  await expect(page.getByLabel("Voorbeeld kalibratielabel")).toBeVisible();
+  await page.screenshot({ path: "docs/images/calibration.png" });
 });

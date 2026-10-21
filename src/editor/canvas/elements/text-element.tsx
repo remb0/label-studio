@@ -1,9 +1,13 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useReducer } from "react";
 import { Text } from "react-konva";
 import type Konva from "konva";
 import type { BaseElement } from "../../../store/editor-store.ts";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
 import { ElementWrapper } from "./element-wrapper.tsx";
+import {
+  getTextLayout,
+  textFontStyle,
+} from "../../../label/text-fit-layout.ts";
 
 interface Props {
   element: BaseElement;
@@ -17,6 +21,7 @@ export function TextElement({ element, isSelected }: Props) {
   const editingTextId = useEditorV2Store((s) => s.editingTextId);
 
   const isEditing = editingTextId === element.id;
+  const [, fontLoaded] = useReducer((n: number) => n + 1, 0);
 
   const p = element.props as {
     text?: string;
@@ -27,15 +32,12 @@ export function TextElement({ element, isSelected }: Props) {
     fill?: string;
     align?: string;
     italic?: boolean;
+    autoFit?: boolean;
   };
 
-  const fontStyle =
-    [
-      p.italic ? "italic" : "",
-      p.fontWeight && p.fontWeight >= 700 ? "bold" : "",
-    ]
-      .filter(Boolean)
-      .join(" ") || "normal";
+  const fontStyle = textFontStyle(element.props);
+  const fittedLayout = p.autoFit ? getTextLayout(element) : null;
+  const renderedFontSize = fittedLayout?.fontSize ?? (p.fontSize || 18);
 
   // Auto-measure height after font loads
   useEffect(() => {
@@ -43,20 +45,25 @@ export function TextElement({ element, isSelected }: Props) {
     if (!node) return;
     const measure = () => {
       if (!ref.current) return;
+      if (p.autoFit) return;
       const h = ref.current.height();
       if (Math.abs(h - element.height) > 1) {
         updateElement(element.id, { height: h });
       }
     };
-    document.fonts.load(`16px "${p.fontFamily || "Inter"}"`).then(() => {
-      node.getLayer()?.batchDraw();
-      requestAnimationFrame(measure);
-    });
+    document.fonts
+      .load(`${fontStyle} 16px "${p.fontFamily || "Inter"}"`)
+      .then(() => {
+        fontLoaded();
+        node.getLayer()?.batchDraw();
+        requestAnimationFrame(measure);
+      });
     requestAnimationFrame(measure);
   }, [
     p.text,
     p.fontSize,
     p.fontFamily,
+    p.autoFit,
     fontStyle,
     element.width,
     element.id,
@@ -92,7 +99,7 @@ export function TextElement({ element, isSelected }: Props) {
     textarea.style.width = `${element.width * scale.x}px`;
     textarea.style.height = `${element.height * scale.y}px`;
     textarea.style.boxSizing = "content-box";
-    const scaledFontSize = (p.fontSize || 18) * scale.y;
+    const scaledFontSize = renderedFontSize * scale.y;
     textarea.style.fontSize = `${scaledFontSize}px`;
     textarea.style.fontFamily = `'${p.fontFamily || "Inter"}', sans-serif`;
     // Match Konva's fontStyle exactly: "normal", "bold", "italic", or "italic bold"
@@ -128,6 +135,9 @@ export function TextElement({ element, isSelected }: Props) {
     const autoSize = () => {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
+      // Keep the store (and crash-recovery draft) current while focus remains
+      // in the floating textarea; blur is not guaranteed before a tab closes.
+      updateElement(element.id, { props: { text: textarea.value } });
     };
     textarea.addEventListener("input", autoSize);
 
@@ -145,6 +155,7 @@ export function TextElement({ element, isSelected }: Props) {
       if (e.key === "Escape") {
         // Cancel — restore original text
         textarea.removeEventListener("blur", commit);
+        updateElement(element.id, { props: { text: p.text ?? "" } });
         useEditorV2Store.setState({ editingTextId: null });
         document.body.removeChild(textarea);
         node.show();
@@ -155,7 +166,7 @@ export function TextElement({ element, isSelected }: Props) {
         textarea.blur();
       }
     });
-  }, [element, p, updateElement, fontStyle]);
+  }, [element, p, updateElement, fontStyle, renderedFontSize]);
 
   return (
     <>
@@ -165,9 +176,10 @@ export function TextElement({ element, isSelected }: Props) {
         x={element.x}
         y={element.y}
         width={element.width}
+        height={fittedLayout?.fits ? element.height : undefined}
         rotation={element.rotation}
-        text={p.text || "Text"}
-        fontSize={p.fontSize || 18}
+        text={p.text ?? ""}
+        fontSize={renderedFontSize}
         fontFamily={p.fontFamily || "Inter"}
         fontStyle={fontStyle}
         letterSpacing={p.letterSpacing || 0}
@@ -198,7 +210,9 @@ export function TextElement({ element, isSelected }: Props) {
             x: node.x(),
             y: node.y(),
             width: newWidth,
-            height: node.height(),
+            height: p.autoFit
+              ? Math.max(4, node.height() * scaleY)
+              : node.height(),
             rotation: node.rotation(),
             props: { fontSize: newFontSize },
           });

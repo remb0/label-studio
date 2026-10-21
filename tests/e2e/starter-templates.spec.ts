@@ -20,7 +20,9 @@ test("built-in templates create independent editable copies and preserve saved o
     .getByRole("button", { name: "Sjablonen", exact: true })
     .click();
   const starters = page.getByRole("region", { name: "Start met een sjabloon" });
-  await expect(starters.getByRole("button")).toHaveCount(8);
+  await expect(
+    starters.getByRole("button", { name: /^Gebruik sjabloon/ }),
+  ).toHaveCount(8);
   await starters
     .getByRole("button", { name: "Gebruik sjabloon Product & prijs" })
     .click();

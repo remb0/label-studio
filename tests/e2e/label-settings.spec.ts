@@ -120,7 +120,7 @@ test("editor objects survive save, new document and reopen", async ({
     .click();
   await page
     .getByRole("dialog", { name: "Sjablonen" })
-    .getByRole("button", { name: /Nieuw label.*5 el/ })
+    .getByRole("button", { name: "Open sjabloon Nieuw label", exact: true })
     .click();
   await expect(page.getByText("5 elements", { exact: true })).toBeVisible();
 });

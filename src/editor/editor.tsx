@@ -16,6 +16,9 @@ import { usePrinterStore } from "../store/printer-store.ts";
 import { toPixels } from "../label/document.ts";
 import { acquirePrintSession } from "../lib/print-session.ts";
 import { GettingStarted } from "../features/start/GettingStarted.tsx";
+import { ContentWarnings } from "./content-warnings.tsx";
+import { assertLabelContentFits } from "../label/text-fit-layout.ts";
+import { calibratePrinterImage } from "../features/calibration/print-calibration.ts";
 
 function captureLabel(
   stage: Konva.Stage,
@@ -82,6 +85,7 @@ export function Editor() {
       if (!stage) return;
       if (useEditorV2Store.getState().editingTextId)
         (document.activeElement as HTMLElement | null)?.blur();
+      await document.fonts.ready;
       await new Promise((resolve) => requestAnimationFrame(resolve));
       const { label, currentLabelName } = useEditorV2Store.getState();
       const canvas = captureLabel(stage, label.widthPx, label.heightPx);
@@ -126,6 +130,9 @@ export function Editor() {
       await new Promise((r) => requestAnimationFrame(r));
 
       // Capture the label region at 1:1 pixel resolution
+      await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      assertLabelContentFits(useEditorV2Store.getState().elements, label);
       const raw = captureLabel(stage, label.widthPx, label.heightPx);
       const oriented =
         rollDirection === "horizontal" ? rotateCanvas90CW(raw) : raw;
@@ -171,7 +178,7 @@ export function Editor() {
 
       try {
         // Send to the real printer
-        await printer.print(imageData, {
+        await printer.print(calibratePrinterImage(imageData), {
           density: printSettings.density,
           paperType,
           copies,
@@ -201,6 +208,7 @@ export function Editor() {
       <div className="relative flex-1 min-h-0 flex flex-col">
         <Canvas ref={stageRef} />
         <GettingStarted />
+        <ContentWarnings />
         <Inspector />
         <Dock />
         <PrintProgressToast />

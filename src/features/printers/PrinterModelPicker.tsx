@@ -2,7 +2,7 @@ import { Bluetooth, Check } from "lucide-react";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
-import { getCompatibilityLevel } from "./PrinterCompatibility.tsx";
+import { getCompatibilityLevel } from "./compatibility-status.ts";
 import { useLanguage, t } from "../../lib/i18n.ts";
 import {
   getPrinterModelDefaults,

@@ -135,6 +135,9 @@ export function TextElement({ element, isSelected }: Props) {
     const autoSize = () => {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
+      // Keep the store (and crash-recovery draft) current while focus remains
+      // in the floating textarea; blur is not guaranteed before a tab closes.
+      updateElement(element.id, { props: { text: textarea.value } });
     };
     textarea.addEventListener("input", autoSize);
 
@@ -152,6 +155,7 @@ export function TextElement({ element, isSelected }: Props) {
       if (e.key === "Escape") {
         // Cancel — restore original text
         textarea.removeEventListener("blur", commit);
+        updateElement(element.id, { props: { text: p.text ?? "" } });
         useEditorV2Store.setState({ editingTextId: null });
         document.body.removeChild(textarea);
         node.show();

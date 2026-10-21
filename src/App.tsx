@@ -32,6 +32,7 @@ import { useLanguage, t, LANGUAGES, type Language } from "./lib/i18n.ts";
 import { AboutPage } from "./features/about/AboutPage.tsx";
 import { AccountPage } from "./features/account/AccountPage.tsx";
 import { PrinterSubmission } from "./features/printers/PrinterSubmission.tsx";
+import { BluetoothBrowserHelp } from "./features/printers/BluetoothBrowserHelp.tsx";
 import { PrinterCompatibility } from "./features/printers/PrinterCompatibility.tsx";
 import "./studio.css";
 
@@ -167,6 +168,7 @@ function PrinterWorkspace() {
           {diagnostic && <pre aria-live="polite">{diagnostic}</pre>}
         </article>
       </div>
+      <BluetoothBrowserHelp />
       <PrinterCompatibility />
       <PrinterSubmission />
       <CalibrationWizard />

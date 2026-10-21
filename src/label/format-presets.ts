@@ -92,8 +92,11 @@ export function getFormatPresets(modelId: string | null): FormatPreset[] {
   const presets = FORMAT_PRESETS.filter((p) => {
     if (!config) return true;
     if (!config.supportedPaperTypes.includes(p.paperType)) return false;
-    const sizes = p.paperType === "gap" ? config.gapSizes : config.continuousSizes;
-    return sizes.some((size) => size.widthMm === p.widthMm && size.heightMm === p.heightMm);
+    const sizes =
+      p.paperType === "gap" ? config.gapSizes : config.continuousSizes;
+    return sizes.some(
+      (size) => size.widthMm === p.widthMm && size.heightMm === p.heightMm,
+    );
   });
   for (const paperType of ["gap", "continuous"] as const) {
     const sizes =

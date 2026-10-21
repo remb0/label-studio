@@ -14,7 +14,9 @@ const MODEL_KEY = "label-studio:preferred-printer:v1";
 export function loadPreferredPrinterModel(): string | null {
   try {
     const modelId = localStorage.getItem(MODEL_KEY);
-    return modelId && (getDevice(modelId) || isDesignOnlyModel(modelId)) ? modelId : null;
+    return modelId && (getDevice(modelId) || isDesignOnlyModel(modelId))
+      ? modelId
+      : null;
   } catch {
     return null;
   }

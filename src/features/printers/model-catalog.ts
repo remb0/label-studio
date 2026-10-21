@@ -33,16 +33,66 @@ export const PRINTER_MODELS = [
 
 /** Design-only models: no Bluetooth protocol is assigned to these printers. */
 export const DESIGN_ONLY_MODELS = [
-  { id: "dymo-450", name: "DYMO LabelWriter 450", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-450-turbo", name: "DYMO LabelWriter 450 Turbo", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-450-twin", name: "DYMO LabelWriter 450 Twin Turbo", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-450-duo", name: "DYMO LabelWriter 450 Duo", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-4xl", name: "DYMO LabelWriter 4XL", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-550", name: "DYMO LabelWriter 550", subtitle: "USB · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-550-turbo", name: "DYMO LabelWriter 550 Turbo", subtitle: "USB/LAN · alleen ontwerpen", silhouette: "wide" },
-  { id: "dymo-5xl", name: "DYMO LabelWriter 5XL", subtitle: "USB/LAN · alleen ontwerpen", silhouette: "wide" },
-  { id: "fichero-d11s", name: "Fichero D11s (Action)", subtitle: "14 × 30 mm · alleen ontwerpen", silhouette: "slim" },
-  { id: "action-pocket-300", name: "Action mini thermal pocket printer (300 dpi)", subtitle: "50 × 15 mm · alleen ontwerpen", silhouette: "compact" },
+  {
+    id: "dymo-450",
+    name: "DYMO LabelWriter 450",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-450-turbo",
+    name: "DYMO LabelWriter 450 Turbo",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-450-twin",
+    name: "DYMO LabelWriter 450 Twin Turbo",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-450-duo",
+    name: "DYMO LabelWriter 450 Duo",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-4xl",
+    name: "DYMO LabelWriter 4XL",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-550",
+    name: "DYMO LabelWriter 550",
+    subtitle: "USB · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-550-turbo",
+    name: "DYMO LabelWriter 550 Turbo",
+    subtitle: "USB/LAN · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "dymo-5xl",
+    name: "DYMO LabelWriter 5XL",
+    subtitle: "USB/LAN · alleen ontwerpen",
+    silhouette: "wide",
+  },
+  {
+    id: "fichero-d11s",
+    name: "Fichero D11s (Action)",
+    subtitle: "14 × 30 mm · alleen ontwerpen",
+    silhouette: "slim",
+  },
+  {
+    id: "action-pocket-300",
+    name: "Action mini thermal pocket printer (300 dpi)",
+    subtitle: "50 × 15 mm · alleen ontwerpen",
+    silhouette: "compact",
+  },
 ] as const;
 
 export const ALL_PRINTER_MODELS = [...PRINTER_MODELS, ...DESIGN_ONLY_MODELS];
@@ -57,27 +107,32 @@ const dymoSizes = [
 const wideDymoSizes = [...dymoSizes, { widthMm: 102, heightMm: 152 }];
 
 export function getDesignModelConfig(id: string) {
-  if (id === "fichero-d11s") return {
-    supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
-    defaultPaperType: "gap" as const,
-    gapSizes: [{ widthMm: 14, heightMm: 30 }],
-    continuousSizes: [],
-    defaultSize: { widthMm: 14, heightMm: 30 },
-    printWidth: 96,
-    dpi: 203,
-  };
-  if (id === "action-pocket-300") return {
-    supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
-    defaultPaperType: "gap" as const,
-    gapSizes: [{ widthMm: 50, heightMm: 15 }],
-    continuousSizes: [],
-    defaultSize: { widthMm: 50, heightMm: 15 },
-    printWidth: 0,
-    dpi: 300,
-  };
-  if (!id.startsWith("dymo-") || !DESIGN_ONLY_MODELS.some((m) => m.id === id)) return null;
+  if (id === "fichero-d11s")
+    return {
+      supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
+      defaultPaperType: "gap" as const,
+      gapSizes: [{ widthMm: 14, heightMm: 30 }],
+      continuousSizes: [],
+      defaultSize: { widthMm: 14, heightMm: 30 },
+      printWidth: 96,
+      dpi: 203,
+    };
+  if (id === "action-pocket-300")
+    return {
+      supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
+      defaultPaperType: "gap" as const,
+      gapSizes: [{ widthMm: 50, heightMm: 15 }],
+      continuousSizes: [],
+      defaultSize: { widthMm: 50, heightMm: 15 },
+      printWidth: 0,
+      dpi: 300,
+    };
+  if (!id.startsWith("dymo-") || !DESIGN_ONLY_MODELS.some((m) => m.id === id))
+    return null;
   const large = id === "dymo-4xl" || id === "dymo-5xl";
-  const gapSizes = (large ? wideDymoSizes : dymoSizes).filter((size) => large || size.widthMm <= 57);
+  const gapSizes = (large ? wideDymoSizes : dymoSizes).filter(
+    (size) => large || size.widthMm <= 57,
+  );
   return {
     supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
     defaultPaperType: "gap" as const,

@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { isDesignOnlyModel } from "../features/printers/model-catalog.ts";
 import {
   getFormatPresets,
   type FormatPreset,
@@ -43,6 +44,7 @@ export function FormatPicker({
               54 / preset.heightMm,
             );
             const tooWide =
+              !isDesignOnlyModel(modelId) &&
               maxPixels !== undefined &&
               exceedsPrintWidth(preset, preset.rollDirection, maxPixels);
             return (
@@ -55,7 +57,9 @@ export function FormatPicker({
                   type="button"
                   aria-label={`${preset.name}, ${preset.widthMm} × ${preset.heightMm} mm, ${preset.paperType === "gap" ? "los label" : "doorlopend"}`}
                   aria-pressed={active}
-                  onClick={() => { if (!tooWide) onSelect(preset); }}
+                  onClick={() => {
+                    if (!tooWide) onSelect(preset);
+                  }}
                   disabled={tooWide}
                   className={`relative w-full min-w-0 h-full rounded-xl border p-2 text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${active ? "border-accent/70 bg-accent/10 text-accent" : "border-white/10 bg-ink-800 text-ink-200 hover:border-accent/40"}`}
                 >

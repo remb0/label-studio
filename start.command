@@ -11,4 +11,4 @@ if [[ ! -d node_modules ]]; then
   exit 1
 fi
 print 'Label Studio start op http://127.0.0.1:5173. Laat dit venster open.'
-npm run dev -- --port 5173 --open
+BROWSER="Google Chrome" npm run dev -- --port 5173 --strictPort --open

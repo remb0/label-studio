@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createId } from "../lib/id.ts";
 import { temporal } from "zundo";
 import { mmToPx } from "../utils/px-mm.ts";
 import { parseLabelSize } from "../label/document.ts";
@@ -134,7 +135,7 @@ export interface EditorState {
 // ---- Helpers ----
 
 function uid(): string {
-  return crypto.randomUUID();
+  return createId();
 }
 
 // ---- Default values ----

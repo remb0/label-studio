@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createId } from "./id.ts";
 import { useEditorV2Store, type BaseElement } from "../store/editor-store.ts";
 import { usePrinterStore } from "../store/printer-store.ts";
 
@@ -9,7 +10,7 @@ export function setPrintFn(fn: ((copies: number) => Promise<boolean>) | null) {
 }
 
 function uid(): string {
-  return crypto.randomUUID();
+  return createId();
 }
 
 function addTextEl() {

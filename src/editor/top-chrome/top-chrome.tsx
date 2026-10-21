@@ -134,11 +134,12 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <ThemePicker />
         </div>
         <a
-          href="https://github.com/sponsors/tomLadder"
+          href="https://github.com/remb0/label-studio"
           target="_blank"
           rel="noopener noreferrer"
           className="w-8 h-8 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-          title="Steun het oorspronkelijke Thermoprint-project"
+          title="Label Studio op GitHub"
+          aria-label="Label Studio op GitHub"
         >
           <Heart size={16} />
         </a>
@@ -221,11 +222,12 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           </button>
           <ThemePicker />
           <a
-            href="https://github.com/sponsors/tomLadder"
+            href="https://github.com/remb0/label-studio"
             target="_blank"
             rel="noopener noreferrer"
             className="w-7 h-7 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-            title="Sponsor"
+            title="Label Studio op GitHub"
+            aria-label="Label Studio op GitHub"
           >
             <Heart size={14} />
           </a>

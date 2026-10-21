@@ -15,6 +15,7 @@ test("custom label settings save and export a clean bitmap without selection or 
     name: "Label- en printinstellingen",
   });
   await expect(settings).toBeVisible();
+  await settings.getByText("Formaat aanpassen", { exact: true }).click();
   await page
     .getByLabel("Documentresolutie", { exact: true })
     .selectOption("300");
@@ -49,6 +50,7 @@ test("custom label settings save and export a clean bitmap without selection or 
     .getByRole("button", { name: "Instellingen", exact: true })
     .first()
     .click();
+  await settings.getByText("Formaat aanpassen", { exact: true }).click();
   await expect(
     page.getByLabel("Doorvoerrichting", { exact: true }),
   ).toHaveValue("vertical");

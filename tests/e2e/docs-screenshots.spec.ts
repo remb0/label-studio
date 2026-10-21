@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 test("generate README screenshots with fictional demo content", async ({
   page,
@@ -134,4 +134,29 @@ test("generate README screenshots with fictional demo content", async ({
   for (let index = 0; index < values.length; index++)
     await inputs.nth(index).fill(values[index]);
   await page.screenshot({ path: "docs/images/address.png" });
+  const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  await navigation
+    .getByRole("button", { name: "Ontwerpen", exact: true })
+    .click();
+  await navigation
+    .getByRole("button", { name: "Instellingen", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Label- en printinstellingen" }),
+  ).toBeVisible();
+  await page.screenshot({ path: "docs/images/formats.png" });
+  await navigation
+    .getByRole("button", { name: "Sjablonen", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Gebruik sjabloon Adres", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: "docs/images/templates.png" });
+  await navigation
+    .getByRole("button", { name: "Printer", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Printermodel kiezen" }),
+  ).toBeVisible();
+  await page.screenshot({ path: "docs/images/printers.png" });
 });

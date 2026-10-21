@@ -24,7 +24,7 @@ export function DebugLogSection() {
     const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `thermoprint-debug-${ts}.log`;
+    a.download = `label-studio-debug-${ts}.log`;
     document.body.appendChild(a);
     a.click();
     a.remove();

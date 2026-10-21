@@ -3,6 +3,8 @@ import { Bluetooth, X, Check } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useWebBluetooth } from "../../hooks/use-web-bluetooth.ts";
+import { PrinterModelPicker } from "../../features/printers/PrinterModelPicker.tsx";
+import { usePrintSession } from "../../lib/print-session.ts";
 
 type Step = "idle" | "scanning" | "pairing" | "connected" | "error";
 
@@ -21,6 +23,7 @@ export function ConnectFlow() {
   const open = useEditorV2Store((s) => s.connectFlow.open);
   const step = useConnectFlowStep();
   const { scan, connect } = useWebBluetooth();
+  const printSessionBusy = usePrintSession();
 
   // Bridge printer store state into editor store
   const isConnected = usePrinterStore((s) => s.isConnected);
@@ -82,13 +85,15 @@ export function ConnectFlow() {
     setFlow({ step: "scanning" });
     try {
       // requestDevice opens native picker — blocks until user selects or cancels
-      await scan();
+      const chosen = await scan();
       // After scan resolves, peripheral is set in printer store
       // Auto-connect
-      const p = usePrinterStore.getState().peripheral;
+      const p = chosen;
       if (p) {
         setFlow({ step: "pairing" });
         await connect(p);
+      } else {
+        setFlow({ step: usePrinterStore.getState().error ? "error" : "idle" });
       }
     } catch {
       // User cancelled the native picker — close the whole flow
@@ -110,7 +115,12 @@ export function ConnectFlow() {
         if (e.target === e.currentTarget) close();
       }}
     >
-      <div className="w-full max-w-[560px] mx-4 bg-ink-850 border border-white/10 rounded-xl shadow-panel overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Printer verbinden"
+        className="w-full max-w-[620px] max-h-[calc(100dvh-32px)] overflow-y-auto mx-4 bg-ink-850 border border-white/10 rounded-xl shadow-panel"
+      >
         {/* Header */}
         <div className="flex items-start justify-between px-5 pt-5 pb-3">
           <div className="flex items-start gap-3">
@@ -133,7 +143,11 @@ export function ConnectFlow() {
               </div>
             </div>
           </div>
-          <button onClick={close} className="text-ink-400 hover:text-ink-100">
+          <button
+            aria-label="Verbindingsvenster sluiten"
+            onClick={close}
+            className="text-ink-400 hover:text-ink-100"
+          >
             <X size={16} />
           </button>
         </div>
@@ -141,6 +155,7 @@ export function ConnectFlow() {
         {/* Body: Idle */}
         {step === "idle" && (
           <div className="px-5 pb-4">
+            <PrinterModelPicker className="mb-4" />
             <div className="rounded-lg border border-white/5 bg-ink-800/50 p-4">
               <div className="text-ui-sm text-ink-400 font-mono uppercase tracking-wider mb-3">
                 Voor je begint
@@ -170,6 +185,7 @@ export function ConnectFlow() {
               </div>
               <button
                 onClick={handleScan}
+                disabled={printSessionBusy}
                 className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)]"
               >
                 <Bluetooth size={15} />

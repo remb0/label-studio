@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { loadPrinterProfiles, savePrinterProfile } from "./printer-profiles";
+import {
+  loadPrinterProfiles,
+  savePrinterProfile,
+  loadPreferredPrinterModel,
+  savePreferredPrinterModel,
+} from "./printer-profiles";
 import type { SavedPrinterProfile } from "./printer-profiles";
 
 describe("local printer profiles", () => {
@@ -54,5 +59,19 @@ describe("local printer profiles", () => {
     });
     expect(() => savePrinterProfile(profile)).not.toThrow();
     expect(loadPrinterProfiles()).toEqual([]);
+  });
+  test("persists model preference separately from Bluetooth device profiles", () => {
+    const values = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+    });
+    savePreferredPrinterModel("p15");
+    expect(loadPreferredPrinterModel()).toBe("p15");
+    expect(loadPrinterProfiles()).toEqual([]);
+    savePreferredPrinterModel(null);
+    expect(loadPreferredPrinterModel()).toBeNull();
+    savePreferredPrinterModel("unsupported");
+    expect(loadPreferredPrinterModel()).toBeNull();
   });
 });

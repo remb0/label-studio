@@ -24,7 +24,7 @@ const words = {
     operatingSystem:"Telefoon, tablet of computer", testResult:"Heb je geprobeerd te printen?",
     observations:"Wat gebeurde er?", next:"Volgende", back:"Vorige", copy:"Kopieer aanvraag",
     download:"Download aanvraag", github:"Open GitHub-aanvraag", privacy:"Privacy: noteer geen serienummer, MAC-adres, woonadres of persoonlijke informatie. Controleer ook foto's.",
-    notice:"GitHub-repository is privé: als je geen toegang hebt, gebruik Kopieer of Download en deel de aanvraag met de beheerder.",
+    notice:"Deel je aanvraag rechtstreeks via GitHub Issues. Hiervoor is een gratis GitHub-account nodig. Zonder account kun je de aanvraag kopiëren of downloaden.",
     autofill:"Neem gegevens van verbonden printer over", examples:"Voorbeeld", finish:"Controleer en verstuur",
     success:"Aanvraag gekopieerd. Je kunt deze met de beheerder delen.", failure:"Kopiëren is mislukt. Gebruik Download aanvraag.",
     notTested:"Nog niet getest", connected:"Bluetooth verbonden, nog niet geprint", printed:"Proeflabel werkt", failed:"Printen mislukt",
@@ -44,7 +44,7 @@ const words = {
     media:"Label sizes used",productUrl:"Product or manual URL",operatingSystem:"Phone, tablet or computer",
     testResult:"Have you tried printing?",observations:"What happened?",next:"Next",back:"Back",copy:"Copy request",
     download:"Download request",github:"Open GitHub issue",privacy:"Privacy: never include serial numbers, MAC addresses, home addresses or personal information. Check photos too.",
-    notice:"This GitHub repository is private. Without access, use Copy or Download and share the request with the maintainer.",
+    notice:"Submit your request through GitHub Issues (a free GitHub account is required), or use Copy / Download to share it without an account.",
     autofill:"Use connected printer details",examples:"Example",finish:"Review and submit",
     success:"Request copied. Share it with the maintainer.",failure:"Could not copy. Use Download request.",
     notTested:"Not tested",connected:"Bluetooth connected, not printed",printed:"Test label printed",failed:"Printing failed",
@@ -143,9 +143,9 @@ export function PrinterSubmission() {
       <pre className="text-ui-xs whitespace-pre-wrap overflow-wrap-anywhere max-h-72 overflow-auto my-2">{text}</pre>
       <p className="text-ui-xs">{w.notice}</p>
       <div className="flex flex-wrap gap-2">
-        <button className="studio-primary" onClick={()=>void copy()}>{w.copy}</button>
+        <button className="studio-primary" onClick={issue}>{w.github}</button>
+        <button className="studio-secondary" onClick={()=>void copy()}>{w.copy}</button>
         <button className="studio-secondary" onClick={download}>{w.download}</button>
-        <button className="studio-secondary" onClick={issue}>{w.github}</button>
       </div>
     </div>}
   </section>;

@@ -6,7 +6,7 @@
 
 Een labelstudio in je browser: visueel ontwerpen, enkele adreslabels maken en CSV-bestanden via een grafische wizard in bulk afdrukken. Adressen en afbeeldingen worden lokaal verwerkt.
 
-Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**. Het adres is pas bruikbaar na het instellen van de reverse proxy en het HTTPS-certificaat.
+Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**, bereikbaar via de HTTPS-reverseproxy.
 
 ![De visuele Label Studio-editor](docs/images/editor.png)
 
@@ -20,6 +20,8 @@ Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**. Het adres is pas
 - Bulkqueue met proefdruk, pauze, annuleren en expliciete controle van onzekere afdrukken.
 - Sjablonen en mappingprofielen lokaal bewaren en als JSON exporteren/importeren.
 - Visuele formaatkaarten met later aanpasbare mm/px-maten, acht kant-en-klare startsjablonen en geïllustreerde printerkeuze met passende standaardinstellingen.
+- Automatische lokale concepten, expliciet conceptherstel, favorieten en tekst die optioneel in het tekstvak past.
+- Kalibratiewizard met testlabel, dichtheidskeuze en veilige uitlijncorrectie per fysieke printer.
 - Web Bluetooth en printerherkenning voor LuckP D1S, plus behouden Thermoprint-profielen.
 - Uitgebreide labelinstellingen, vormmaskers, geprinte scheidingslijnen en lichte/donkere thema's. Een scheidingslijn verdeelt het ontwerp visueel; hij start geen afzonderlijke printjobs.
 - Lokaal of in Docker draaien; geen database nodig.
@@ -92,6 +94,27 @@ De sjablonengalerij bevat acht bewerkbare voorbeelden: **Adres**, **Zakelijk adr
 
 ![Printermodel en bijbehorende instellingen kiezen](docs/images/printers.png)
 
+## Concepten, passende tekst en favorieten
+
+Wijzigingen aan een ontwerp worden na ongeveer 600 ms lokaal als concept bewaard, ook bij formaatwijzigingen en undo/redo. Na herladen kies je **Concept herstellen** of **Concept verwijderen**. Herstellen opent een niet-opgeslagen kopie; een opgeslagen sjabloon wordt niet overschreven. Handmatig opslaan, openen of een nieuw ontwerp beginnen ruimt het oude herstelconcept op. Bluetooth-verbindingen en printopdrachten worden nooit hersteld. Navigeren tussen menu's bewaart de huidige sessie zonder herstelvraag.
+
+Een concept is één herstelplek voor de ontwerper, geen archief of synchronisatie. CSV-bestanden en de adreswerkplek vallen hier niet onder. Bij volle/geblokkeerde browseropslag verschijnt een waarschuwing: exporteer belangrijke ontwerpen als JSON. Op gedeelde computers kunnen concepten persoonlijke gegevens bevatten.
+
+Selecteer een tekstobject en schakel **Tekst automatisch passend maken** in. De ingestelde lettergrootte is het maximum; de tekst wordt zo nodig kleiner binnen breedte en hoogte van het tekstvak. Vergroot het vak wanneer de tekst onleesbaar klein wordt. De canvasweergave, PNG en Bluetooth-afdruk gebruiken dezelfde tekstlayout. Bij onmogelijke tekstpassing of objecten buiten de labelrand verschijnt een selecteerbare waarschuwing; de editor blokkeert printen totdat je dit corrigeert. De controle van ronde en afgeronde labels is conservatief en kijkt naar de objectkaders, niet alleen de zichtbare pixels.
+
+Klik op de **ster** bij een formaat, startsjabloon of eigen sjabloon om het als favoriet te markeren. Favorieten verschijnen bovenaan binnen hun eigen groep en worden lokaal onthouden. Een ster aanklikken opent geen ontwerp en verandert het actieve formaat niet.
+
+## Printer kalibreren
+
+1. Verbind de juiste printer en controleer het papiertype bij de printerinstellingen.
+2. Ga naar **Printer → Kalibratie starten**. Controleer de breedte dwars over de printkop en de lengte langs de rol; dit wijzigt het ontwerp niet.
+3. Print bewust één testlabel. Bekijk centrering van het kader en de licht-/donkerblokken. Pas X/Y-correctie (−5 tot +5 mm) en testdichtheid aan en print eventueel opnieuw.
+4. Kies **Kalibratie opslaan**. De correctie geldt uitsluitend voor dit browserapparaat en printermodel. Zet X/Y weer op nul en sla op om de correctie te verwijderen.
+
+Positief X schuift rechts, positief Y naar het einde van de rol, gezien in de uitvoerrichting. Uitlijncorrectie wordt na rotatie en resolutieconversie toegepast op alle Bluetooth-afdrukken, ook enkele adreslabels en bulklabels. Een correctie die inhoud afsnijdt wordt geweigerd; geef het ontwerp voldoende marge. PNG-export blijft ongewijzigd. Dichtheid wordt de nieuwe editorbasis; adreslabels houden hun eigen expliciete dichtheidskeuze. De wizard print nooit automatisch en hervat geen mislukte testprint. Controleer hardware altijd fysiek; verzonden is geen afdrukbevestiging.
+
+![Kalibratiewizard met testlabel en uitlijncorrectie](docs/images/calibration.png)
+
 ## Ontwikkelen en testen
 
 ```sh
@@ -111,7 +134,7 @@ Een pull request draait lint, typecheck, tests, browserflows en een Docker-smoke
 
 ## Privacy
 
-Geen analytics, externe fonts of adresuploads. Fonts en scripts worden in de build gebundeld. Templates en printervoorkeuren worden lokaal in browseropslag bewaard. Let op: templates kunnen zelf persoonlijke tekst of afbeeldingen bevatten. Wis of exporteer deze bewust op gedeelde computers.
+Geen analytics, externe fonts of adresuploads. Fonts en scripts worden in de build gebundeld. Templates, concepten, favorieten, kalibratie en printervoorkeuren worden lokaal in browseropslag bewaard. Let op: templates en concepten kunnen zelf persoonlijke tekst of afbeeldingen bevatten. Wis of exporteer deze bewust op gedeelde computers.
 
 ## Roadmap
 

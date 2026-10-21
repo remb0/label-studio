@@ -1,6 +1,7 @@
 import { Bold, Italic, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import type { BaseElement } from "../../../store/editor-store.ts";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
+import { getTextLayout } from "../../../label/text-fit-layout.ts";
 import {
   Section,
   Field,
@@ -28,6 +29,7 @@ export function TextSection({ element }: Props) {
     fill?: string;
     align?: string;
     italic?: boolean;
+    autoFit?: boolean;
   };
 
   const update = (patch: Record<string, unknown>) =>
@@ -118,6 +120,19 @@ export function TextSection({ element }: Props) {
           />
         </Field>
       </div>
+      <label className="mt-3 flex items-center gap-2 text-ui-sm text-ink-200">
+        <input
+          type="checkbox"
+          checked={p.autoFit === true}
+          onChange={(event) => update({ autoFit: event.target.checked })}
+        />
+        Tekst automatisch passend maken
+      </label>
+      <p className="mt-1 text-ui-xs text-ink-400">
+        {p.autoFit
+          ? `Weergave: ${getTextLayout(element).fontSize} px. Het tekstvak blijft even groot; vergroot het vak als de tekst te klein wordt.`
+          : "Schakel in om tekst binnen de breedte en hoogte van dit tekstvak te houden. De ingestelde lettergrootte blijft het maximum."}
+      </p>
     </Section>
   );
 }

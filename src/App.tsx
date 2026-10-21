@@ -18,6 +18,8 @@ import { useEditorV2Store } from "./store/editor-store.ts";
 import { useWebBluetooth, getPrinter } from "./hooks/use-web-bluetooth.ts";
 import { getDevice } from "@thermoprint/core";
 import { PrinterModelPicker } from "./features/printers/PrinterModelPicker.tsx";
+import { CalibrationWizard } from "./features/calibration/CalibrationWizard.tsx";
+import { DraftRecovery } from "./features/drafts/DraftRecovery.tsx";
 import {
   acquirePrintSession,
   isPrintSessionBusy,
@@ -157,6 +159,7 @@ function PrinterWorkspace() {
           {diagnostic && <pre aria-live="polite">{diagnostic}</pre>}
         </article>
       </div>
+      <CalibrationWizard />
       <p className="studio-footnote">
         Label Studio {__APP_VERSION__} · commit {__COMMIT_SHA__.slice(0, 12)} ·
         Adressen worden lokaal verwerkt.
@@ -289,6 +292,7 @@ export function App() {
         </>
       )}
       <ConnectFlow />
+      <DraftRecovery />
     </div>
   );
 }

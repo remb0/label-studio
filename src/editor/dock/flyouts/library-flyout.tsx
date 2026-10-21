@@ -14,6 +14,11 @@ import {
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 import {
+  FavoriteButton,
+  FavoritesStorageNotice,
+} from "../../../components/FavoriteButton.tsx";
+import { favoritesFirst, useFavorites } from "../../../lib/favorites.ts";
+import {
   STARTER_TEMPLATES,
   createStarterDocument,
 } from "../../../label/starter-templates.ts";
@@ -284,6 +289,7 @@ interface Props {
 }
 
 export function LibraryFlyout({ onClose }: Props) {
+  const favorites = useFavorites((state) => state.ids);
   const library = useEditorV2Store((s) => s.library);
   const currentLabelId = useEditorV2Store((s) => s.currentLabelId);
   const openLabel = useEditorV2Store((s) => s.openLabel);
@@ -315,15 +321,23 @@ export function LibraryFlyout({ onClose }: Props) {
     };
   }, [menu]);
 
-  const filtered = query.trim()
-    ? library.labels.filter((l) =>
-        l.name.toLowerCase().includes(query.toLowerCase()),
-      )
-    : library.labels;
-  const starterTemplates = STARTER_TEMPLATES.filter((item) =>
-    `${item.name} ${item.category} ${item.description}`
-      .toLowerCase()
-      .includes(query.trim().toLowerCase()),
+  const filtered = favoritesFirst(
+    query.trim()
+      ? library.labels.filter((l) =>
+          l.name.toLowerCase().includes(query.toLowerCase()),
+        )
+      : library.labels,
+    "saved",
+    favorites,
+  );
+  const starterTemplates = favoritesFirst(
+    STARTER_TEMPLATES.filter((item) =>
+      `${item.name} ${item.category} ${item.description}`
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()),
+    ),
+    "starter",
+    favorites,
   );
 
   const startFromTemplate = (templateId: string) => {
@@ -449,6 +463,10 @@ export function LibraryFlyout({ onClose }: Props) {
         </p>
       )}
       <div className="flex-1 overflow-auto p-3">
+        <p className="text-ui-xs text-ink-400 mb-3">
+          Markeer met een ster. Favorieten staan bovenaan binnen elke groep.
+        </p>
+        <FavoritesStorageNotice />
         {starterTemplates.length > 0 && (
           <section aria-label="Start met een sjabloon" className="mb-5">
             <h2 className="text-ui-md font-semibold text-ink-100">
@@ -460,145 +478,168 @@ export function LibraryFlyout({ onClose }: Props) {
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {starterTemplates.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  type="button"
-                  aria-label={`Gebruik sjabloon ${item.name}`}
-                  onClick={() => startFromTemplate(item.id)}
-                  className="text-left rounded-lg border border-white/10 bg-ink-800 hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-accent overflow-hidden"
+                  className="relative"
+                  data-starter-card={item.id}
                 >
-                  <div className="h-28 px-2 flex items-center justify-center bg-black/15">
-                    <LabelThumbnail doc={item.document} maxW={170} maxH={92} />
-                  </div>
-                  <div className="p-2.5">
-                    <span className="text-[10px] uppercase tracking-wider text-accent">
-                      {item.category}
-                    </span>
-                    <div className="text-ui-sm font-semibold text-ink-100 mt-0.5">
-                      {item.name}
+                  <button
+                    type="button"
+                    aria-label={`Gebruik sjabloon ${item.name}`}
+                    onClick={() => startFromTemplate(item.id)}
+                    className="w-full h-full text-left rounded-lg border border-white/10 bg-ink-800 hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-accent overflow-hidden"
+                  >
+                    <div className="h-28 px-2 flex items-center justify-center bg-black/15">
+                      <LabelThumbnail
+                        doc={item.document}
+                        maxW={170}
+                        maxH={92}
+                      />
                     </div>
-                    <p className="text-ui-xs text-ink-400 mt-1 leading-relaxed">
-                      {item.description}
-                    </p>
-                    <div className="text-ui-xs text-ink-500 mt-2">
-                      {item.document.label.widthMm} ×{" "}
-                      {item.document.label.heightMm} mm ·{" "}
-                      {item.document.label.shape === "circle"
-                        ? "rond"
-                        : "rechthoekig"}
+                    <div className="p-2.5">
+                      <span className="text-[10px] uppercase tracking-wider text-accent">
+                        {item.category}
+                      </span>
+                      <div className="text-ui-sm font-semibold text-ink-100 mt-0.5">
+                        {item.name}
+                      </div>
+                      <p className="text-ui-xs text-ink-400 mt-1 leading-relaxed">
+                        {item.description}
+                      </p>
+                      <div className="text-ui-xs text-ink-500 mt-2">
+                        {item.document.label.widthMm} ×{" "}
+                        {item.document.label.heightMm} mm ·{" "}
+                        {item.document.label.shape === "circle"
+                          ? "rond"
+                          : "rechthoekig"}
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  <FavoriteButton
+                    kind="starter"
+                    id={item.id}
+                    name={`Sjabloon ${item.name}`}
+                  />
+                </div>
               ))}
             </div>
           </section>
         )}
-        <h2 className="text-ui-md font-semibold text-ink-100 mb-3">
-          Mijn sjablonen
-        </h2>
-        {filtered.length === 0 ? (
-          <div className="h-full min-h-[240px] flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 rounded-full bg-ink-800 border border-white/5 flex items-center justify-center mb-3">
-              <Folder size={18} className="text-ink-400" />
+        <section aria-label="Mijn sjablonen">
+          <h2 className="text-ui-md font-semibold text-ink-100 mb-3">
+            Mijn sjablonen
+          </h2>
+          {filtered.length === 0 ? (
+            <div className="h-full min-h-[240px] flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-full bg-ink-800 border border-white/5 flex items-center justify-center mb-3">
+                <Folder size={18} className="text-ink-400" />
+              </div>
+              <div className="text-ui-md font-semibold text-ink-100">
+                {query ? "Geen resultaten" : "Geen opgeslagen sjablonen"}
+              </div>
+              <div className="text-ui-sm text-ink-400 mt-0.5">
+                {query
+                  ? "Probeer een andere zoekterm"
+                  : "Maak een nieuw label en sla het op als sjabloon"}
+              </div>
             </div>
-            <div className="text-ui-md font-semibold text-ink-100">
-              {query ? "Geen resultaten" : "Geen opgeslagen sjablonen"}
-            </div>
-            <div className="text-ui-sm text-ink-400 mt-0.5">
-              {query
-                ? "Probeer een andere zoekterm"
-                : "Maak een nieuw label en sla het op als sjabloon"}
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {filtered.map((item) => {
-              const isCurrent = item.id === currentLabelId;
-              return (
-                <div
-                  key={item.id}
-                  className={`group relative text-left rounded-lg border ${
-                    isCurrent
-                      ? "border-accent/50 bg-accent/[0.04]"
-                      : "border-white/5 bg-ink-800 hover:border-white/15"
-                  } overflow-hidden hover-fade`}
-                >
-                  <button
-                    onClick={() => {
-                      const s = useEditorV2Store.getState();
-                      if (s.currentLabelDirty || !s.currentLabelId) {
-                        if (
-                          !confirm(
-                            "You have unsaved changes. Discard and open this label?",
-                          )
-                        )
-                          return;
-                      }
-                      openLabel(item.id);
-                      onClose();
-                    }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setMenu({ id: item.id, x: e.clientX, y: e.clientY });
-                    }}
-                    className="block w-full text-left"
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {filtered.map((item) => {
+                const isCurrent = item.id === currentLabelId;
+                return (
+                  <div
+                    key={item.id}
+                    data-saved-card={item.id}
+                    className={`group relative text-left rounded-lg border ${
+                      isCurrent
+                        ? "border-accent/50 bg-accent/[0.04]"
+                        : "border-white/5 bg-ink-800 hover:border-white/15"
+                    } overflow-hidden hover-fade`}
                   >
-                    <div className="h-28 bg-gradient-to-br from-ink-900 to-ink-950 p-3 flex items-center justify-center border-b border-white/5 overflow-hidden">
-                      <LabelThumbnail doc={item} maxW={180} maxH={80} />
-                    </div>
-                    <div className="p-2.5">
-                      <div className="flex items-center gap-1.5">
-                        {isCurrent && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                        )}
-                        <div className="text-ui-base font-semibold text-ink-50 truncate flex-1">
-                          {item.name}
+                    <button
+                      aria-label={`Open sjabloon ${item.name}`}
+                      onClick={() => {
+                        const s = useEditorV2Store.getState();
+                        if (s.currentLabelDirty || !s.currentLabelId) {
+                          if (
+                            !confirm(
+                              "You have unsaved changes. Discard and open this label?",
+                            )
+                          )
+                            return;
+                        }
+                        openLabel(item.id);
+                        onClose();
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setMenu({ id: item.id, x: e.clientX, y: e.clientY });
+                      }}
+                      className="block w-full text-left"
+                    >
+                      <div className="h-28 bg-gradient-to-br from-ink-900 to-ink-950 p-3 flex items-center justify-center border-b border-white/5 overflow-hidden">
+                        <LabelThumbnail doc={item} maxW={180} maxH={80} />
+                      </div>
+                      <div className="p-2.5">
+                        <div className="flex items-center gap-1.5">
+                          {isCurrent && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                          )}
+                          <div className="text-ui-base font-semibold text-ink-50 truncate flex-1">
+                            {item.name}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-ui-xs font-mono text-ink-400">
+                          <span className="tabular-nums">
+                            {item.label.widthMm}x{item.label.heightMm}mm ·{" "}
+                            {item.elements.length} el
+                          </span>
+                          <span>{relTime(item.updatedAt)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-1 text-ui-xs font-mono text-ink-400">
-                        <span className="tabular-nums">
-                          {item.label.widthMm}x{item.label.heightMm}mm ·{" "}
-                          {item.elements.length} el
-                        </span>
-                        <span>{relTime(item.updatedAt)}</span>
-                      </div>
-                    </div>
-                  </button>
+                    </button>
+                    <FavoriteButton
+                      kind="saved"
+                      id={item.id}
+                      name={`Eigen sjabloon ${item.name}`}
+                    />
 
-                  {/* Card actions (visible on hover) */}
-                  <div className="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        if (confirm(`Delete "${item.name}"?`))
-                          deleteLabel(item.id);
-                      }}
-                      className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-400 hover:text-red-400 hover:border-red-400/30 flex items-center justify-center"
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        const r = e.currentTarget.getBoundingClientRect();
-                        setMenu({ id: item.id, x: r.right, y: r.bottom });
-                      }}
-                      className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-300 hover:text-ink-50 flex items-center justify-center"
-                      title="More options"
-                    >
-                      <MoreHorizontal size={13} />
-                    </button>
+                    {/* Card actions (visible on hover) */}
+                    <div className="absolute top-2 right-11 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          if (confirm(`Delete "${item.name}"?`))
+                            deleteLabel(item.id);
+                        }}
+                        className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-400 hover:text-red-400 hover:border-red-400/30 flex items-center justify-center"
+                        title="Delete"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                      <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          const r = e.currentTarget.getBoundingClientRect();
+                          setMenu({ id: item.id, x: r.right, y: r.bottom });
+                        }}
+                        className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-300 hover:text-ink-50 flex items-center justify-center"
+                        title="More options"
+                      >
+                        <MoreHorizontal size={13} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Context menu — portaled to body so it escapes overflow clipping */}

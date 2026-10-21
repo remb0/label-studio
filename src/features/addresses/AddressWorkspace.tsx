@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import { getPrinter } from "../../hooks/use-web-bluetooth";
+import { calibratePrinterImage } from "../calibration/print-calibration.ts";
 import {
   acquirePrintSession,
   mayPrintNextLabel,
@@ -332,6 +333,18 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
         );
         return;
       }
+      try {
+        calibratePrinterImage(
+          canvas
+            .getContext("2d")!
+            .getImageData(0, 0, canvas.width, canvas.height),
+        );
+      } catch (error) {
+        setError(
+          `Rij ${job.address.sourceRow}: ${error instanceof Error ? error.message : "Ongeldige kalibratie."}`,
+        );
+        return;
+      }
     }
     const release = acquirePrintSession();
     if (!release) {
@@ -361,9 +374,11 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
         renderAddress(canvas, jobs[i].address, design, logo);
         try {
           await printer.print(
-            canvas
-              .getContext("2d")!
-              .getImageData(0, 0, canvas.width, canvas.height),
+            calibratePrinterImage(
+              canvas
+                .getContext("2d")!
+                .getImageData(0, 0, canvas.width, canvas.height),
+            ),
             {
               copies: 1,
               density: design.density,

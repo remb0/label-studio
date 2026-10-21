@@ -8,12 +8,14 @@ import {
 } from "react";
 import { Stage, Layer, Rect, Group, Line } from "react-konva";
 import type Konva from "konva";
+import { getDevice } from "@thermoprint/core";
 import {
   useEditorV2Store,
   type BaseElement,
 } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
-import { getLabelSizes } from "../../label/label-sizes.ts";
+import { FormatPicker } from "../../components/FormatPicker.tsx";
+import { applyFormat, type FormatPreset } from "../../label/format-presets.ts";
 import { ChevronDown } from "lucide-react";
 import { LabelPaper } from "./label-paper.tsx";
 import { TextElement } from "./elements/text-element.tsx";
@@ -22,7 +24,7 @@ import { LineElement } from "./elements/line-element.tsx";
 import { QrElement } from "./elements/qr-element.tsx";
 import { BarcodeElement } from "./elements/barcode-element.tsx";
 import { ImageElement } from "./elements/image-element.tsx";
-import { resizeLabel, traceLabelPath, labelDpi } from "../../label/document.ts";
+import { traceLabelPath, labelDpi } from "../../label/document.ts";
 
 function LabelSizeSelector({
   originX,
@@ -40,8 +42,7 @@ function LabelSizeSelector({
   const label = useEditorV2Store((s) => s.label);
   const paperType = useEditorV2Store((s) => s.paperType);
   const rollDirection = useEditorV2Store((s) => s.rollDirection);
-  const modelId = usePrinterStore((s) => s.modelId);
-  const sizes = getLabelSizes(modelId, paperType);
+  const modelId = usePrinterStore((s) => s.modelId ?? s.preferredModelId);
 
   useEffect(() => {
     if (!open) return;
@@ -53,11 +54,14 @@ function LabelSizeSelector({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const setSize = (widthMm: number, heightMm: number) => {
+  const setSize = (preset: FormatPreset) => {
     useEditorV2Store.setState({
-      label: resizeLabel(label, widthMm, heightMm),
+      label: applyFormat(label, preset),
+      paperType: preset.paperType,
+      rollDirection: preset.rollDirection,
       currentLabelDirty: true,
     });
+    usePrinterStore.getState().updateSettings({ paperType: preset.paperType });
     setOpen(false);
   };
 
@@ -120,25 +124,22 @@ function LabelSizeSelector({
         </button>
       )}
       {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 mt-1 w-40 bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel overflow-hidden z-40">
-          <div className="max-h-52 overflow-y-auto py-1">
-            {sizes.map((s) => {
-              const active =
-                s.widthMm === label.widthMm && s.heightMm === label.heightMm;
-              return (
-                <button
-                  key={`${s.widthMm}x${s.heightMm}`}
-                  onClick={() => setSize(s.widthMm, s.heightMm)}
-                  className={`w-full flex items-center px-3 h-7 text-ui-sm font-mono hover-fade ${
-                    active
-                      ? "text-accent bg-accent/10"
-                      : "text-ink-300 hover:bg-white/5 hover:text-ink-100"
-                  }`}
-                >
-                  {s.name}
-                </button>
-              );
-            })}
+        <div
+          role="dialog"
+          aria-label="Labelformaat kiezen"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[min(350px,90vw)] bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel overflow-hidden z-40"
+        >
+          <div className="max-h-[45vh] overflow-y-auto p-3">
+            <p className="text-ui-sm font-semibold mb-2">
+              Kies je labelformaat
+            </p>
+            <FormatPicker
+              label={label}
+              paperType={paperType}
+              modelId={modelId}
+              maxPixels={modelId ? getDevice(modelId)?.printWidth : undefined}
+              onSelect={setSize}
+            />
           </div>
         </div>
       )}

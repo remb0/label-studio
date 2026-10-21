@@ -1,9 +1,5 @@
 import { useCallback } from "react";
-import {
-  Printer,
-  findDeviceByName,
-  type BlePeripheral,
-} from "@thermoprint/core";
+import { Printer, type BlePeripheral } from "@thermoprint/core";
 import { WebBluetoothTransport } from "../transport/web-bluetooth.ts";
 import { usePrinterStore, applyModelDefaults } from "../store/printer-store.ts";
 import {
@@ -11,6 +7,11 @@ import {
   savePrinterProfile,
 } from "../lib/printer-profiles.ts";
 import { useEditorV2Store } from "../store/editor-store.ts";
+import { isPrintSessionBusy } from "../lib/print-session.ts";
+import {
+  validatePrinterModel,
+  pickPermittedPrinter,
+} from "../features/printers/model-catalog.ts";
 
 // Module-level singletons so all callers share the same transport + printer instance
 const transport = new WebBluetoothTransport();
@@ -25,33 +26,53 @@ export function useWebBluetooth() {
 
   const scan = useCallback(async () => {
     if (
+      isPrintSessionBusy() ||
       printer?.isPrinting ||
       store.getState().isConnecting ||
       store.getState().isScanning
     )
-      return;
+      return null;
     store.getState().setPeripheral(null);
     store.getState().setScanning(true);
     store.getState().setError(null);
     try {
+      let selected: BlePeripheral | null = null;
       await transport.scan((peripheral) => {
+        selected = peripheral;
         store.getState().setPeripheral(peripheral);
         store.getState().setScanning(false);
       });
+      return selected;
     } catch (err) {
       store
         .getState()
-        .setError(err instanceof Error ? err.message : "Scan failed");
+        .setError(
+          err instanceof DOMException && err.name === "NotFoundError"
+            ? null
+            : err instanceof Error
+              ? err.message
+              : "Scan failed",
+        );
       store.getState().setScanning(false);
+      return null;
     }
   }, [store]);
 
   const connect = useCallback(
     async (peripheral: BlePeripheral) => {
-      if (store.getState().isConnecting || printer?.isPrinting) return;
+      if (
+        isPrintSessionBusy() ||
+        store.getState().isConnecting ||
+        printer?.isPrinting
+      )
+        return;
       store.getState().setConnecting(true);
       store.getState().setError(null);
       try {
+        const profile = validatePrinterModel(
+          peripheral,
+          store.getState().preferredModelId,
+        );
         if (printer) await printer.disconnect();
         printer = await Printer.connect(transport, peripheral);
         const connectedPrinter = printer;
@@ -90,7 +111,6 @@ export function useWebBluetooth() {
           store.setState({ printerStatus: s.status });
         });
 
-        const profile = findDeviceByName(peripheral.name);
         if (profile) {
           const saved = loadPrinterProfiles().find(
             (item) =>
@@ -103,6 +123,11 @@ export function useWebBluetooth() {
           if (saved)
             store.getState().updateSettings({
               ...saved.settings,
+              paperType: profile.labelConfig?.supportedPaperTypes.includes(
+                saved.settings.paperType,
+              )
+                ? saved.settings.paperType
+                : profile.defaults.paperType,
               printWidth: profile.printWidth ?? saved.settings.printWidth,
             });
           const restored = store.getState().settings;
@@ -193,6 +218,7 @@ export function useWebBluetooth() {
   );
 
   const disconnect = useCallback(async () => {
+    if (isPrintSessionBusy() || printer?.isPrinting) return;
     if (printer) {
       await printer.disconnect();
       printer = null;
@@ -201,17 +227,31 @@ export function useWebBluetooth() {
   }, [store]);
 
   const reconnect = useCallback(async () => {
+    if (
+      isPrintSessionBusy() ||
+      store.getState().isConnecting ||
+      printer?.isPrinting
+    )
+      return;
     try {
       const allowed = await transport.getPermittedDevices();
-      const saved = loadPrinterProfiles().at(-1);
-      const peripheral =
-        allowed.find((item) => item.id === saved?.peripheral.id) ?? allowed[0];
+      const preferred = store.getState().preferredModelId;
+      const saved = loadPrinterProfiles()
+        .filter((profile) => !preferred || profile.modelId === preferred)
+        .at(-1);
+      const peripheral = pickPermittedPrinter(
+        allowed,
+        preferred,
+        saved?.peripheral.id,
+      );
       if (peripheral) await connect(peripheral);
       else
         store
           .getState()
           .setError(
-            "Geen eerder toegestane printer beschikbaar. Kies Printer verbinden.",
+            preferred
+              ? "Geen eerder toegestane printer van dit model beschikbaar. Kies Printer verbinden of selecteer een ander model."
+              : "Geen eerder toegestane printer beschikbaar. Kies Printer verbinden.",
           );
     } catch (error) {
       store

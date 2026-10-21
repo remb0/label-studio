@@ -19,6 +19,7 @@ Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**. Het adres is pas
 - CSV-wizard met scheidingstekenherkenning, kolommapping, filters, bewerkbare validatie en labelvoorbeelden.
 - Bulkqueue met proefdruk, pauze, annuleren en expliciete controle van onzekere afdrukken.
 - Sjablonen en mappingprofielen lokaal bewaren en als JSON exporteren/importeren.
+- Visuele formaatkaarten met later aanpasbare mm/px-maten, acht kant-en-klare startsjablonen en geïllustreerde printerkeuze met passende standaardinstellingen.
 - Web Bluetooth en printerherkenning voor LuckP D1S, plus behouden Thermoprint-profielen.
 - Uitgebreide labelinstellingen, vormmaskers, geprinte scheidingslijnen en lichte/donkere thema's. Een scheidingslijn verdeelt het ontwerp visueel; hij start geen afzonderlijke printjobs.
 - Lokaal of in Docker draaien; geen database nodig.
@@ -52,6 +53,8 @@ Configureer Nginx Proxy Manager voor `labels.remb0.nl` → `http://192.168.0.13:
 
 ## Bluetooth en printerprofielen
 
+Kies bij **Printer** eerst je modelkaart of **Automatisch herkennen**. De keuze laadt de juiste printerinstellingen, maar verandert je bestaande labelontwerp niet. Selecteer daarna het echte apparaat via de Bluetooth-kiezer van de browser. Een gekozen model en een daadwerkelijk verbonden printer worden afzonderlijk getoond; een ander apparaat krijgt niet zomaar het gekozen protocol.
+
 Klik op **Verbinden** en selecteer de printer in de browserkiezer. De Bluetooth-adapter van je laptop of telefoon maakt verbinding; de Dockerhost heeft daarvoor geen Bluetooth nodig.
 
 | Printerfamilie                             | Printkop                                                 | Status                                                                      |
@@ -76,6 +79,18 @@ Safari en Firefox kunnen de editor gebruiken maar bieden geen normale Web Blueto
 6. Print eerst een proeflabel en start daarna de geselecteerde batch.
 
 Het CSV-bestand en de adressen worden niet naar de server gestuurd. Mappingprofielen bevatten de koppelingen en filters, niet de adresrijen. Exporteer zo'n profiel om het op een ander apparaat te gebruiken.
+
+## Beginnen met een formaat of sjabloon
+
+Een leeg ontwerp biedt **Kies een formaat** en **Kies een sjabloon**. De formaatkaarten tonen de echte verhoudingen: mini, smal, adres, LuckP breed, vierkant, rond en twee doorlopende stroken. Pas de exacte maat later aan via **Formaat aanpassen**. Dezelfde kaarten staan onder het label op het canvas. Bestaande objecten blijven behouden bij een andere maat; controleer na verkleinen of alles nog binnen het label valt.
+
+De sjablonengalerij bevat acht bewerkbare voorbeelden: **Adres**, **Zakelijk adres**, **Kabelmarkering**, **Opbergdoos**, **QR-link**, **Product & prijs**, **Breekbaar** en **Rond datumlabel**. Elk voorbeeld opent als een nieuw ontwerp. Je eigen opgeslagen sjablonen blijven behouden. Bij niet-opgeslagen wijzigingen vraagt de app eerst of je deze wilt vervangen.
+
+![Visueel een labelformaat kiezen](docs/images/formats.png)
+
+![Kant-en-klare startsjablonen](docs/images/templates.png)
+
+![Printermodel en bijbehorende instellingen kiezen](docs/images/printers.png)
 
 ## Ontwikkelen en testen
 

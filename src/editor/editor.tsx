@@ -15,6 +15,7 @@ import { getDevice } from "@thermoprint/core";
 import { usePrinterStore } from "../store/printer-store.ts";
 import { toPixels } from "../label/document.ts";
 import { acquirePrintSession } from "../lib/print-session.ts";
+import { GettingStarted } from "../features/start/GettingStarted.tsx";
 
 function captureLabel(
   stage: Konva.Stage,
@@ -199,6 +200,7 @@ export function Editor() {
       <TopChrome onPrint={print} />
       <div className="relative flex-1 min-h-0 flex flex-col">
         <Canvas ref={stageRef} />
+        <GettingStarted />
         <Inspector />
         <Dock />
         <PrintProgressToast />

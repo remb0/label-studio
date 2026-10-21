@@ -1,5 +1,6 @@
 import type { BlePeripheral } from "@thermoprint/core";
 import type { PrintSettings } from "../store/types.ts";
+import { getDevice } from "@thermoprint/core";
 
 export interface SavedPrinterProfile {
   peripheral: BlePeripheral;
@@ -7,6 +8,24 @@ export interface SavedPrinterProfile {
   settings: PrintSettings;
 }
 const KEY = "label-studio:printer-profiles:v1";
+const MODEL_KEY = "label-studio:preferred-printer:v1";
+
+export function loadPreferredPrinterModel(): string | null {
+  try {
+    const modelId = localStorage.getItem(MODEL_KEY);
+    return modelId && getDevice(modelId) ? modelId : null;
+  } catch {
+    return null;
+  }
+}
+
+export function savePreferredPrinterModel(modelId: string | null): void {
+  try {
+    localStorage.setItem(MODEL_KEY, modelId ?? "");
+  } catch {
+    /* Optional local preference. */
+  }
+}
 
 export function loadPrinterProfiles(): SavedPrinterProfile[] {
   try {

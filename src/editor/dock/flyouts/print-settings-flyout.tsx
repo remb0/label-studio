@@ -4,6 +4,11 @@ import { useEditorV2Store } from "../../../store/editor-store.ts";
 import { usePrinterStore } from "../../../store/printer-store.ts";
 import { getDevice, type LabelSizePreset } from "@thermoprint/core";
 import { resizeLabel, labelDpi } from "../../../label/document.ts";
+import { FormatPicker } from "../../../components/FormatPicker.tsx";
+import {
+  applyFormat,
+  exceedsPrintWidth,
+} from "../../../label/format-presets.ts";
 
 // Fallback sizes when no printer is connected
 const FALLBACK_GAP_SIZES: LabelSizePreset[] = [
@@ -28,7 +33,7 @@ function useLabelConfig(): {
   sizesForPaperType: (pt: "gap" | "continuous") => LabelSizePreset[];
   hasProfile: boolean;
 } {
-  const modelId = usePrinterStore((s) => s.modelId);
+  const modelId = usePrinterStore((s) => s.modelId ?? s.preferredModelId);
   const profile = modelId ? getDevice(modelId) : null;
   const lc = profile?.labelConfig;
 
@@ -61,7 +66,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
   const paperType = useEditorV2Store((s) => s.paperType);
   const label = useEditorV2Store((s) => s.label);
   const isConnected = usePrinterStore((s) => s.isConnected);
-  const modelId = usePrinterStore((s) => s.modelId);
+  const modelId = usePrinterStore((s) => s.modelId ?? s.preferredModelId);
   const uiScale = useEditorV2Store((s) => s.uiScale);
   const setUiScale = useEditorV2Store((s) => s.setUiScale);
   const theme = useEditorV2Store((s) => s.theme);
@@ -81,6 +86,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
   const { supportedPaperTypes, sizesForPaperType, hasProfile } =
     useLabelConfig();
   const availableSizes = sizesForPaperType(paperType);
+  const printerWidth = modelId ? getDevice(modelId)?.printWidth : undefined;
 
   const updateSettings = (patch: Partial<typeof printSettings>) => {
     useEditorV2Store.setState((s) => ({
@@ -141,8 +147,44 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         </button>
       </div>
       <div className="p-4 space-y-5 overflow-y-auto overscroll-contain min-h-0">
-        <div className="space-y-3 border-b border-white/10 pb-4">
-          <h3 className="font-semibold">Eigen labelmaat</h3>
+        <section className="space-y-3">
+          <div>
+            <h3 className="font-semibold">Kies je labelformaat</h3>
+            <p className="text-ui-sm text-ink-400 mt-1">
+              Kies de vorm en maat van je rol. Je kunt de afmetingen daarna
+              aanpassen.
+            </p>
+          </div>
+          <FormatPicker
+            label={label}
+            paperType={paperType}
+            modelId={modelId}
+            maxPixels={printerWidth}
+            onSelect={(preset) => {
+              useEditorV2Store.setState({
+                label: applyFormat(label, preset),
+                paperType: preset.paperType,
+                rollDirection: preset.rollDirection,
+                currentLabelDirty: true,
+              });
+              usePrinterStore
+                .getState()
+                .updateSettings({ paperType: preset.paperType });
+              setSizeError("");
+            }}
+          />
+          {printerWidth !== undefined &&
+            exceedsPrintWidth(label, rollDirection, printerWidth) && (
+              <p role="status" className="text-ui-sm text-amber-400">
+                Dit formaat is in deze doorvoerrichting breder dan de printkop.
+                Kies een kleiner formaat of pas de doorvoerrichting aan.
+              </p>
+            )}
+        </section>
+        <details className="space-y-3 border-b border-white/10 pb-4">
+          <summary className="font-semibold cursor-pointer py-2">
+            Formaat aanpassen
+          </summary>
           <div className="flex gap-2">
             {(["mm", "px"] as const).map((unit) => (
               <button
@@ -291,7 +333,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
             Labelinstellingen worden samen met het sjabloon bewaard. De
             scheidingslijn wordt ook geprint.
           </p>
-        </div>
+        </details>
         {/* Interfacegrootte */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
@@ -411,8 +453,11 @@ export function PrintSettingsFlyout({ onClose }: Props) {
           )}
         </div>
 
-        {/* Labelmaat */}
-        <div>
+        {/* Extra maten uit het printerprofiel */}
+        <details>
+          <summary className="text-ui-sm cursor-pointer">
+            Alle printermaten
+          </summary>
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
             Labelmaat
           </div>
@@ -435,7 +480,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
               );
             })}
           </div>
-        </div>
+        </details>
 
         {/* Zwarting */}
         <div>

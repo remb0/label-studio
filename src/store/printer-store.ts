@@ -2,7 +2,12 @@ import { create } from "zustand";
 import type { BlePeripheral, PrinterStatus } from "@thermoprint/core";
 import { getDevice } from "@thermoprint/core";
 import type { PrintSettings } from "./types.ts";
-import { savePrinterProfile } from "../lib/printer-profiles.ts";
+import {
+  loadPreferredPrinterModel,
+  savePreferredPrinterModel,
+  savePrinterProfile,
+} from "../lib/printer-profiles.ts";
+import { isPrintSessionBusy } from "../lib/print-session.ts";
 
 interface PrinterState {
   peripheral: BlePeripheral | null;
@@ -16,6 +21,7 @@ interface PrinterState {
   error: string | null;
 
   modelId: string | null;
+  preferredModelId: string | null;
   autoDetectedModelId: string | null;
   deviceModel: string | null;
   deviceInfo: {
@@ -42,10 +48,12 @@ interface PrinterState {
   ) => void;
   setError: (e: string | null) => void;
   setModelId: (id: string | null) => void;
+  selectPreferredModel: (id: string | null) => void;
   updateSettings: (patch: Partial<PrintSettings>) => void;
 }
 
 export function applyModelDefaults(modelId: string): void {
+  if (isPrintSessionBusy()) return;
   const profile = getDevice(modelId);
   const lc = profile?.labelConfig;
   if (!lc) return;
@@ -56,6 +64,9 @@ export function applyModelDefaults(modelId: string): void {
     printWidth: profile.printWidth ?? 384,
   });
 }
+
+const preferredModelId = loadPreferredPrinterModel();
+const preferredProfile = preferredModelId ? getDevice(preferredModelId) : null;
 
 export const usePrinterStore = create<PrinterState>((set) => ({
   peripheral: null,
@@ -69,6 +80,7 @@ export const usePrinterStore = create<PrinterState>((set) => ({
   error: null,
 
   modelId: null,
+  preferredModelId,
   autoDetectedModelId: null,
   deviceModel: null,
   deviceInfo: {
@@ -82,11 +94,11 @@ export const usePrinterStore = create<PrinterState>((set) => ({
   printerStatus: null,
 
   settings: {
-    density: 2,
-    paperType: "gap",
+    density: (preferredProfile?.defaults.density ?? 2) as 1 | 2 | 3,
+    paperType: preferredProfile?.labelConfig?.defaultPaperType ?? "gap",
     ditherMode: "floyd-steinberg",
     threshold: 128,
-    printWidth: 384,
+    printWidth: preferredProfile?.printWidth ?? 384,
   },
 
   setPeripheral: (peripheral) => set({ peripheral }),
@@ -99,6 +111,21 @@ export const usePrinterStore = create<PrinterState>((set) => ({
   setPrintProgress: (printProgress) => set({ printProgress }),
   setError: (error) => set({ error }),
   setModelId: (modelId) => set({ modelId }),
+  selectPreferredModel: (preferredModelId) => {
+    const state = usePrinterStore.getState();
+    if (
+      isPrintSessionBusy() ||
+      state.isConnected ||
+      state.isConnecting ||
+      state.isScanning ||
+      state.isPrinting
+    )
+      return;
+    if (preferredModelId && !getDevice(preferredModelId)) return;
+    savePreferredPrinterModel(preferredModelId);
+    set({ preferredModelId });
+    if (preferredModelId) applyModelDefaults(preferredModelId);
+  },
   updateSettings: (patch) =>
     set((s) => {
       const settings = { ...s.settings, ...patch };

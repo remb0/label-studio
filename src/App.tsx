@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bluetooth,
   LayoutTemplate,
@@ -17,6 +17,7 @@ import { usePrinterStore } from "./store/printer-store.ts";
 import { useEditorV2Store } from "./store/editor-store.ts";
 import { useWebBluetooth, getPrinter } from "./hooks/use-web-bluetooth.ts";
 import { getDevice } from "@thermoprint/core";
+import { PrinterModelPicker } from "./features/printers/PrinterModelPicker.tsx";
 import {
   acquirePrintSession,
   isPrintSessionBusy,
@@ -78,6 +79,7 @@ function PrinterWorkspace() {
         <h1>Jouw printer</h1>
         <p>Verbind een Bluetooth-printer en bekijk het herkende profiel.</p>
       </div>
+      <PrinterModelPicker className="studio-printer-picker" />
       <div className="studio-cards">
         <article className="studio-card">
           <Bluetooth size={28} />
@@ -174,6 +176,26 @@ export function App() {
     ["bulk", "Bulklabels", Rows3],
     ["printer", "Printer", PrinterIcon],
   ] as const;
+  useEffect(() => {
+    const formats = () => {
+      if (!isPrintSessionBusy()) {
+        setPage("editor");
+        setPanel("settings");
+      }
+    };
+    const templates = () => {
+      if (!isPrintSessionBusy()) {
+        setPage("editor");
+        setPanel("library");
+      }
+    };
+    window.addEventListener("label-studio:open-formats", formats);
+    window.addEventListener("label-studio:open-templates", templates);
+    return () => {
+      window.removeEventListener("label-studio:open-formats", formats);
+      window.removeEventListener("label-studio:open-templates", templates);
+    };
+  }, []);
   return (
     <div className="studio-shell">
       <nav className="studio-nav" aria-label="Hoofdnavigatie">

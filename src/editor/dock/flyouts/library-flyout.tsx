@@ -14,6 +14,10 @@ import {
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 import {
+  STARTER_TEMPLATES,
+  createStarterDocument,
+} from "../../../label/starter-templates.ts";
+import {
   useEditorV2Store,
   type BaseElement,
 } from "../../../store/editor-store.ts";
@@ -177,7 +181,17 @@ function LabelThumbnail({
                 textAnchor={anchor}
                 dominantBaseline="auto"
               >
-                {p.text as string}
+                {String(p.text ?? "")
+                  .split("\n")
+                  .map((line, index) => (
+                    <tspan
+                      key={index}
+                      x={textX}
+                      dy={index === 0 ? 0 : ((p.fontSize as number) ?? 14)}
+                    >
+                      {line || "\u00a0"}
+                    </tspan>
+                  ))}
               </text>
             );
           }
@@ -306,6 +320,34 @@ export function LibraryFlyout({ onClose }: Props) {
         l.name.toLowerCase().includes(query.toLowerCase()),
       )
     : library.labels;
+  const starterTemplates = STARTER_TEMPLATES.filter((item) =>
+    `${item.name} ${item.category} ${item.description}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase()),
+  );
+
+  const startFromTemplate = (templateId: string) => {
+    if (
+      useEditorV2Store.getState().currentLabelDirty &&
+      !confirm(
+        "Je hebt niet-opgeslagen wijzigingen. Wil je deze vervangen door het gekozen sjabloon? Sla je ontwerp eerst op als je het wilt bewaren.",
+      )
+    )
+      return;
+    const document = createStarterDocument(templateId);
+    newLabel();
+    useEditorV2Store.setState({
+      label: document.label,
+      elements: document.elements,
+      currentLabelName: document.name,
+      currentLabelDirty: true,
+      paperType: document.settings!.paperType,
+      rollDirection: document.settings!.rollDirection,
+      printSettings: document.settings!.printSettings,
+    });
+    useEditorV2Store.temporal.getState().clear();
+    onClose();
+  };
 
   const handleImport = () => {
     const input = document.createElement("input");
@@ -407,6 +449,53 @@ export function LibraryFlyout({ onClose }: Props) {
         </p>
       )}
       <div className="flex-1 overflow-auto p-3">
+        {starterTemplates.length > 0 && (
+          <section aria-label="Start met een sjabloon" className="mb-5">
+            <h2 className="text-ui-md font-semibold text-ink-100">
+              Start met een sjabloon
+            </h2>
+            <p className="text-ui-sm text-ink-400 mt-1 mb-3">
+              Kies een ontwerp. Tekst, formaat en objecten kun je daarna
+              aanpassen.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {starterTemplates.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={`Gebruik sjabloon ${item.name}`}
+                  onClick={() => startFromTemplate(item.id)}
+                  className="text-left rounded-lg border border-white/10 bg-ink-800 hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-accent overflow-hidden"
+                >
+                  <div className="h-28 px-2 flex items-center justify-center bg-black/15">
+                    <LabelThumbnail doc={item.document} maxW={170} maxH={92} />
+                  </div>
+                  <div className="p-2.5">
+                    <span className="text-[10px] uppercase tracking-wider text-accent">
+                      {item.category}
+                    </span>
+                    <div className="text-ui-sm font-semibold text-ink-100 mt-0.5">
+                      {item.name}
+                    </div>
+                    <p className="text-ui-xs text-ink-400 mt-1 leading-relaxed">
+                      {item.description}
+                    </p>
+                    <div className="text-ui-xs text-ink-500 mt-2">
+                      {item.document.label.widthMm} ×{" "}
+                      {item.document.label.heightMm} mm ·{" "}
+                      {item.document.label.shape === "circle"
+                        ? "rond"
+                        : "rechthoekig"}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+        <h2 className="text-ui-md font-semibold text-ink-100 mb-3">
+          Mijn sjablonen
+        </h2>
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 rounded-full bg-ink-800 border border-white/5 flex items-center justify-center mb-3">

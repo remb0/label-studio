@@ -2,6 +2,8 @@ import { Bluetooth, Check } from "lucide-react";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
+import { getCompatibilityLevel } from "./PrinterCompatibility.tsx";
+import { useLanguage, t } from "../../lib/i18n.ts";
 import { getPrinterModelDefaults, ALL_PRINTER_MODELS, isDesignOnlyModel } from "./model-catalog.ts";
 
 function PrinterIllustration({
@@ -67,6 +69,7 @@ function PrinterIllustration({
 /** Model preference is separate from a real Bluetooth connection. */
 export function PrinterModelPicker({ className = "" }: { className?: string }) {
   const selected = usePrinterStore((s) => s.preferredModelId);
+  const language = useLanguage((s) => s.language);
   const locked = usePrinterStore(
     (s) => s.isConnected || s.isConnecting || s.isScanning || s.isPrinting,
   );
@@ -135,6 +138,7 @@ export function PrinterModelPicker({ className = "" }: { className?: string }) {
               <span className="text-ui-xs text-ink-400 mt-1">
                 {model.subtitle}
               </span>
+              <span className="text-ui-xs text-ink-500 mt-1">{t(language,getCompatibilityLevel(model.id)==="studio-certified" ? "certified" : "unknown")}</span>
               <span className="text-ui-xs text-ink-500 mt-1">
                 {isDesignOnlyModel(model.id) ? "Ontwerpprofiel · printen nog niet ondersteund" : config.supportedPaperTypes.includes("continuous")
                   ? "Losse labels en doorlopend papier"

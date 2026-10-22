@@ -61,6 +61,8 @@ De compacte kaarten tonen tekst naast het logo of de productfoto. Alleen exact b
 
 Pas na **Gebruik dit printerprofiel** worden de passende basisinstellingen bewaard. Je bestaande ontwerp en labelmaat blijven behouden. Kies daarna het echte apparaat via de browser. De Bluetooth-kiezer wordt niet beschikbaar voor design-only profielen. **Automatisch herkennen** blijft als expliciete keuze beschikbaar voor ondersteunde BLE-apparaten.
 
+De printerpagina, **Connect printer** in de editor, **Verbinden** in de navigatie en de Print-knop openen dezelfde verbindingsflow. Ook een bevestigde keuze voor **Automatisch herkennen** blijft bewaard bij sluiten, annuleren, opnieuw proberen en herladen. Zonder bevestigde keuze is **Printer zoeken** zichtbaar uitgeschakeld met uitleg; na bevestiging roept de klik direct de browserkiezer aan, met dezelfde apparaatfilters en servicetoestemmingen. Een browserfout wordt getoond en kan opnieuw worden geprobeerd. Automatische tests controleren dit met een gesimuleerde Bluetooth-API; zij bewijzen geen fysieke printerverbinding.
+
 ### Bluetooth Classic en wifi
 
 Web Bluetooth is de huidige BLE/GATT-route. Bluetooth Classic is technisch mogelijk via Web Serial/RFCOMM (SPP of een passende RFCOMM-service) in geschikte Chrome-versies: desktop vanaf Chrome 117 en Android vanaf Chrome 138. Dit vereist eerst OS-koppeling, browsertoestemming en een ondersteund printerprotocol. Label Studio implementeert deze transportlaag nog niet; detectie van `navigator.serial` alleen bewijst geen printercompatibiliteit. Zie [Chrome Classic-documentatie](https://developer.chrome.com/blog/serial-over-bluetooth) en [Android-ondersteuning](https://developer.chrome.com/release-notes/138#web_serial_over_bluetooth_on_android).

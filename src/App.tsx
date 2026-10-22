@@ -17,10 +17,10 @@ import { LibraryFlyout } from "./editor/dock/flyouts/library-flyout.tsx";
 import { PrintSettingsFlyout } from "./editor/dock/flyouts/print-settings-flyout.tsx";
 import { AddressWorkspace } from "./features/addresses/AddressWorkspace.tsx";
 import { usePrinterStore } from "./store/printer-store.ts";
-import { useEditorV2Store } from "./store/editor-store.ts";
 import { useWebBluetooth, getPrinter } from "./hooks/use-web-bluetooth.ts";
 import { getDevice } from "@thermoprint/core";
 import { PrinterModelPicker } from "./features/printers/PrinterModelPicker.tsx";
+import { openPrinterConnect } from "./features/printers/open-printer-connect.ts";
 import { CalibrationWizard } from "./features/calibration/CalibrationWizard.tsx";
 import { DraftRecovery } from "./features/drafts/DraftRecovery.tsx";
 import {
@@ -40,13 +40,6 @@ declare const __APP_VERSION__: string;
 declare const __COMMIT_SHA__: string;
 
 type Page = "editor" | "single" | "bulk" | "printer" | "about" | "account";
-
-function openConnect() {
-  if (isPrintSessionBusy()) return;
-  useEditorV2Store.setState((s) => ({
-    connectFlow: { ...s.connectFlow, open: true, step: "idle" },
-  }));
-}
 
 function PrinterWorkspace() {
   const state = usePrinterStore();
@@ -107,7 +100,9 @@ function PrinterWorkspace() {
           <button
             className="studio-primary"
             disabled={busy || state.isConnecting || state.isPrinting || reading}
-            onClick={state.isConnected ? () => void disconnect() : openConnect}
+            onClick={
+              state.isConnected ? () => void disconnect() : openPrinterConnect
+            }
           >
             {state.isConnecting
               ? "Verbinden…"
@@ -269,7 +264,9 @@ export function App() {
         <button
           className="studio-connection"
           disabled={busy}
-          onClick={() => (connected ? setPage("printer") : openConnect())}
+          onClick={() =>
+            connected ? setPage("printer") : openPrinterConnect()
+          }
         >
           <span className={connected ? "connected" : ""} />
           {t(language, connected ? "connected" : "connect")}

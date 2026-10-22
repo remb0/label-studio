@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Printer, ChevronDown, X, Plus, Minus } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
+import { openPrinterConnect } from "../../features/printers/open-printer-connect.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { isDesignOnlyModel } from "../../features/printers/model-catalog.ts";
 import {
@@ -86,9 +87,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
     // If no printer is connected, open the connect flow instead
     if (!printer.connected) {
       setOpen(false);
-      useEditorV2Store.setState((s) => ({
-        connectFlow: { ...s.connectFlow, open: true, step: "idle" },
-      }));
+      openPrinterConnect();
       return;
     }
 

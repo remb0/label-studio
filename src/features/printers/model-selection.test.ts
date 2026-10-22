@@ -5,6 +5,7 @@ import { acquirePrintSession } from "../../lib/print-session";
 afterEach(() => {
   usePrinterStore.setState({
     preferredModelId: null,
+    hasConfirmedPrinterChoice: false,
     modelId: null,
     isConnected: false,
     isConnecting: false,
@@ -20,10 +21,18 @@ test("selects model defaults without claiming a Bluetooth connection", () => {
   usePrinterStore.getState().selectPreferredModel("p15");
   const state = usePrinterStore.getState();
   expect(state.preferredModelId).toBe("p15");
+  expect(state.hasConfirmedPrinterChoice).toBe(true);
   expect(state.modelId).toBeNull();
   expect(state.isConnected).toBe(false);
   expect(state.settings.density).toBe(2);
   expect(state.settings.paperType).toBe("gap");
+});
+
+test("automatic detection is a confirmed choice without inventing a model or connection", () => {
+  usePrinterStore.getState().selectPreferredModel(null);
+  expect(usePrinterStore.getState().hasConfirmedPrinterChoice).toBe(true);
+  expect(usePrinterStore.getState().preferredModelId).toBeNull();
+  expect(usePrinterStore.getState().isConnected).toBe(false);
 });
 
 test("keeps selected model stable while a connected or paused print job owns the printer", () => {

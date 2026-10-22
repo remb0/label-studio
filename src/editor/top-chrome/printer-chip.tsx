@@ -11,6 +11,7 @@ import { usePrinterStore } from "../../store/printer-store.ts";
 import { useWebBluetooth } from "../../hooks/use-web-bluetooth.ts";
 import { getDevice } from "@thermoprint/core";
 import { DebugLogSection } from "./debug-log-section.tsx";
+import { openPrinterConnect } from "../../features/printers/open-printer-connect.ts";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   out_of_paper: {
@@ -106,13 +107,6 @@ export function PrinterChip() {
     return () => document.removeEventListener("mousedown", handler);
   }, [printFlyoutOpen]);
 
-  const openConnect = () => {
-    useEditorV2Store.setState({
-      printFlyoutOpen: false,
-      connectFlow: { open: true, step: "idle", devices: [], selectedId: null },
-    });
-  };
-
   const handleDisconnect = async () => {
     await disconnect();
     useEditorV2Store.setState({
@@ -124,7 +118,8 @@ export function PrinterChip() {
   if (!printer.connected) {
     return (
       <button
-        onClick={openConnect}
+        onClick={openPrinterConnect}
+        aria-label="Connect printer"
         className="shrink-0 flex items-center gap-2 h-8 px-2 md:px-3 rounded-md border border-accent/30 bg-accent/10 text-accent hover:bg-accent/15 hover-fade"
       >
         <Bluetooth size={15} />

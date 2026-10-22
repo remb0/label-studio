@@ -57,6 +57,8 @@ Configureer Nginx Proxy Manager voor `labels.remb0.nl` → `http://192.168.0.13:
 
 Volg bij **Printer** de wizard: **merk → model vinden → controleren**. De start toont merklogo's in plaats van een volledige modellenlijst. Zoek op modelnaam of Bluetooth-alias en combineer filters voor merk, verbinding, resolutie, papier en labelmaat. Standaard verschijnen maximaal vier resultaten; **Alles tonen** breidt de lijst bewust uit. Onbekende verbindingstypen worden niet als BLE of Classic geraden.
 
+De compacte kaarten tonen tekst naast het logo of de productfoto. Alleen exact bevestigde modelafbeeldingen worden gebruikt; anders verschijnt **Foto nog niet bevestigd**. Merklogo's en neutrale pictogrammen zijn geen modelafbeeldingen. Zie de [afbeeldingencontrole per model](docs/printer-images.md) voor bronnen en ontbrekende foto's.
+
 Pas na **Gebruik dit printerprofiel** worden de passende basisinstellingen bewaard. Je bestaande ontwerp en labelmaat blijven behouden. Kies daarna het echte apparaat via de browser. De Bluetooth-kiezer wordt niet beschikbaar voor design-only profielen. **Automatisch herkennen** blijft als expliciete keuze beschikbaar voor ondersteunde BLE-apparaten.
 
 ### Bluetooth Classic en wifi

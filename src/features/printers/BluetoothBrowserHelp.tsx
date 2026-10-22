@@ -24,8 +24,8 @@ export function BluetoothBrowserHelp() {
               ? "Safari en Chrome op iPhone/iPad ondersteunen Web Bluetooth niet. Probeer Bluefy als BLE-browser. Werking verschilt per printer en is niet gegarandeerd."
               : "Safari and Chrome on iPhone/iPad do not support Web Bluetooth. Try Bluefy as a BLE browser. Printer compatibility is not guaranteed."
             : dutch
-              ? "Deze browser kan niet met Bluetooth-printers verbinden. Probeer Chrome op Android, Windows of macOS, en open de site via HTTPS."
-              : "This browser cannot connect to Bluetooth printers. Try Chrome on Android, Windows or macOS using HTTPS."}
+              ? "Web Bluetooth voor BLE is hier niet beschikbaar. Probeer Chrome op Android, Windows of macOS, en open de site via HTTPS."
+              : "Web Bluetooth for BLE is not available here. Try Chrome on Android, Windows or macOS using HTTPS."}
       </p>
       <p>
         {dutch

@@ -31,3 +31,20 @@ The bundled brand images identify the user's hardware; they do not imply endorse
 - LuckP is shown as a plain typographic name, not a purported official logo. Fichero models are grouped under the Action retailer badge; model-specific compatibility is stated separately.
 
 Assets retrieved 2026-10-22 and served locally, without third-party image requests in the UI.
+
+## Model-specific product photographs
+
+`public/printers/` contains seven manufacturer photographs, used only to identify
+the exact catalog model. Copyright remains with DYMO/Newell Brands and Shenzhen
+Yin xiao qian Technology Co., Ltd. (Marklife); these photos are not relicensed
+under MIT and do not imply endorsement or print certification.
+
+- `dymo-550.jpg`, `dymo-550-turbo.jpg`, `dymo-5xl.jpg`, `dymo-450-twin.jpg`,
+  `dymo-450-duo.jpg`: the respective model columns on [DYMO's official comparison](https://www.dymo.com/labelwriter.html), served by Newell Brands' image CDN at 320px with JPEG formatting. No model substitutions.
+- `marklife-p12.jpg`: first product-gallery photo on the [official P12 page](https://www.marklifeprinter.com/Mobile-Photo-Printer-Original-Portable-Printers-Impresora-Smart-Mini-Wireless-Thermal-Photo-Printer-p.html).
+- `marklife-p15.jpg`: first product-gallery photo on the [official P15 page](https://www.marklifeprinter.com/Marklife-Black-and-white-barcode-portable-bottle-mini-thermal-printing-sticker-printer-for-home-using-p.html).
+
+Retrieved and visually checked 2026-10-22. Original asset URLs are recorded in
+`src/features/printers/printer-images.ts`; [the full model audit](docs/printer-images.md)
+also documents models for which no confirmed photo is bundled. No photographs
+were generated or altered to resemble a different model.

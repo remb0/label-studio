@@ -3,6 +3,8 @@ import { Bluetooth, Check, ChevronLeft, Search } from "lucide-react";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
+import { PrinterModelImage } from "./PrinterModelImage.tsx";
+import { getPrinterImage } from "./printer-images.ts";
 import {
   BRANDS,
   CONNECTION_LABELS,
@@ -108,8 +110,10 @@ export function PrinterModelPicker({
                     <span className="printer-wordmark">LuckP</span>
                   )}
                 </span>
-                <strong>{brand.name}</strong>
-                <small>{brand.hint}</small>
+                <span className="printer-card-copy">
+                  <strong>{brand.name}</strong>
+                  <small>{brand.hint}</small>
+                </span>
               </button>
             ))}
           </div>
@@ -271,27 +275,33 @@ export function PrinterModelPicker({
               <button
                 key={model.id}
                 data-printer-result={model.id}
+                aria-label={`${model.name} ${model.subtitle}`}
                 disabled={disabled}
                 aria-pressed={selected === model.id}
                 onClick={() => propose(model.id)}
               >
-                <strong>{model.name}</strong>
-                <small>{model.subtitle}</small>
-                <span
-                  className={
-                    model.designOnly ? "printer-badge limited" : "printer-badge"
-                  }
-                >
-                  {model.designOnly
-                    ? "Alleen ontwerpen"
-                    : "BLE-printprotocol aanwezig"}
+                <PrinterModelImage modelId={model.id} name={model.name} />
+                <span className="printer-card-copy">
+                  <strong>{model.name}</strong>
+                  <small>{model.subtitle}</small>
+                  <span
+                    className={
+                      model.designOnly
+                        ? "printer-badge limited"
+                        : "printer-badge"
+                    }
+                  >
+                    {model.designOnly
+                      ? "Alleen ontwerpen"
+                      : "BLE-printprotocol aanwezig"}
+                  </span>
+                  <small>
+                    {model.defaults.dpi} dpi ·{" "}
+                    {model.connections
+                      .map((connection) => CONNECTION_LABELS[connection])
+                      .join(" / ")}
+                  </small>
                 </span>
-                <small>
-                  {model.defaults.dpi} dpi ·{" "}
-                  {model.connections
-                    .map((connection) => CONNECTION_LABELS[connection])
-                    .join(" / ")}
-                </small>
               </button>
             ))}
           </div>
@@ -331,6 +341,19 @@ export function PrinterModelPicker({
                     ? "Alleen ontwerpen: direct printen naar dit model is nog niet geïmplementeerd. Je kunt labels ontwerpen en als PNG exporteren."
                     : "Voor dit model is een BLE-printprotocol aanwezig. De browser controleert de echte apparaatnaam bij verbinden. Fysieke afdrukkwaliteit is nog niet gecertificeerd."}
                 </p>
+                {getPrinterImage(chosen.id) && (
+                  <p className="printer-photo-source">
+                    Productfoto van dit model gecontroleerd bij de fabrikant.
+                    Uitvoering of kleur kan verschillen.{" "}
+                    <a
+                      href={getPrinterImage(chosen.id)!.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Bekijk de bron
+                    </a>
+                  </p>
+                )}
               </>
             ) : (
               <p>

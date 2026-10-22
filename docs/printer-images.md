@@ -1,39 +1,54 @@
 # Controle van printerafbeeldingen
 
-Gecontroleerd op 22 oktober 2026. Merklogo's identificeren uitsluitend een merk;
-ze stellen geen printermodel voor. De oude generieke silhouettes waren geen
-modelgetrouwe afbeeldingen en worden niet meer als modelafbeelding gebruikt.
+Gecontroleerd op 22 oktober 2026. De catalogus bevat 20 modellen en 14 lokaal
+gebundelde modelafbeeldingen. Logo's identificeren een merk, niet een apparaat.
+De voormalige generieke silhouettes zijn geen modelgetrouwe productfoto's.
 
-De wizard toont tekst **naast** het logo of de productfoto, ook op mobiel.
-Alleen expliciet gekoppelde productfoto's worden getoond. Geen afleiding uit
-modelnaam, familie, alias, DPI of een gelijkende behuizing. Bij een ontbrekende
-of niet bevestigde afbeelding staat een neutraal pictogram met een tekstmelding.
-Een laadfout gebruikt dezelfde veilige terugval, nooit een foto van een ander model.
+| Model                          | Afbeelding              | Controlebron                                                                  |
+| ------------------------------ | ----------------------- | ----------------------------------------------------------------------------- |
+| DYMO 550                       | Bevestigd               | Officiële DYMO-vergelijking, kolom 550                                        |
+| DYMO 550 Turbo                 | Bevestigd               | Aparte kolom 550 Turbo, Turbo-opdruk / netwerksymbool                         |
+| DYMO 5XL                       | Bevestigd               | Kolom 5XL, brede uitvoersleuf                                                 |
+| DYMO 450 Twin Turbo            | Bevestigd               | Twee roluitgangen, aparte modelkolom                                          |
+| DYMO 450 Duo                   | Bevestigd               | Hoge Duo-behuizing met tweede D1-tape-uitvoer                                 |
+| Marklife P12                   | Productgalerij          | Exacte P12-productpagina; uitvoering/firmware kan afwijken                    |
+| Marklife P15                   | Productgalerij          | Exacte P15-productpagina; uitvoering/kleur kan afwijken                       |
+| Fichero D11s (Action)          | Verpakking / apparaat   | Action-artikel 3212141; modelkoppeling nu bevestigd door 0xMH/fichero-printer |
+| NIIMBOT D110                   | Productafbeelding       | Product-JSON met titel D110 en afzonderlijke D110-afbeelding                  |
+| NIIMBOT D11-H                  | Productafbeelding       | Afzonderlijke D11-H-afbeelding; niet de D11/D11s/D110                         |
+| NIIMBOT B1                     | Productafbeelding       | B1-productpagina en product-JSON                                              |
+| NIIMBOT B21                    | Productafbeelding       | B21-productpagina en product-JSON; afgebeelde kleur rood                      |
+| Phomemo D30                    | Productafbeelding       | Officiële D30-productpagina en product-JSON                                   |
+| Phomemo M110                   | Productafbeelding       | Officiële M110-productpagina en product-JSON                                  |
+| DYMO 450                       | Nog geen foto gekoppeld | Geen exact bevestigd fabrikantasset gebundeld                                 |
+| DYMO 450 Turbo                 | Nog geen foto gekoppeld | Geen foto van 450/550 hergebruikt                                             |
+| DYMO 4XL                       | Nog geen foto gekoppeld | Geen 5XL-foto hergebruikt                                                     |
+| LuckP D1S                      | Nog geen foto gekoppeld | Geen exacte uitvoeringsmatch; niet de AiYin/Fichero D11s                      |
+| Marklife M60                   | Nog geen foto gekoppeld | X2-protocolalias bewijst geen identieke behuizing                             |
+| Action pocket / onbekend model | Nog geen foto gekoppeld | Geen uniek artikelnummer voor de bestaande 300-dpi ontwerppreset              |
 
-| Model                                        | Uitkomst                | Bron / reden                                                                                                                                                                                                                       |
-| -------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DYMO LabelWriter 550                         | Productfoto bevestigd   | [Fabrikantvergelijking](https://www.dymo.com/labelwriter.html), kolom 550; één rol, front met drie knoppen                                                                                                                         |
-| DYMO LabelWriter 550 Turbo                   | Productfoto bevestigd   | Zelfde fabrikantvergelijking, aparte kolom 550 Turbo; Turbo-opdruk en netwerksymbool                                                                                                                                               |
-| DYMO LabelWriter 5XL                         | Productfoto bevestigd   | Zelfde fabrikantvergelijking, kolom 5XL; brede uitvoersleuf en XL-behuizing                                                                                                                                                        |
-| DYMO LabelWriter 450 Twin Turbo              | Productfoto bevestigd   | Zelfde fabrikantvergelijking, kolom Twin Turbo; twee roluitgangen en twee blauwe knoppen                                                                                                                                           |
-| DYMO LabelWriter 450 Duo                     | Productfoto bevestigd   | Zelfde fabrikantvergelijking, kolom Duo; hoge behuizing met tweede uitvoer voor D1-tape                                                                                                                                            |
-| Marklife P12                                 | Fabrikantfoto bevestigd | [P12-productpagina](https://www.marklifeprinter.com/Mobile-Photo-Printer-Original-Portable-Printers-Impresora-Smart-Mini-Wireless-Thermal-Photo-Printer-p.html), eerste productgalerijfoto; afgebeelde kleurvariant kan afwijken   |
-| Marklife P15                                 | Fabrikantfoto bevestigd | [P15-productpagina](https://www.marklifeprinter.com/Marklife-Black-and-white-barcode-portable-bottle-mini-thermal-printing-sticker-printer-for-home-using-p.html), eerste productgalerijfoto; afgebeelde kleurvariant kan afwijken |
-| DYMO LabelWriter 450                         | Geen foto gekoppeld     | Geen exact bevestigd fabrikantasset opgenomen; geen Turbo-foto hergebruikt                                                                                                                                                         |
-| DYMO LabelWriter 450 Turbo                   | Geen foto gekoppeld     | Geen exact bevestigd fabrikantasset opgenomen; geen 450- of 550-foto hergebruikt                                                                                                                                                   |
-| DYMO LabelWriter 4XL                         | Geen foto gekoppeld     | Geen exact bevestigd fabrikantasset opgenomen; niet hetzelfde als 5XL                                                                                                                                                              |
-| LuckP D1S                                    | Geen foto gekoppeld     | Geen exacte model-/uitvoeringsmatch bevestigd; geen algemene Fichero-foto                                                                                                                                                          |
-| Marklife M60                                 | Geen foto gekoppeld     | X2 is een protocol-/zoekalias, geen bewijs van dezelfde behuizing                                                                                                                                                                  |
-| Fichero D11s (Action)                        | Geen foto gekoppeld     | [Action-artikel 3212141](https://www.action.com/nl-nl/p/3212141/fichero-labelprinter/) vermeldt niet expliciet D11s; daarom geen zekere modelmatch                                                                                 |
-| Action mini thermal pocket printer (300 dpi) | Geen foto gekoppeld     | Catalogusnaam is niet voldoende om een uniek Action-artikel vast te stellen                                                                                                                                                        |
+## Bronnen en werkwijze
 
-De twee Marklife-pagina's delen ook algemene marketingafbeeldingen. Daarom worden
-die niet gebruikt: de koppelingen wijzen naar hun afzonderlijke productgalerij.
-Een foto van P12 bewijst niet hoe elke P11/LP90-variant eruitziet.
+- [DYMO modellenvergelijking](https://www.dymo.com/labelwriter.html): vijf
+  afzonderlijke afbeeldingen gekoppeld via de exacte modelkolom.
+- [Marklife P12](https://www.marklifeprinter.com/Mobile-Photo-Printer-Original-Portable-Printers-Impresora-Smart-Mini-Wireless-Thermal-Photo-Printer-p.html)
+  en [P15](https://www.marklifeprinter.com/Marklife-Black-and-white-barcode-portable-bottle-mini-thermal-printing-sticker-printer-for-home-using-p.html):
+  eigen productgalerijen, niet de gedeelde algemene marketingafbeeldingen.
+- [Action 3212141](https://www.action.com/nl-nl/p/3212141/fichero-labelprinter/)
+  plus [de modelreferentie uit GitHub](https://github.com/0xMH/fichero-printer/tree/f945a87c43240c0c8689d1cce53772f8a20073a3).
+  Hiermee vervalt de eerdere onzekerheid over dit specifieke Action-artikel.
+- [NIIMBOT-productleverancier](https://www.niimbotlabel.com/): modeltitel,
+  product-JSON en specifieke afbeelding vergeleken. D11-H en D110 delen een
+  uitgebreide verkooppagina maar krijgen uitdrukkelijk verschillende assets.
+- [Phomemo D30](https://phomemo.com/products/d30-label-maker) en
+  [M110](https://phomemo.com/products/m110-label-maker): officiële productpagina's.
 
-Technische bron- en asset-URL's en controledatum staan per model in
-`src/features/printers/printer-images.ts`. De wizard linkt bij de controle-stap
-naar de bron. Foto's worden lokaal gebundeld, zonder externe requests tijdens
-gebruik. De rechten blijven bij de betreffende fabrikant; zie
-`THIRD_PARTY_NOTICES.md`. Bevestiging van de foto is geen bevestiging van fysieke
-printcompatibiliteit. Printerinstellingen en BLE-protocollen zijn niet gewijzigd.
+De volledige bron- en asset-URL's, controledatum en eventuele aanvullende
+modelreferentie staan in `src/features/printers/printer-images.ts`.
+Afbeeldingen zijn visueel geïnspecteerd en worden zonder externe requests geladen.
+Bij een ontbrekende afbeelding of laadfout verschijnt een neutraal pictogram
+met uitleg, nooit een ander apparaat. Kleur, bundel en firmware kunnen afwijken.
+
+Een foto bevestigt geen printprotocol. Vooral bij P12 zijn verschillende
+firmware-/protocolvarianten onder dezelfde naam gerapporteerd. Zie ook de
+[profielcontrole](printer-profiles.md) en `THIRD_PARTY_NOTICES.md`.

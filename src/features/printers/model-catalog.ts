@@ -3,6 +3,7 @@ import {
   getDevice,
   type BlePeripheral,
 } from "@thermoprint/core";
+import { RESEARCHED_MODELS } from "./researched-models.ts";
 
 export const PRINTER_MODELS = [
   {
@@ -89,10 +90,11 @@ export const DESIGN_ONLY_MODELS = [
   },
   {
     id: "action-pocket-300",
-    name: "Action mini thermal pocket printer (300 dpi)",
-    subtitle: "50 × 15 mm · alleen ontwerpen",
+    name: "Action pocket printer (model onbekend)",
+    subtitle: "300-dpi ontwerppreset · exact apparaat niet bevestigd",
     silhouette: "compact",
   },
+  ...RESEARCHED_MODELS,
 ] as const;
 
 export const ALL_PRINTER_MODELS = [...PRINTER_MODELS, ...DESIGN_ONLY_MODELS];
@@ -107,6 +109,19 @@ const dymoSizes = [
 const wideDymoSizes = [...dymoSizes, { widthMm: 102, heightMm: 152 }];
 
 export function getDesignModelConfig(id: string) {
+  const researched = RESEARCHED_MODELS.find((model) => model.id === id);
+  if (researched)
+    return {
+      supportedPaperTypes: researched.paperTypes,
+      defaultPaperType: "gap" as const,
+      gapSizes: researched.sizes,
+      continuousSizes: researched.paperTypes.includes("continuous")
+        ? researched.sizes
+        : [],
+      defaultSize: researched.sizes[0],
+      printWidth: 0,
+      dpi: researched.dpi,
+    };
   if (id === "fichero-d11s")
     return {
       supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],

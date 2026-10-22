@@ -34,10 +34,25 @@ Assets retrieved 2026-10-22 and served locally, without third-party image reques
 
 ## Model-specific product photographs
 
-`public/printers/` contains seven manufacturer photographs, used only to identify
+`public/printers/` contains fourteen product images, used only to identify
 the exact catalog model. Copyright remains with DYMO/Newell Brands and Shenzhen
 Yin xiao qian Technology Co., Ltd. (Marklife); these photos are not relicensed
 under MIT and do not imply endorsement or print certification.
+
+Additional images: Action/Fichero packaging (`fichero-d11s.webp`, Action asset
+3212141), NIIMBOT D110/D11-H/B1/B21 (`niimbot-*.png` / `.jpg`, niimbotlabel.com
+product listings) and Phomemo D30/M110 (`phomemo-*.jpg`, phomemo.com product listings).
+Associated brand/product artwork rights remain with their respective owners;
+the repository's MIT license does not relicense those assets. Exact original
+URLs and model-identity evidence are recorded alongside each image in
+`src/features/printers/printer-images.ts` and `docs/printer-images.md`.
+
+The new hardware metadata uses factual references from NiimBlue (MIT), OpenTLP
+(MIT), fichero-printer (MIT), and the cited manufacturer/product pages. Pinned
+revisions and uncertainties are listed in `docs/printer-profiles.md` and
+`src/features/printers/printer-specs.ts`. No new external driver implementation
+was copied or enabled. Artwork licenses of those projects were not assumed to
+cover photographs from elsewhere.
 
 - `dymo-550.jpg`, `dymo-550-turbo.jpg`, `dymo-5xl.jpg`, `dymo-450-twin.jpg`,
   `dymo-450-duo.jpg`: the respective model columns on [DYMO's official comparison](https://www.dymo.com/labelwriter.html), served by Newell Brands' image CDN at 320px with JPEG formatting. No model substitutions.

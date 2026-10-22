@@ -5,6 +5,7 @@ import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
 import { PrinterModelImage } from "./PrinterModelImage.tsx";
 import { getPrinterImage } from "./printer-images.ts";
+import { PrinterSpecifications } from "./PrinterSpecifications.tsx";
 import {
   BRANDS,
   CONNECTION_LABELS,
@@ -112,7 +113,12 @@ export function PrinterModelPicker({
                   {brand.logo ? (
                     <img src={brand.logo} alt="" />
                   ) : (
-                    <span className="printer-wordmark">LuckP</span>
+                    <span
+                      className="printer-wordmark"
+                      style={{ fontSize: brand.name.length > 6 ? 13 : 19 }}
+                    >
+                      {brand.name}
+                    </span>
                   )}
                 </span>
                 <span className="printer-card-copy">
@@ -301,11 +307,20 @@ export function PrinterModelPicker({
                       : "BLE-printprotocol aanwezig"}
                   </span>
                   <small>
-                    {model.defaults.dpi} dpi ·{" "}
+                    {model.specs.dpi
+                      ? `${model.specs.dpi} dpi`
+                      : "Resolutie niet bevestigd"}{" "}
+                    ·{" "}
                     {model.connections
                       .map((connection) => CONNECTION_LABELS[connection])
                       .join(" / ")}
                   </small>
+                  {(model.specs.evidence === "conflicting" ||
+                    model.specs.evidence === "unverified") && (
+                    <small className="printer-limited">
+                      Firmware / specificaties controleren
+                    </small>
+                  )}
                 </span>
               </button>
             ))}
@@ -336,7 +351,7 @@ export function PrinterModelPicker({
             {chosen ? (
               <>
                 <p>
-                  Aanbevolen label: {chosen.defaults.recommendedSize.widthMm} ×{" "}
+                  Ontwerppreset: {chosen.defaults.recommendedSize.widthMm} ×{" "}
                   {chosen.defaults.recommendedSize.heightMm} mm ·{" "}
                   {chosen.defaults.dpi} dpi · dichtheid{" "}
                   {chosen.defaults.density}.
@@ -348,7 +363,7 @@ export function PrinterModelPicker({
                 </p>
                 {getPrinterImage(chosen.id) && (
                   <p className="printer-photo-source">
-                    Productfoto van dit model gecontroleerd bij de fabrikant.
+                    Afbeelding gekoppeld aan de productbron en modelreferentie.
                     Uitvoering of kleur kan verschillen.{" "}
                     <a
                       href={getPrinterImage(chosen.id)!.source}
@@ -359,6 +374,7 @@ export function PrinterModelPicker({
                     </a>
                   </p>
                 )}
+                <PrinterSpecifications modelId={chosen.id} />
               </>
             ) : (
               <p>

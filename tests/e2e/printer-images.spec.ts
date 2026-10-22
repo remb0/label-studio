@@ -20,12 +20,12 @@ for (const width of [1280, 390]) {
       }
     }
     await expectSideBySide(".printer-brands button");
-    await picker.getByRole("button", { name: "Alles tonen (14)" }).click();
-    await expect(picker.locator("[data-printer-result]")).toHaveCount(14);
-    await expect(picker.locator(".printer-model-image img")).toHaveCount(7);
+    await picker.getByRole("button", { name: "Alles tonen (20)" }).click();
+    await expect(picker.locator("[data-printer-result]")).toHaveCount(20);
+    await expect(picker.locator(".printer-model-image img")).toHaveCount(14);
     await expect(
       picker.getByText("Foto nog niet bevestigd", { exact: true }),
-    ).toHaveCount(7);
+    ).toHaveCount(6);
     await expect
       .poll(() =>
         picker
@@ -67,7 +67,7 @@ test("a failed model photo never falls back to another model's image", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "Printer", exact: true }).click();
   const picker = page.getByRole("region", { name: "Printermodel kiezen" });
-  await picker.getByRole("button", { name: "Alles tonen (14)" }).click();
+  await picker.getByRole("button", { name: "Alles tonen (20)" }).click();
   const model = picker.locator('[data-printer-result="dymo-550"]');
   await expect(model.getByText("Foto niet beschikbaar")).toBeVisible();
   await expect(model.getByRole("img")).toHaveCount(0);

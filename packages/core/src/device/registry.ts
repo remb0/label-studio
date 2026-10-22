@@ -15,7 +15,11 @@ export function findDeviceByName(name: string): DeviceProfile | null {
     if (profile.namePattern && !new RegExp(profile.namePattern, "i").test(name))
       continue;
     for (const prefix of profile.namePrefixes) {
-      if (name.toLowerCase().startsWith(prefix.toLowerCase())) {
+      const suffix = name.slice(prefix.length);
+      if (
+        name.toLowerCase().startsWith(prefix.toLowerCase()) &&
+        (profile.namePattern || !suffix || /^[ _-]/.test(suffix))
+      ) {
         return profile;
       }
     }

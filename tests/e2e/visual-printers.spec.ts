@@ -20,15 +20,32 @@ test("visual printer choice is remembered without claiming a connection", async 
   await navigation
     .getByRole("button", { name: "Printer", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "Kies merk Marklife", exact: true })
+    .click();
   await page.getByRole("button", { name: /Marklife P15/ }).click();
-  await expect(
-    page.getByRole("button", { name: /Marklife P15/ }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await page
+    .getByRole("button", { name: "Gebruik dit printerprofiel" })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("label-studio:preferred-printer:v1"),
+      ),
+    )
+    .toBe("p15");
   await expect(
     page.getByRole("button", { name: "Printer verbinden", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Aanbevolen label: 40 × 12 mm/)).toBeVisible();
+  await page.getByRole("button", { name: "Andere printer kiezen" }).click();
+  await page
+    .getByRole("button", { name: "Kies merk LuckP", exact: true })
+    .click();
   await page.getByRole("button", { name: /LuckP D1S/ }).click();
+  await page
+    .getByRole("button", { name: "Gebruik dit printerprofiel" })
+    .click();
   await navigation
     .getByRole("button", { name: "Ontwerpen", exact: true })
     .click();
@@ -47,14 +64,22 @@ test("visual printer choice is remembered without claiming a connection", async 
   await navigation
     .getByRole("button", { name: "Printer", exact: true })
     .click();
-  await expect(page.getByRole("button", { name: /LuckP D1S/ })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await page.getByRole("button", { name: /Automatisch herkennen/ }).click();
   await expect(
-    page.getByRole("button", { name: /Automatisch herkennen/ }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("status").filter({ hasText: "Printerkeuze bewaard" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Aanbevolen label: 48 × 30 mm/)).toBeVisible();
+  await page.getByRole("button", { name: "Andere printer kiezen" }).click();
+  await page.getByRole("button", { name: /Automatisch herkennen/ }).click();
+  await page
+    .getByRole("button", { name: "Gebruik dit printerprofiel" })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("label-studio:preferred-printer:v1"),
+      ),
+    )
+    .toBe("");
 });
 
 test("printer model modal remains scrollable on a phone", async ({ page }) => {
@@ -72,7 +97,13 @@ test("printer model modal remains scrollable on a phone", async ({ page }) => {
     exact: true,
   });
   await expect(dialog).toBeVisible();
+  await dialog
+    .getByRole("button", { name: "Kies merk LuckP", exact: true })
+    .click();
   await dialog.getByRole("button", { name: /LuckP D1S/ }).click();
+  await dialog
+    .getByRole("button", { name: "Gebruik dit printerprofiel" })
+    .click();
   const scan = dialog.getByRole("button", {
     name: "Printer zoeken",
     exact: true,

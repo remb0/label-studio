@@ -8,7 +8,13 @@ test("design-only printer models keep their label formats selectable", async ({
     .getByRole("navigation", { name: "Hoofdnavigatie" })
     .getByRole("button", { name: "Printer", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "Kies merk DYMO", exact: true })
+    .click();
   await page.getByRole("button", { name: /^DYMO LabelWriter 450 USB/ }).click();
+  await page
+    .getByRole("button", { name: "Gebruik dit printerprofiel" })
+    .click();
   await page
     .getByRole("navigation", { name: "Hoofdnavigatie" })
     .getByRole("button", { name: "Instellingen", exact: true })

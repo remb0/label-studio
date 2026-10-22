@@ -55,7 +55,15 @@ Configureer Nginx Proxy Manager voor `labels.remb0.nl` → `http://192.168.0.13:
 
 ## Bluetooth en printerprofielen
 
-Kies bij **Printer** eerst je modelkaart of **Automatisch herkennen**. De keuze laadt de juiste printerinstellingen, maar verandert je bestaande labelontwerp niet. Selecteer daarna het echte apparaat via de Bluetooth-kiezer van de browser. Een gekozen model en een daadwerkelijk verbonden printer worden afzonderlijk getoond; een ander apparaat krijgt niet zomaar het gekozen protocol.
+Volg bij **Printer** de wizard: **merk → model vinden → controleren**. De start toont merklogo's in plaats van een volledige modellenlijst. Zoek op modelnaam of Bluetooth-alias en combineer filters voor merk, verbinding, resolutie, papier en labelmaat. Standaard verschijnen maximaal vier resultaten; **Alles tonen** breidt de lijst bewust uit. Onbekende verbindingstypen worden niet als BLE of Classic geraden.
+
+Pas na **Gebruik dit printerprofiel** worden de passende basisinstellingen bewaard. Je bestaande ontwerp en labelmaat blijven behouden. Kies daarna het echte apparaat via de browser. De Bluetooth-kiezer wordt niet beschikbaar voor design-only profielen. **Automatisch herkennen** blijft als expliciete keuze beschikbaar voor ondersteunde BLE-apparaten.
+
+### Bluetooth Classic en wifi
+
+Web Bluetooth is de huidige BLE/GATT-route. Bluetooth Classic is technisch mogelijk via Web Serial/RFCOMM (SPP of een passende RFCOMM-service) in geschikte Chrome-versies: desktop vanaf Chrome 117 en Android vanaf Chrome 138. Dit vereist eerst OS-koppeling, browsertoestemming en een ondersteund printerprotocol. Label Studio implementeert deze transportlaag nog niet; detectie van `navigator.serial` alleen bewijst geen printercompatibiliteit. Zie [Chrome Classic-documentatie](https://developer.chrome.com/blog/serial-over-bluetooth) en [Android-ondersteuning](https://developer.chrome.com/release-notes/138#web_serial_over_bluetooth_on_android).
+
+Wifi/LAN kan vanuit een browser met een geschikte HTTP(S)- of WebSocket-printer-API. CORS, CSP, beveiligde context, browser-/lokale-netwerktoestemming en het printerprotocol moeten allemaal kloppen. Een gewone website kan niet rechtstreeks een raw-TCP-printerpoort zoals 9100 openen. Voor zulke printers is een lokale, geauthenticeerde printbridge een passende vervolgstap; die is nu niet gebouwd of geactiveerd. [Local Network Access](https://developer.chrome.com/blog/local-network-access) en [raw sockets versus geïnstalleerde Isolated Web Apps](https://developer.chrome.com/docs/iwa/direct-sockets) beschrijven de browsergrenzen. ESPHome blijft een aparte TODO voor later.
 
 Klik op **Verbinden** en selecteer de printer in de browserkiezer. De Bluetooth-adapter van je laptop of telefoon maakt verbinding; de Dockerhost heeft daarvoor geen Bluetooth nodig.
 

@@ -37,7 +37,7 @@ test("visual printer choice is remembered without claiming a connection", async 
   await expect(
     page.getByRole("button", { name: "Printer verbinden", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/Aanbevolen label: 40 × 12 mm/)).toBeVisible();
+  await expect(page.getByText(/Ontwerppreset: 40 × 12 mm/)).toBeVisible();
   await page.getByRole("button", { name: "Andere printer kiezen" }).click();
   await page
     .getByRole("button", { name: "Kies merk LuckP", exact: true })
@@ -59,7 +59,7 @@ test("visual printer choice is remembered without claiming a connection", async 
   await navigation
     .getByRole("button", { name: "Printer", exact: true })
     .click();
-  await expect(page.getByText(/Aanbevolen label: 48 × 30 mm/)).toBeVisible();
+  await expect(page.getByText(/Ontwerppreset: 48 × 30 mm/)).toBeVisible();
   await page.reload();
   await navigation
     .getByRole("button", { name: "Printer", exact: true })
@@ -67,7 +67,7 @@ test("visual printer choice is remembered without claiming a connection", async 
   await expect(
     page.getByRole("status").filter({ hasText: "Printerkeuze bewaard" }),
   ).toBeVisible();
-  await expect(page.getByText(/Aanbevolen label: 48 × 30 mm/)).toBeVisible();
+  await expect(page.getByText(/Ontwerppreset: 48 × 30 mm/)).toBeVisible();
   await page.getByRole("button", { name: "Andere printer kiezen" }).click();
   await page.getByRole("button", { name: /Automatisch herkennen/ }).click();
   await page

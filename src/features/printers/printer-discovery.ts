@@ -1,4 +1,5 @@
 import { getDevice } from "@thermoprint/core";
+import { getPrinterSpecs, type HardwareConnection } from "./printer-specs.ts";
 import {
   ALL_PRINTER_MODELS,
   getModelLabelConfig,
@@ -31,9 +32,21 @@ export const BRANDS = [
     logo: null,
     hint: "D1S / DP D1 / Fichero 3561",
   },
+  {
+    id: "niimbot",
+    name: "NIIMBOT",
+    logo: null,
+    hint: "D110, D11-H, B1 en B21 · catalogus",
+  },
+  {
+    id: "phomemo",
+    name: "Phomemo",
+    logo: null,
+    hint: "D30 en M110 · catalogus",
+  },
 ] as const;
 export type BrandId = (typeof BRANDS)[number]["id"];
-export type Connection = "ble" | "classic" | "wifi" | "usb" | "unknown";
+export type Connection = HardwareConnection;
 export interface PrinterFilters {
   brand: BrandId | "any";
   query: string;
@@ -54,7 +67,8 @@ export const RESULT_LIMIT = 4;
 export const CONNECTION_LABELS: Record<Connection, string> = {
   ble: "Bluetooth LE",
   classic: "Bluetooth Classic",
-  wifi: "Wifi / LAN",
+  wifi: "Wifi",
+  lan: "Ethernet / LAN (geen wifi)",
   usb: "USB",
   unknown: "Nog niet geverifieerd",
 };
@@ -69,20 +83,19 @@ const normalize = (text: string) =>
 export function printerMetadata(id: string) {
   const model = ALL_PRINTER_MODELS.find((item) => item.id === id);
   if (!model) throw new Error("Onbekend printermodel.");
-  const brands: BrandId[] = id.startsWith("dymo-")
-    ? ["dymo"]
-    : id === "luckp-d1s"
-      ? ["luckp", "action"]
-      : id === "fichero-d11s" || id === "action-pocket-300"
-        ? ["action"]
-        : ["marklife"];
-  const connections: Connection[] = !isDesignOnlyModel(id)
-    ? ["ble"]
-    : id.startsWith("dymo-")
-      ? id === "dymo-550-turbo" || id === "dymo-5xl"
-        ? ["usb", "wifi"]
-        : ["usb"]
-      : ["unknown"];
+  const brands: BrandId[] = id.startsWith("niimbot-")
+    ? ["niimbot"]
+    : id.startsWith("phomemo-")
+      ? ["phomemo"]
+      : id.startsWith("dymo-")
+        ? ["dymo"]
+        : id === "luckp-d1s"
+          ? ["luckp", "action"]
+          : id === "fichero-d11s" || id === "action-pocket-300"
+            ? ["action"]
+            : ["marklife"];
+  const specs = getPrinterSpecs(id);
+  const connections = specs.connections;
   const aliases =
     id === "luckp-d1s"
       ? "DP D1 Fichero 3561 LuckP_D1S"
@@ -96,6 +109,7 @@ export function printerMetadata(id: string) {
     ...model,
     brands,
     connections,
+    specs,
     config,
     defaults: getPrinterModelDefaults(id)!,
     designOnly: isDesignOnlyModel(id),
@@ -120,7 +134,7 @@ export function filterPrinters(filters: PrinterFilters) {
         words.every((word) => model.search.includes(word)) &&
         (filters.connection === "any" ||
           model.connections.includes(filters.connection)) &&
-        (filters.dpi === "any" || String(model.defaults.dpi) === filters.dpi) &&
+        (filters.dpi === "any" || String(model.specs.dpi) === filters.dpi) &&
         (filters.paper === "any" ||
           model.config.supportedPaperTypes.includes(filters.paper)) &&
         (filters.size === "any" ||

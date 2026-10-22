@@ -46,9 +46,16 @@ describe("printer discovery", () => {
         (m) => m.designOnly,
       ),
     ).toBe(true);
-    expect(filterPrinters({ ...EMPTY_FILTERS, connection: "classic" })).toEqual(
+    expect(filterPrinters({ ...EMPTY_FILTERS, connection: "wifi" })).toEqual(
       [],
     );
-    expect(printerMetadata("fichero-d11s").connections).toEqual(["unknown"]);
+    expect(
+      filterPrinters({ ...EMPTY_FILTERS, connection: "lan" }).map((m) => m.id),
+    ).toEqual(["dymo-550-turbo", "dymo-5xl"]);
+    expect(printerMetadata("fichero-d11s").connections).toEqual([
+      "ble",
+      "classic",
+    ]);
+    expect(printerMetadata("fichero-d11s").designOnly).toBe(true);
   });
 });

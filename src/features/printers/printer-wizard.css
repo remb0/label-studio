@@ -229,6 +229,37 @@
 .printer-photo-source a {
   text-decoration: underline;
 }
+.printer-specifications {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #ffffff20;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.printer-specifications summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.printer-specifications dl {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr);
+  gap: 8px 12px;
+  margin: 12px 0;
+}
+.printer-specifications dt {
+  color: var(--color-ink-400);
+}
+.printer-specifications dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.printer-specifications ul {
+  padding-left: 18px;
+  list-style: disc;
+}
+.printer-specifications a {
+  text-decoration: underline;
+}
 .printer-badge.limited,
 .printer-limited {
   color: #fcd34d !important;

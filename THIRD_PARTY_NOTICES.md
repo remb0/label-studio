@@ -20,3 +20,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - https://github.com/ChiaraCannolee/thermal-pocket-printer-basic: protocol research cited by the preserved legacy implementation.
 
 Third-party npm package versions and transitive dependencies are pinned in `package-lock.json`; their licenses remain in their distributed packages. Inter and JetBrains Mono font packages retain their upstream Open Font License notices in node_modules and are bundled locally.
+
+# Printer-brand identification assets
+
+The bundled brand images identify the user's hardware; they do not imply endorsement, certification or printer compatibility. Trademark and applicable artwork rights remain with the respective owners and are not relicensed under this project's MIT license.
+
+- `public/brands/action.svg`: Action wordmark, from [Wikimedia Commons](<https://commons.wikimedia.org/wiki/File:Action_(store)_logo.svg>), identified there as a public-domain text logo with trademark restrictions. The external DTD declaration was removed; vector artwork is unchanged.
+- `public/brands/dymo.svg`: DYMO wordmark from [CDNLogo](https://cdnlogo.com/logo/dymo_48480.html), [asset](https://static.cdnlogo.com/logos/d/87/dymo.svg); owner DYMO.
+- `public/brands/marklife.png`: logo served by the [Marklife manufacturer website](https://www.marklifeprinter.com/), [asset](https://www.marklifeprinter.com/Uploads/flash/6364aaa79aa7a.png).
+- LuckP is shown as a plain typographic name, not a purported official logo. Fichero models are grouped under the Action retailer badge; model-specific compatibility is stated separately.
+
+Assets retrieved 2026-10-22 and served locally, without third-party image requests in the UI.

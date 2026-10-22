@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Bluetooth, X, Check } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
@@ -24,6 +24,7 @@ export function ConnectFlow() {
   const step = useConnectFlowStep();
   const { scan, connect } = useWebBluetooth();
   const printSessionBusy = usePrintSession();
+  const [wizardReady, setWizardReady] = useState(false);
 
   // Bridge printer store state into editor store
   const isConnected = usePrinterStore((s) => s.isConnected);
@@ -82,6 +83,7 @@ export function ConnectFlow() {
   }, [isConnected, battery]);
 
   const handleScan = useCallback(async () => {
+    if (!wizardReady || printSessionBusy) return;
     setFlow({ step: "scanning" });
     try {
       // requestDevice opens native picker — blocks until user selects or cancels
@@ -99,9 +101,12 @@ export function ConnectFlow() {
       // User cancelled the native picker — close the whole flow
       setFlow({ open: false, step: "idle" });
     }
-  }, [scan, connect]);
+  }, [scan, connect, wizardReady, printSessionBusy]);
 
-  const close = () => setFlow({ open: false, step: "idle" });
+  const close = () => {
+    setWizardReady(false);
+    setFlow({ open: false, step: "idle" });
+  };
 
   if (!open) return null;
 
@@ -155,7 +160,10 @@ export function ConnectFlow() {
         {/* Body: Idle */}
         {step === "idle" && (
           <div className="px-5 pb-4">
-            <PrinterModelPicker className="mb-4" />
+            <PrinterModelPicker
+              className="mb-4"
+              onReadyChange={setWizardReady}
+            />
             <div className="rounded-lg border border-white/5 bg-ink-800/50 p-4">
               <div className="text-ui-sm text-ink-400 font-mono uppercase tracking-wider mb-3">
                 Voor je begint
@@ -185,7 +193,7 @@ export function ConnectFlow() {
               </div>
               <button
                 onClick={handleScan}
-                disabled={printSessionBusy}
+                disabled={printSessionBusy || !wizardReady}
                 className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)]"
               >
                 <Bluetooth size={15} />

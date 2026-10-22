@@ -4,6 +4,7 @@ import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useWebBluetooth } from "../../hooks/use-web-bluetooth.ts";
 import { PrinterModelPicker } from "../../features/printers/PrinterModelPicker.tsx";
+import { isDesignOnlyModel } from "../../features/printers/model-catalog.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
 
 type Step = "idle" | "scanning" | "pairing" | "connected" | "error";
@@ -32,6 +33,7 @@ export function ConnectFlow() {
   const peripheral = usePrinterStore((s) => s.peripheral);
   const battery = usePrinterStore((s) => s.battery);
   const error = usePrinterStore((s) => s.error);
+  const preferredModelId = usePrinterStore((s) => s.preferredModelId);
 
   // Sync printer store → editorV2Store (connection + device profile defaults)
   useEffect(() => {
@@ -97,9 +99,13 @@ export function ConnectFlow() {
       } else {
         setFlow({ step: usePrinterStore.getState().error ? "error" : "idle" });
       }
-    } catch {
-      // User cancelled the native picker — close the whole flow
-      setFlow({ open: false, step: "idle" });
+    } catch (error) {
+      usePrinterStore
+        .getState()
+        .setError(
+          error instanceof Error ? error.message : "Printer zoeken mislukt.",
+        );
+      setFlow({ step: "error" });
     }
   }, [scan, connect, wizardReady, printSessionBusy]);
 
@@ -186,6 +192,19 @@ export function ConnectFlow() {
                 ))}
               </ol>
             </div>
+            <p
+              id="connect-search-help"
+              className="mt-3 text-ui-sm text-ink-400"
+              role="status"
+            >
+              {printSessionBusy
+                ? "Rond eerst de actieve printopdracht af."
+                : wizardReady
+                  ? "Klaar. Klik op Printer zoeken om het Bluetoothvenster van je browser te openen."
+                  : isDesignOnlyModel(preferredModelId)
+                    ? "Dit model heeft nog geen directe printroute. Kies een ondersteund BLE-model of Automatisch herkennen."
+                    : "Kies hierboven een model of Automatisch herkennen en bevestig met Gebruik dit printerprofiel."}
+            </p>
             <div className="mt-4 flex items-center justify-between">
               <div className="text-ui-sm text-ink-500">
                 Uses <span className="text-ink-200">Web Bluetooth</span>.
@@ -193,8 +212,9 @@ export function ConnectFlow() {
               </div>
               <button
                 onClick={handleScan}
+                aria-describedby="connect-search-help"
                 disabled={printSessionBusy || !wizardReady}
-                className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)]"
+                className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Bluetooth size={15} />
                 Printer zoeken

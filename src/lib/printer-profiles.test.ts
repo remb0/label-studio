@@ -4,6 +4,7 @@ import {
   savePrinterProfile,
   loadPreferredPrinterModel,
   savePreferredPrinterModel,
+  loadPreferredPrinterChoice,
 } from "./printer-profiles";
 import type { SavedPrinterProfile } from "./printer-profiles";
 
@@ -66,12 +67,24 @@ describe("local printer profiles", () => {
       getItem: (key: string) => values.get(key) ?? null,
       setItem: (key: string, value: string) => values.set(key, value),
     });
+    expect(loadPreferredPrinterChoice()).toEqual({
+      modelId: null,
+      confirmed: false,
+    });
     savePreferredPrinterModel("p15");
     expect(loadPreferredPrinterModel()).toBe("p15");
     expect(loadPrinterProfiles()).toEqual([]);
     savePreferredPrinterModel(null);
     expect(loadPreferredPrinterModel()).toBeNull();
+    expect(loadPreferredPrinterChoice()).toEqual({
+      modelId: null,
+      confirmed: true,
+    });
     savePreferredPrinterModel("unsupported");
     expect(loadPreferredPrinterModel()).toBeNull();
+    expect(loadPreferredPrinterChoice()).toEqual({
+      modelId: null,
+      confirmed: false,
+    });
   });
 });

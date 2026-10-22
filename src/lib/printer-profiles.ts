@@ -11,15 +11,24 @@ export interface SavedPrinterProfile {
 const KEY = "label-studio:printer-profiles:v1";
 const MODEL_KEY = "label-studio:preferred-printer:v1";
 
-export function loadPreferredPrinterModel(): string | null {
+export function loadPreferredPrinterChoice(): {
+  modelId: string | null;
+  confirmed: boolean;
+} {
   try {
     const modelId = localStorage.getItem(MODEL_KEY);
-    return modelId && (getDevice(modelId) || isDesignOnlyModel(modelId))
-      ? modelId
-      : null;
+    // An explicitly saved empty value means automatic detection; absence does not.
+    if (modelId === "") return { modelId: null, confirmed: true };
+    if (modelId && (getDevice(modelId) || isDesignOnlyModel(modelId)))
+      return { modelId, confirmed: true };
   } catch {
-    return null;
+    /* Optional local preference. */
   }
+  return { modelId: null, confirmed: false };
+}
+
+export function loadPreferredPrinterModel(): string | null {
+  return loadPreferredPrinterChoice().modelId;
 }
 
 export function savePreferredPrinterModel(modelId: string | null): void {

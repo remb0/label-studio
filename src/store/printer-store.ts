@@ -3,7 +3,7 @@ import type { BlePeripheral, PrinterStatus } from "@thermoprint/core";
 import { getDevice } from "@thermoprint/core";
 import type { PrintSettings } from "./types.ts";
 import {
-  loadPreferredPrinterModel,
+  loadPreferredPrinterChoice,
   savePreferredPrinterModel,
   savePrinterProfile,
 } from "../lib/printer-profiles.ts";
@@ -27,6 +27,7 @@ interface PrinterState {
 
   modelId: string | null;
   preferredModelId: string | null;
+  hasConfirmedPrinterChoice: boolean;
   autoDetectedModelId: string | null;
   deviceModel: string | null;
   deviceInfo: {
@@ -71,7 +72,8 @@ export function applyModelDefaults(modelId: string): void {
   });
 }
 
-const preferredModelId = loadPreferredPrinterModel();
+const preferredChoice = loadPreferredPrinterChoice();
+const preferredModelId = preferredChoice.modelId;
 const preferredProfile = preferredModelId ? getDevice(preferredModelId) : null;
 
 export const usePrinterStore = create<PrinterState>((set) => ({
@@ -87,6 +89,7 @@ export const usePrinterStore = create<PrinterState>((set) => ({
 
   modelId: null,
   preferredModelId,
+  hasConfirmedPrinterChoice: preferredChoice.confirmed,
   autoDetectedModelId: null,
   deviceModel: null,
   deviceInfo: {
@@ -134,7 +137,7 @@ export const usePrinterStore = create<PrinterState>((set) => ({
     )
       return;
     savePreferredPrinterModel(preferredModelId);
-    set({ preferredModelId });
+    set({ preferredModelId, hasConfirmedPrinterChoice: true });
     if (preferredModelId) applyModelDefaults(preferredModelId);
   },
   updateSettings: (patch) =>

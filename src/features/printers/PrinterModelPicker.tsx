@@ -24,23 +24,28 @@ export function PrinterModelPicker({
   onReadyChange?: (ready: boolean) => void;
 }) {
   const selected = usePrinterStore((s) => s.preferredModelId);
+  const confirmed = usePrinterStore((s) => s.hasConfirmedPrinterChoice);
   const locked = usePrinterStore(
     (s) => s.isConnected || s.isConnecting || s.isScanning || s.isPrinting,
   );
   const busy = usePrintSession();
   const disabled = locked || busy;
-  const [step, setStep] = useState(selected ? 2 : 0);
+  const [step, setStep] = useState(confirmed ? 2 : 0);
   const [candidate, setCandidate] = useState<string | null | undefined>(
-    selected ?? undefined,
+    confirmed ? selected : undefined,
   );
-  const [applied, setApplied] = useState(!!selected);
+  const [applied, setApplied] = useState(confirmed);
   const [filters, setFilters] = useState<PrinterFilters>({ ...EMPTY_FILTERS });
   const [showAll, setShowAll] = useState(false);
   const results = filterPrinters(filters);
   const visible = showAll ? results : results.slice(0, RESULT_LIMIT);
   const chosen = candidate ? printerMetadata(candidate) : null;
   const ready =
-    step === 2 && applied && candidate === selected && !chosen?.designOnly;
+    step === 2 &&
+    confirmed &&
+    applied &&
+    candidate === selected &&
+    !chosen?.designOnly;
   useEffect(() => {
     onReadyChange?.(ready);
   }, [ready, onReadyChange]);

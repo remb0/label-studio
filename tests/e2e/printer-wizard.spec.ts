@@ -61,7 +61,7 @@ test("wizard starts with brands, caps results and only expands on request", asyn
     .toBe("p12");
 });
 
-test("Bluetooth picker needs confirmed printable profile; design-only is explicit", async ({
+test("Bluetooth search needs no profile and design-only restrictions remain explicit", async ({
   page,
 }) => {
   await page.goto("/");
@@ -74,7 +74,7 @@ test("Bluetooth picker needs confirmed printable profile; design-only is explici
     name: "Printer zoeken",
     exact: true,
   });
-  await expect(scan).toBeDisabled();
+  await expect(scan).toBeEnabled();
   await dialog
     .getByRole("button", { name: "Kies merk DYMO", exact: true })
     .click();
@@ -87,10 +87,10 @@ test("Bluetooth picker needs confirmed printable profile; design-only is explici
   await expect(
     dialog.getByText(/Alleen ontwerpen: direct printen/),
   ).toBeVisible();
-  await expect(scan).toBeDisabled();
+  await expect(scan).toBeEnabled();
   await dialog.getByRole("button", { name: "Andere printer kiezen" }).click();
   await dialog.getByRole("button", { name: /Automatisch herkennen/ }).click();
-  await expect(scan).toBeDisabled();
+  await expect(scan).toBeEnabled();
   await dialog
     .getByRole("button", { name: "Gebruik dit printerprofiel" })
     .click();

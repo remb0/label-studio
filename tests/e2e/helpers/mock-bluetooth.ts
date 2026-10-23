@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
 export interface MockBluetoothState {
-  mode: "cancel" | "error" | "success" | "unknown";
+  mode: "cancel" | "error" | "success" | "unknown" | "connection-error";
   calls: { options: unknown; active: boolean }[];
   connects: number;
   writes: number;
@@ -36,6 +36,8 @@ export async function mockBluetooth(
       connected: false,
       async connect() {
         state.connects++;
+        if (state.mode === "connection-error")
+          throw new DOMException("Testverbinding verbroken", "NetworkError");
         gatt.connected = true;
         return gatt;
       },

@@ -1,10 +1,9 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { Bluetooth, X, Check } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { useWebBluetooth } from "../../hooks/use-web-bluetooth.ts";
 import { PrinterModelPicker } from "../../features/printers/PrinterModelPicker.tsx";
-import { isDesignOnlyModel } from "../../features/printers/model-catalog.ts";
 import { usePrintSession } from "../../lib/print-session.ts";
 
 type Step = "idle" | "scanning" | "pairing" | "connected" | "error";
@@ -25,7 +24,6 @@ export function ConnectFlow() {
   const step = useConnectFlowStep();
   const { scan, connect } = useWebBluetooth();
   const printSessionBusy = usePrintSession();
-  const [wizardReady, setWizardReady] = useState(false);
 
   // Bridge printer store state into editor store
   const isConnected = usePrinterStore((s) => s.isConnected);
@@ -33,7 +31,6 @@ export function ConnectFlow() {
   const peripheral = usePrinterStore((s) => s.peripheral);
   const battery = usePrinterStore((s) => s.battery);
   const error = usePrinterStore((s) => s.error);
-  const preferredModelId = usePrinterStore((s) => s.preferredModelId);
 
   // Sync printer store → editorV2Store (connection + device profile defaults)
   useEffect(() => {
@@ -85,7 +82,7 @@ export function ConnectFlow() {
   }, [isConnected, battery]);
 
   const handleScan = useCallback(async () => {
-    if (!wizardReady || printSessionBusy) return;
+    if (printSessionBusy) return;
     setFlow({ step: "scanning" });
     try {
       // requestDevice opens native picker — blocks until user selects or cancels
@@ -95,7 +92,7 @@ export function ConnectFlow() {
       const p = chosen;
       if (p) {
         setFlow({ step: "pairing" });
-        await connect(p);
+        await connect(p, { autoDetect: true });
       } else {
         setFlow({ step: usePrinterStore.getState().error ? "error" : "idle" });
       }
@@ -107,10 +104,9 @@ export function ConnectFlow() {
         );
       setFlow({ step: "error" });
     }
-  }, [scan, connect, wizardReady, printSessionBusy]);
+  }, [scan, connect, printSessionBusy]);
 
   const close = () => {
-    setWizardReady(false);
     setFlow({ open: false, step: "idle" });
   };
 
@@ -166,10 +162,6 @@ export function ConnectFlow() {
         {/* Body: Idle */}
         {step === "idle" && (
           <div className="px-5 pb-4">
-            <PrinterModelPicker
-              className="mb-4"
-              onReadyChange={setWizardReady}
-            />
             <div className="rounded-lg border border-white/5 bg-ink-800/50 p-4">
               <div className="text-ui-sm text-ink-400 font-mono uppercase tracking-wider mb-3">
                 Voor je begint
@@ -199,11 +191,7 @@ export function ConnectFlow() {
             >
               {printSessionBusy
                 ? "Rond eerst de actieve printopdracht af."
-                : wizardReady
-                  ? "Klaar. Klik op Printer zoeken om het Bluetoothvenster van je browser te openen."
-                  : isDesignOnlyModel(preferredModelId)
-                    ? "Dit model heeft nog geen directe printroute. Kies een ondersteund BLE-model of Automatisch herkennen."
-                    : "Kies hierboven een model of Automatisch herkennen en bevestig met Gebruik dit printerprofiel."}
+                : "Zoek direct via Bluetooth, zonder vooraf een profiel te kiezen. Na jouw apparaatkeuze herkennen we ondersteunde modellen aan de Bluetoothnaam en laden we hun instellingen. Een onbekend model verbinden we niet op goed geluk."}
             </p>
             <div className="mt-4 flex items-center justify-between">
               <div className="text-ui-sm text-ink-500">
@@ -213,12 +201,21 @@ export function ConnectFlow() {
               <button
                 onClick={handleScan}
                 aria-describedby="connect-search-help"
-                disabled={printSessionBusy || !wizardReady}
+                disabled={printSessionBusy}
                 className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Bluetooth size={15} />
                 Printer zoeken
               </button>
+            </div>
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <p className="mb-3 text-ui-sm text-ink-400">
+                Optioneel: kies vooraf een ontwerpprofiel. Bluetooth zoeken
+                blijft beschikbaar, ook bij een profiel dat alleen ontwerpen
+                ondersteunt. Bij verbinden gebruiken we het werkelijk herkende
+                apparaat.
+              </p>
+              <PrinterModelPicker />
             </div>
           </div>
         )}

@@ -49,9 +49,6 @@ test("printer page, editor, navbar and Print call the same Bluetooth picker on a
   page,
 }) => {
   await mockBluetooth(page, "cancel");
-  await page.addInitScript(() =>
-    localStorage.setItem("label-studio:preferred-printer:v1", ""),
-  );
   await page.goto("/");
   const dialog = page.getByRole("dialog", {
     name: "Printer verbinden",
@@ -176,4 +173,98 @@ test("an unknown device is rejected instead of forcing the selected printer prot
     dialog.getByText(/Geen ondersteund printerprofiel/).last(),
   ).toBeVisible();
   expect((await bluetoothState(page)).connects).toBe(0);
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("label-studio:preferred-printer:v1"),
+    ),
+  ).toBe("luckp-d1s");
+});
+
+for (const preferred of [null, "p12", "niimbot-d11-h"]) {
+  test(`scan-first recognizes the real printer with preference ${preferred}`, async ({
+    page,
+  }) => {
+    await mockBluetooth(page, "success");
+    if (preferred)
+      await page.addInitScript(
+        (id) => localStorage.setItem("label-studio:preferred-printer:v1", id),
+        preferred,
+      );
+    await page.goto("/");
+    await page
+      .getByRole("button", { name: "Connect printer", exact: true })
+      .click();
+    await page
+      .getByRole("dialog", { name: "Printer verbinden", exact: true })
+      .getByRole("button", { name: "Printer zoeken", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Verbonden", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem("label-studio:preferred-printer:v1"),
+      ),
+    ).toBe("luckp-d1s");
+    const state = await bluetoothState(page);
+    expect(state.calls).toHaveLength(1);
+    expect(state.calls[0].active).toBe(true);
+    expect(state.connects).toBe(1);
+    expect(state.writes).toBe(0);
+  });
+}
+
+test("cancelling scan-first keeps the existing preferred model", async ({
+  page,
+}) => {
+  await mockBluetooth(page, "cancel");
+  await page.addInitScript(() =>
+    localStorage.setItem("label-studio:preferred-printer:v1", "p12"),
+  );
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Connect printer", exact: true })
+    .click();
+  const scan = page
+    .getByRole("dialog", { name: "Printer verbinden", exact: true })
+    .getByRole("button", { name: "Printer zoeken", exact: true });
+  await scan.click();
+  await expect(scan).toBeEnabled();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("label-studio:preferred-printer:v1"),
+    ),
+  ).toBe("p12");
+  expect((await bluetoothState(page)).connects).toBe(0);
+});
+
+test("a failed Bluetooth connection does not replace the preferred model", async ({
+  page,
+}) => {
+  await mockBluetooth(page, "connection-error");
+  await page.addInitScript(() =>
+    localStorage.setItem("label-studio:preferred-printer:v1", "p12"),
+  );
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Connect printer", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Printer verbinden",
+    exact: true,
+  });
+  await dialog
+    .getByRole("button", { name: "Printer zoeken", exact: true })
+    .click();
+  await expect(
+    dialog.getByText("Verbinding mislukt", { exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("label-studio:preferred-printer:v1"),
+    ),
+  ).toBe("p12");
+  const state = await bluetoothState(page);
+  expect(state.connects).toBe(1);
+  expect(state.writes).toBe(0);
 });

@@ -5,6 +5,7 @@ import { usePrinterStore, applyModelDefaults } from "../store/printer-store.ts";
 import {
   loadPrinterProfiles,
   savePrinterProfile,
+  savePreferredPrinterModel,
 } from "../lib/printer-profiles.ts";
 import { useEditorV2Store } from "../store/editor-store.ts";
 import { isPrintSessionBusy } from "../lib/print-session.ts";
@@ -59,7 +60,7 @@ export function useWebBluetooth() {
   }, [store]);
 
   const connect = useCallback(
-    async (peripheral: BlePeripheral) => {
+    async (peripheral: BlePeripheral, options?: { autoDetect?: boolean }) => {
       if (
         isPrintSessionBusy() ||
         store.getState().isConnecting ||
@@ -71,11 +72,20 @@ export function useWebBluetooth() {
       try {
         const profile = validatePrinterModel(
           peripheral,
-          store.getState().preferredModelId,
+          options?.autoDetect ? null : store.getState().preferredModelId,
         );
         if (printer) await printer.disconnect();
         printer = await Printer.connect(transport, peripheral);
         const connectedPrinter = printer;
+        // Only replace the preference after a recognized device actually connects.
+        // Cancellation, unknown names and GATT failures leave the old choice intact.
+        if (options?.autoDetect) {
+          savePreferredPrinterModel(profile.modelId);
+          store.setState({
+            preferredModelId: profile.modelId,
+            hasConfirmedPrinterChoice: true,
+          });
+        }
         store.getState().setPeripheral(peripheral);
         store.setState({
           battery: -1,

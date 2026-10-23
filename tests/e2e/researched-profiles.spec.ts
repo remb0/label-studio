@@ -30,7 +30,7 @@ test("new catalog models expose sourced specs without enabling direct printing",
     .click();
   await expect(
     dialog.getByRole("button", { name: "Printer zoeken", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     dialog.getByText(/Alleen ontwerpen: direct printen/),
   ).toBeVisible();

@@ -29,7 +29,7 @@ test("built-in templates create independent editable copies and preserve saved o
   await expect(
     page.getByRole("dialog", { name: "Sjablonen" }),
   ).not.toBeVisible();
-  await expect(page.getByText("4 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("4 elementen", { exact: true })).toBeVisible();
   await page.keyboard.press("ControlOrMeta+s");
   await expect.poll(async () => (await library()).length).toBe(2);
   const updated = await library();
@@ -59,7 +59,7 @@ test("canceling a starter template keeps unsaved artwork", async ({ page }) => {
     .getByRole("button", { name: "Gebruik sjabloon Adres", exact: true })
     .click();
   await expect(page.getByRole("dialog", { name: "Sjablonen" })).toBeVisible();
-  await expect(page.getByText("1 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("1 elementen", { exact: true })).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "Gebruik sjabloon Adres", exact: true })
@@ -67,5 +67,5 @@ test("canceling a starter template keeps unsaved artwork", async ({ page }) => {
   await expect(
     page.getByRole("dialog", { name: "Sjablonen" }),
   ).not.toBeVisible();
-  await expect(page.getByText("2 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 elementen", { exact: true })).toBeVisible();
 });

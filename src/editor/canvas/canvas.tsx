@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import {
   useRef,
   useState,
@@ -37,6 +39,8 @@ function LabelSizeSelector({
   displayW: number;
   displayH: number;
 }) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const label = useEditorV2Store((s) => s.label);
@@ -82,7 +86,7 @@ function LabelSizeSelector({
             : "bg-ink-850/95 border-white/8 text-ink-200 hover:border-accent/30 hover:text-accent shadow-panel"
         }`}
       >
-        {label.widthMm} × {label.heightMm} mm
+        {number(label.widthMm)} × {number(label.heightMm)} mm
         <ChevronDown
           size={13}
           className={open ? "rotate-180" : ""}
@@ -99,7 +103,7 @@ function LabelSizeSelector({
               currentLabelDirty: true,
             }));
           }}
-          title={`Roll direction: ${rollDirection} — click to flip`}
+          title={tx("rollDirection", { direction: tx(rollDirection) })}
           className="ml-1 inline-flex items-center justify-center w-7 h-7 rounded-md bg-ink-850/95 border border-white/8 hover:border-white/15 hover:bg-ink-800 text-ink-300 hover:text-accent hover-fade shadow-panel"
         >
           <svg
@@ -126,12 +130,12 @@ function LabelSizeSelector({
       {open && (
         <div
           role="dialog"
-          aria-label="Labelformaat kiezen"
+          aria-label={tx("Labelformaat kiezen")}
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[min(350px,90vw)] bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel overflow-hidden z-40"
         >
           <div className="max-h-[45vh] overflow-y-auto p-3">
             <p className="text-ui-sm font-semibold mb-2">
-              Kies je labelformaat
+              {tx("Kies je labelformaat")}{" "}
             </p>
             <FormatPicker
               label={label}

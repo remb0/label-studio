@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../../lib/i18n.ts";
+
 import type { BaseElement } from "../../../store/editor-store.ts";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
 import { Section, Field, TextInput, Select } from "../fields.tsx";
@@ -7,6 +9,8 @@ interface Props {
 }
 
 export function QrSection({ element }: Props) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const updateElement = useEditorV2Store((s) => s.updateElement);
 
   const p = element.props as {
@@ -28,8 +32,8 @@ export function QrSection({ element }: Props) {
           : "25%";
 
   return (
-    <Section title="QR Code">
-      <Field label="Data">
+    <Section title={tx("QR Code")}>
+      <Field label={tx("Data")}>
         <TextInput
           value={p.content || ""}
           onChange={(v) => update({ content: v })}
@@ -41,10 +45,10 @@ export function QrSection({ element }: Props) {
             value={eccLevel}
             onChange={(v) => update({ errorCorrectionLevel: v })}
             options={[
-              { value: "L", label: "Low (7%)" },
-              { value: "M", label: "Medium (15%)" },
-              { value: "Q", label: "Quartile (25%)" },
-              { value: "H", label: "High (30%)" },
+              { value: "L", label: tx("Low (7%)") },
+              { value: "M", label: tx("Medium (15%)") },
+              { value: "Q", label: tx("Quartile (25%)") },
+              { value: "H", label: tx("High (30%)") },
             ]}
           />
         </Field>
@@ -53,7 +57,9 @@ export function QrSection({ element }: Props) {
         <div className="flex-1 h-1 rounded-full bg-ink-800 overflow-hidden">
           <div className="h-full bg-accent" style={{ width: eccWidth }} />
         </div>
-        <span className="font-mono">{(p.content || "").length} chars</span>
+        <span className="font-mono">
+          {number((p.content || "").length)} {tx("chars")}
+        </span>
       </div>
     </Section>
   );

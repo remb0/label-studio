@@ -1,3 +1,4 @@
+import { translate, errorMessage } from "./i18n.ts";
 import { useEffect } from "react";
 import { createId } from "./id.ts";
 import { useEditorV2Store, type BaseElement } from "../store/editor-store.ts";
@@ -165,8 +166,8 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         if (e.shiftKey) {
           const name = prompt(
-            "Save label as:",
-            `${store.currentLabelName} copy`,
+            translate("Label opslaan als:"),
+            translate("labelCopy", { name: store.currentLabelName }),
           );
           if (name) store.saveLabelAs(name);
         } else {
@@ -244,8 +245,7 @@ export function useKeyboardShortcuts() {
               useEditorV2Store.getState().endPrint();
               window.dispatchEvent(
                 new CustomEvent("label-studio:print-error", {
-                  detail:
-                    error instanceof Error ? error.message : "Printen mislukt.",
+                  detail: errorMessage(error),
                 }),
               );
             });

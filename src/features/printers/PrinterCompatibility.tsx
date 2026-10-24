@@ -1,9 +1,12 @@
+import { useT, useLanguage, t } from "../../lib/i18n.ts";
+
 import { useState } from "react";
 import { ALL_PRINTER_MODELS, isDesignOnlyModel } from "./model-catalog.ts";
 import { getCompatibilityLevel } from "./compatibility-status.ts";
-import { useLanguage, t } from "../../lib/i18n.ts";
+
 const repo = "https://github.com/remb0/label-studio/issues/new";
 export function PrinterCompatibility() {
+  const tx = useT();
   const lang = useLanguage((s) => s.language);
   const [id, setId] = useState<string>(ALL_PRINTER_MODELS[0].id);
   const level = getCompatibilityLevel(id);
@@ -33,7 +36,7 @@ export function PrinterCompatibility() {
       >
         {ALL_PRINTER_MODELS.map((x) => (
           <option key={x.id} value={x.id}>
-            {x.name}
+            {x.id === "action-pocket-300" ? tx(x.name) : x.name}
           </option>
         ))}
       </select>
@@ -51,7 +54,9 @@ export function PrinterCompatibility() {
         ·{" "}
         {isDesignOnlyModel(id)
           ? t(lang, "experimental")
-          : "Bluetooth protocol implemented · hardware certification pending"}
+          : tx(
+              "Bluetooth protocol implemented · hardware certification pending",
+            )}
       </p>
       <div className="flex flex-wrap gap-3">
         <button className="studio-primary" onClick={() => report(true)}>

@@ -15,15 +15,15 @@ test("text fitting shrinks long text, survives saving and warns for clipped cont
   await field("Y").fill("10");
   await field("W").fill("200");
   await field("H").fill("40");
-  await field("Size").fill("30");
-  await field("Content").fill(
+  await field("Grootte").fill("30");
+  await field("Inhoud").fill(
     "Dit is een lang voorbeeld dat volledig in het tekstvak moet passen zonder tekst te verliezen",
   );
   await expect(page.getByText(/^Weergave:/)).not.toHaveText(/Weergave: 30 px/);
   await expect(
     page.getByRole("status", { name: "Controle labelinhoud" }),
   ).not.toBeVisible();
-  await page.getByText("Transform", { exact: true }).click();
+  await page.getByText("Transformatie", { exact: true }).click();
   await page.keyboard.press("ControlOrMeta+s");
   await expect
     .poll(() =>
@@ -53,7 +53,7 @@ test("impossible text fit is explicit rather than truncated silently", async ({
     page.getByText(name, { exact: true }).locator("..").locator("input");
   await field("W").fill("2");
   await field("H").fill("2");
-  await field("Content").fill("Veel te veel tekst");
+  await field("Inhoud").fill("Veel te veel tekst");
   await expect(
     page.getByRole("status", { name: "Controle labelinhoud" }),
   ).toContainText("tekst past niet, zelfs op 4 px");

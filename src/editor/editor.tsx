@@ -1,3 +1,4 @@
+import { LocalizedError } from "../lib/i18n.ts";
 import { useRef, useCallback, useEffect } from "react";
 import type Konva from "konva";
 import { TopChrome } from "./top-chrome/top-chrome.tsx";
@@ -151,9 +152,10 @@ export function Editor() {
       const headWidth =
         profile?.printWidth ?? usePrinterStore.getState().settings.printWidth;
       if (canvas.width > headWidth)
-        throw new Error(
-          `Label is ${canvas.width} px breed; deze printer ondersteunt ${headWidth} px. Pas de labelmaat of doorvoerrichting aan.`,
-        );
+        throw new LocalizedError("labelTooWide", {
+          width: canvas.width,
+          max: headWidth,
+        });
       canvas
         .getContext("2d")!
         .drawImage(oriented, 0, 0, canvas.width, canvas.height);

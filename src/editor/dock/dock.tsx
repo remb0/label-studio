@@ -1,3 +1,4 @@
+import { useT } from "../../lib/i18n.ts";
 import { useState, useEffect } from "react";
 import {
   Type,
@@ -30,6 +31,7 @@ import { PrintSettingsFlyout } from "./flyouts/print-settings-flyout.tsx";
 type FlyoutKey = "layers" | "library" | "print" | "more-tools" | null;
 
 export function Dock() {
+  const tx = useT();
   const [openFlyout, setOpenFlyout] = useState<FlyoutKey>(null);
 
   const toggle = (key: Exclude<FlyoutKey, null>) =>
@@ -88,7 +90,7 @@ export function Dock() {
                 className="flex flex-col items-center gap-1 py-3 rounded-lg text-ink-200 hover:bg-ink-800 hover:text-ink-50 hover-fade"
               >
                 <t.icon size={20} />
-                <span className="text-ui-2xs font-medium">{t.label}</span>
+                <span className="text-ui-2xs font-medium">{tx(t.label)}</span>
               </button>
             ))}
           </div>
@@ -107,10 +109,10 @@ export function Dock() {
           <div className="relative flex items-center gap-0.5 pt-2 md:pt-3 pb-1.5 md:pb-2 px-1.5 md:px-2 rounded-2xl border border-ink-700/50 bg-ink-900/95 backdrop-blur-sm shadow-dock">
             {/* Desktop: all tools */}
             <div className="hidden md:contents">
-              <DockGroup label="Toevoegen">
+              <DockGroup label={tx("Toevoegen")}>
                 <DockBtn
                   icon={Type}
-                  label="Tekst"
+                  label={tx("Tekst")}
                   shortcut="T"
                   onClick={addTextEl}
                 />
@@ -122,25 +124,25 @@ export function Dock() {
                 />
                 <DockBtn
                   icon={Barcode}
-                  label="Barcode"
+                  label={tx("Barcode")}
                   shortcut="B"
                   onClick={addBarcodeEl}
                 />
                 <DockBtn
                   icon={ImageIcon}
-                  label="Afbeelding"
+                  label={tx("Afbeelding")}
                   shortcut="I"
                   onClick={addImageEl}
                 />
                 <DockBtn
                   icon={Square}
-                  label="Vorm"
+                  label={tx("Vorm")}
                   shortcut="R"
                   onClick={addRectEl}
                 />
                 <DockBtn
                   icon={Minus}
-                  label="Lijn"
+                  label={tx("Lijn")}
                   shortcut="L"
                   onClick={addLineEl}
                 />
@@ -150,16 +152,16 @@ export function Dock() {
 
             {/* Mobile: Text + Image + More */}
             <div className="md:hidden contents">
-              <DockGroup label="Toevoegen">
-                <DockBtn icon={Type} label="Tekst" onClick={addTextEl} />
+              <DockGroup label={tx("Toevoegen")}>
+                <DockBtn icon={Type} label={tx("Tekst")} onClick={addTextEl} />
                 <DockBtn
                   icon={ImageIcon}
-                  label="Afbeelding"
+                  label={tx("Afbeelding")}
                   onClick={addImageEl}
                 />
                 <DockBtn
                   icon={MoreHorizontal}
-                  label="Meer"
+                  label={tx("Meer")}
                   onClick={() => toggle("more-tools")}
                   active={openFlyout === "more-tools"}
                 />
@@ -167,22 +169,22 @@ export function Dock() {
               <DockDivider />
             </div>
 
-            <DockGroup label="Panelen">
+            <DockGroup label={tx("Panelen")}>
               <DockBtn
                 icon={Layers}
-                label="Lagen"
+                label={tx("Lagen")}
                 onClick={() => toggle("layers")}
                 active={openFlyout === "layers"}
               />
               <DockBtn
                 icon={Folder}
-                label="Sjablonen"
+                label={tx("Sjablonen")}
                 onClick={() => toggle("library")}
                 active={openFlyout === "library"}
               />
               <DockBtn
                 icon={Settings}
-                label="Instellingen"
+                label={tx("Instellingen")}
                 onClick={() => toggle("print")}
                 active={openFlyout === "print"}
               />
@@ -193,15 +195,15 @@ export function Dock() {
         {/* Shortcut legend */}
         <div className="hidden md:flex items-center justify-center gap-3 mt-3 text-ui-xs font-mono text-ink-400 uppercase tracking-wider">
           <span>
-            <Kbd>Space</Kbd> pan
+            <Kbd>{tx("Space")}</Kbd> {tx("pan")}{" "}
           </span>
           <span className="text-ink-700">•</span>
           <span>
-            <Kbd>⌘</Kbd>+<Kbd>scroll</Kbd> zoom
+            <Kbd>⌘</Kbd>+<Kbd>{tx("scroll")}</Kbd> zoom
           </span>
           <span className="text-ink-700">•</span>
           <span>
-            <Kbd>⌘K</Kbd> commands
+            <Kbd>⌘K</Kbd> {tx("commands")}{" "}
           </span>
         </div>
       </div>

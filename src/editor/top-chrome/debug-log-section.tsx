@@ -1,9 +1,13 @@
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import { useState, useRef, useEffect } from "react";
 import { Download, Copy, Trash2, Check } from "lucide-react";
 import { useDebugLog } from "../../hooks/use-debug-log.ts";
 import { clearDebugLog, exportDebugLog } from "@thermoprint/core";
 
 export function DebugLogSection() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const entries = useDebugLog();
   const [copied, setCopied] = useState(false);
 
@@ -47,10 +51,10 @@ export function DebugLogSection() {
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <span className="text-ui-xs font-mono uppercase tracking-wider text-ink-400">
-            Debug log
+            {tx("Debug log")}{" "}
           </span>
           <span className="text-ui-2xs font-mono text-ink-500 tabular-nums">
-            {count} {count === 1 ? "entry" : "entries"}
+            {number(count)} {tx(count === 1 ? "entry" : "entries")}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -59,7 +63,7 @@ export function DebugLogSection() {
             <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400" />
           </span>
           <span className="text-ui-2xs font-mono uppercase text-ink-400">
-            live
+            {tx("live")}{" "}
           </span>
         </div>
       </div>
@@ -70,7 +74,7 @@ export function DebugLogSection() {
         className="rounded-md bg-ink-900/60 border border-white/5 p-2 mb-2 font-mono text-ui-xs leading-tight text-ink-300 max-h-[60px] overflow-y-auto"
       >
         {tail.length === 0 ? (
-          <div className="text-ink-500 italic">No entries yet</div>
+          <div className="text-ink-500 italic">{tx("No entries yet")}</div>
         ) : (
           tail.map((e, i) => (
             <div key={`${e.time}-${i}`} className="flex gap-1.5 truncate">
@@ -92,12 +96,12 @@ export function DebugLogSection() {
           className="flex-1 h-7 rounded-md bg-ink-800 hover:bg-ink-750 border border-white/5 text-ui-sm text-ink-100 hover:text-accent flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:hover:text-ink-100"
         >
           <Download size={13} />
-          Download .log
+          {tx("Download .log")}{" "}
         </button>
         <button
           onClick={copy}
           disabled={count === 0}
-          title="Copy to clipboard"
+          title={tx("Copy to clipboard")}
           className="w-8 h-7 rounded-md bg-ink-800 hover:bg-ink-750 border border-white/5 text-ink-300 hover:text-ink-100 flex items-center justify-center disabled:opacity-40"
         >
           {copied ? (
@@ -109,7 +113,7 @@ export function DebugLogSection() {
         <button
           onClick={() => clearDebugLog()}
           disabled={count === 0}
-          title="Clear log"
+          title={tx("Clear log")}
           className="w-8 h-7 rounded-md bg-ink-800 hover:bg-ink-750 border border-white/5 text-ink-300 hover:text-red-400 flex items-center justify-center disabled:opacity-40"
         >
           <Trash2 size={13} />

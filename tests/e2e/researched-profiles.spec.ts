@@ -5,7 +5,7 @@ test("new catalog models expose sourced specs without enabling direct printing",
 }) => {
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "Printer verbinden",

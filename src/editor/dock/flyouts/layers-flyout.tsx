@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../../lib/i18n.ts";
+
 import {
   Type,
   QrCode,
@@ -42,6 +44,8 @@ interface Props {
 }
 
 export function LayersFlyout({ onClose }: Props) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const elements = useEditorV2Store((s) => s.elements);
   const selectedIds = useEditorV2Store((s) => s.selectedIds);
   const selectOnly = useEditorV2Store((s) => s.selectOnly);
@@ -55,10 +59,10 @@ export function LayersFlyout({ onClose }: Props) {
         <div className="flex items-center gap-2">
           <Layers size={14} className="text-accent" />
           <span className="text-ui-base font-semibold text-ink-100">
-            Layers
+            {tx("Layers")}{" "}
           </span>
           <span className="text-ui-xs font-mono text-ink-400">
-            {elements.length}
+            {number(elements.length)}
           </span>
         </div>
         <button onClick={onClose} className="text-ink-400 hover:text-ink-100">
@@ -68,7 +72,7 @@ export function LayersFlyout({ onClose }: Props) {
       <div className="max-h-72 overflow-y-auto py-1">
         {reversed.length === 0 && (
           <div className="px-4 py-6 text-center text-ui-sm text-ink-500">
-            No elements yet
+            {tx("No elements yet")}{" "}
           </div>
         )}
         {reversed.map((el) => {
@@ -85,9 +89,13 @@ export function LayersFlyout({ onClose }: Props) {
               }`}
             >
               <Icon size={14} className="shrink-0" />
-              <span className="flex-1 text-ui-sm truncate">{labelFor(el)}</span>
+              <span className="flex-1 text-ui-sm truncate">
+                {el.type === "text" && el.props.text
+                  ? String(el.props.text)
+                  : tx(labelFor(el))}
+              </span>
               <span className="font-mono text-ui-2xs text-ink-500 opacity-0 group-hover:opacity-100">
-                {Math.round(el.width)}×{Math.round(el.height)}
+                {number(Math.round(el.width))}×{number(Math.round(el.height))}
               </span>
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
                 <button

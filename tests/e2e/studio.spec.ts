@@ -42,5 +42,5 @@ test("editor can start without the HTTPS-only randomUUID helper", async ({
   await page.goto("/");
   await expect(page.locator("canvas").first()).toBeVisible();
   await page.getByRole("button", { name: "Tekst T", exact: true }).click();
-  await expect(page.getByText("1 elements", { exact: false })).toBeVisible();
+  await expect(page.getByText("1 elementen", { exact: false })).toBeVisible();
 });

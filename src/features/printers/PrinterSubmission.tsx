@@ -1,6 +1,6 @@
+import { useT } from "../../lib/i18n.ts";
 import { useState } from "react";
 import { usePrinterStore } from "../../store/printer-store.ts";
-import { useLanguage } from "../../lib/i18n.ts";
 
 const repo = "https://github.com/remb0/label-studio";
 type FormData = {
@@ -31,106 +31,54 @@ const blank: FormData = {
 };
 type Key = keyof FormData;
 const words = {
-  nl: {
-    title: "Help jouw printer toevoegen",
-    intro:
-      "Beantwoord een paar eenvoudige vragen. Wat je niet weet mag je overslaan. Geen technische kennis nodig.",
-    step1: "1. Welke printer?",
-    step2: "2. Labels en verbinding",
-    step3: "3. Jouw ervaring",
-    brand: "Merk *",
-    model: "Modelnummer *",
-    connection: "Hoe sluit je de printer aan?",
-    bluetooth: "Bluetoothnaam (optioneel)",
-    maxWidth: "Maximale labelbreedte in mm",
-    dpi: "Resolutie (dpi, als bekend)",
-    media: "Gebruikte labelformaten",
-    productUrl: "Link naar product of handleiding",
-    operatingSystem: "Telefoon, tablet of computer",
-    testResult: "Heb je geprobeerd te printen?",
-    observations: "Wat gebeurde er?",
-    next: "Volgende",
-    back: "Vorige",
-    copy: "Kopieer aanvraag",
-    download: "Download aanvraag",
-    github: "Open GitHub-aanvraag",
-    privacy:
-      "Privacy: noteer geen serienummer, MAC-adres, woonadres of persoonlijke informatie. Controleer ook foto's.",
-    notice:
-      "Deel je aanvraag rechtstreeks via GitHub Issues. Hiervoor is een gratis GitHub-account nodig. Zonder account kun je de aanvraag kopiëren of downloaden.",
-    autofill: "Neem gegevens van verbonden printer over",
-    examples: "Voorbeeld",
-    finish: "Controleer en verstuur",
-    success: "Aanvraag gekopieerd. Je kunt deze met de beheerder delen.",
-    failure: "Kopiëren is mislukt. Gebruik Download aanvraag.",
-    notTested: "Nog niet getest",
-    connected: "Bluetooth verbonden, nog niet geprint",
-    printed: "Proeflabel werkt",
-    failed: "Printen mislukt",
-    tipModel: "Kijk op de onderkant, verpakking of in de originele printerapp.",
-    tipBle:
-      "Dit is de naam die je telefoon of computer toont tijdens het zoeken naar Bluetooth-apparaten. We slaan geen Bluetooth-ID op.",
-    tipWidth:
-      "Meet het label met een liniaal. Geef bijvoorbeeld 14, 40 of 48 mm op.",
-    tipMedia: "Bijvoorbeeld 40 × 30 mm, rond 30 mm of doorlopende rol.",
-    tipDpi:
-      "Staat vaak als 203 of 300 dpi in de handleiding. Weet je het niet? Laat leeg.",
-    tipTest:
-      "Een geslaagde melding bewijst nog geen Studio Certified-compatibiliteit. Daarvoor is een gecontroleerde hardwaretest nodig.",
-    addDetails:
-      "Extra informatie helpt ons het juiste printprotocol te vinden.",
-    summary: "Samenvatting aanvraag",
-    required: "Vul merk en model in om door te gaan.",
-  },
-  en: {
-    title: "Help us add your printer",
-    intro:
-      "Answer a few simple questions. Skip anything you don't know. No technical knowledge required.",
-    step1: "1. Which printer?",
-    step2: "2. Labels and connection",
-    step3: "3. Your experience",
-    brand: "Brand *",
-    model: "Model number *",
-    connection: "How does it connect?",
-    bluetooth: "Bluetooth name (optional)",
-    maxWidth: "Maximum label width (mm)",
-    dpi: "Resolution (dpi, if known)",
-    media: "Label sizes used",
-    productUrl: "Product or manual URL",
-    operatingSystem: "Phone, tablet or computer",
-    testResult: "Have you tried printing?",
-    observations: "What happened?",
-    next: "Next",
-    back: "Back",
-    copy: "Copy request",
-    download: "Download request",
-    github: "Open GitHub issue",
-    privacy:
-      "Privacy: never include serial numbers, MAC addresses, home addresses or personal information. Check photos too.",
-    notice:
-      "Submit your request through GitHub Issues (a free GitHub account is required), or use Copy / Download to share it without an account.",
-    autofill: "Use connected printer details",
-    examples: "Example",
-    finish: "Review and submit",
-    success: "Request copied. Share it with the maintainer.",
-    failure: "Could not copy. Use Download request.",
-    notTested: "Not tested",
-    connected: "Bluetooth connected, not printed",
-    printed: "Test label printed",
-    failed: "Printing failed",
-    tipModel: "Look at the bottom, the packaging or the manufacturer's app.",
-    tipBle:
-      "This is the device name shown during Bluetooth discovery. We do not include Bluetooth IDs.",
-    tipWidth: "Measure the label with a ruler, for example 14, 40 or 48 mm.",
-    tipMedia: "For example 40 × 30 mm, 30 mm round or continuous roll.",
-    tipDpi: "Often 203 or 300 dpi in the manual. Leave blank if unknown.",
-    tipTest:
-      "A positive user report does not mean Studio Certified compatibility. Certification requires reviewed hardware testing.",
-    addDetails:
-      "Optional details help us identify the correct printing protocol.",
-    summary: "Submission summary",
-    required: "Enter a brand and model number to continue.",
-  },
+  title: "Help jouw printer toevoegen",
+  intro:
+    "Beantwoord een paar eenvoudige vragen. Wat je niet weet mag je overslaan. Geen technische kennis nodig.",
+  step1: "1. Welke printer?",
+  step2: "2. Labels en verbinding",
+  step3: "3. Jouw ervaring",
+  brand: "Merk *",
+  model: "Modelnummer *",
+  connection: "Hoe sluit je de printer aan?",
+  bluetooth: "Bluetoothnaam (optioneel)",
+  maxWidth: "Maximale labelbreedte in mm",
+  dpi: "Resolutie (dpi, als bekend)",
+  media: "Gebruikte labelformaten",
+  productUrl: "Link naar product of handleiding",
+  operatingSystem: "Telefoon, tablet of computer",
+  testResult: "Heb je geprobeerd te printen?",
+  observations: "Wat gebeurde er?",
+  next: "Volgende",
+  back: "Vorige",
+  copy: "Kopieer aanvraag",
+  download: "Download aanvraag",
+  github: "Open GitHub-aanvraag",
+  privacy:
+    "Privacy: noteer geen serienummer, MAC-adres, woonadres of persoonlijke informatie. Controleer ook foto's.",
+  notice:
+    "Deel je aanvraag rechtstreeks via GitHub Issues. Hiervoor is een gratis GitHub-account nodig. Zonder account kun je de aanvraag kopiëren of downloaden.",
+  autofill: "Neem gegevens van verbonden printer over",
+  examples: "Voorbeeld",
+  finish: "Controleer en verstuur",
+  success: "Aanvraag gekopieerd. Je kunt deze met de beheerder delen.",
+  failure: "Kopiëren is mislukt. Gebruik Download aanvraag.",
+  notTested: "Nog niet getest",
+  connected: "Bluetooth verbonden, nog niet geprint",
+  printed: "Proeflabel werkt",
+  failed: "Printen mislukt",
+  tipModel: "Kijk op de onderkant, verpakking of in de originele printerapp.",
+  tipBle:
+    "Dit is de naam die je telefoon of computer toont tijdens het zoeken naar Bluetooth-apparaten. We slaan geen Bluetooth-ID op.",
+  tipWidth:
+    "Meet het label met een liniaal. Geef bijvoorbeeld 14, 40 of 48 mm op.",
+  tipMedia: "Bijvoorbeeld 40 × 30 mm, rond 30 mm of doorlopende rol.",
+  tipDpi:
+    "Staat vaak als 203 of 300 dpi in de handleiding. Weet je het niet? Laat leeg.",
+  tipTest:
+    "Een geslaagde melding bewijst nog geen Studio Certified-compatibiliteit. Daarvoor is een gecontroleerde hardwaretest nodig.",
+  addDetails: "Extra informatie helpt ons het juiste printprotocol te vinden.",
+  summary: "Samenvatting aanvraag",
+  required: "Vul merk en model in om door te gaan.",
 } as const;
 const labels: [
   Key,
@@ -163,26 +111,35 @@ const labels: [
 function sanitize(value: string) {
   return value.replace(/[<>]/g, "").trim();
 }
-function report(data: FormData): string {
+function report(data: FormData, tx: ReturnType<typeof useT>): string {
   return [
-    "## Printer profile request",
+    tx("## Printer profile request"),
     ...labels.map(
       ([field]) =>
-        "- **" + field + ":** " + (sanitize(data[field]) || "Unknown"),
+        "- **" +
+        tx(words[field]) +
+        ":** " +
+        (sanitize(data[field]) || tx("Unknown")),
     ),
     "",
-    "## Verification",
-    "- [ ] Printer connected",
-    "- [ ] Test label printed correctly",
-    "- [ ] Paper size and alignment checked",
+    tx("## Verification"),
+    tx("- [ ] Printer connected"),
+    tx("- [ ] Test label printed correctly"),
+    tx("- [ ] Paper size and alignment checked"),
     "",
-    "Community reports are unverified and never automatically confer Studio Certified status.",
-    "Please remove serial numbers, MAC addresses, and other private information.",
+    tx(
+      "Community reports are unverified and never automatically confer Studio Certified status.",
+    ),
+    tx(
+      "Please remove serial numbers, MAC addresses, and other private information.",
+    ),
   ].join("\n");
 }
 export function PrinterSubmission() {
-  const language = useLanguage((s) => s.language);
-  const w = words[language === "nl" ? "nl" : "en"];
+  const tx = useT();
+  const w = Object.fromEntries(
+    Object.entries(words).map(([key, value]) => [key, tx(value)]),
+  ) as Record<keyof typeof words, string>;
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(blank);
   const [feedback, setFeedback] = useState("");
@@ -206,13 +163,13 @@ export function PrinterSubmission() {
       />
     </label>
   );
-  const text = report(data);
+  const text = report(data, tx);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
-      setFeedback(w.success);
+      setFeedback(words.success);
     } catch {
-      setFeedback(w.failure);
+      setFeedback(words.failure);
     }
   };
   const download = () => {
@@ -249,7 +206,7 @@ export function PrinterSubmission() {
     <section className="studio-card mt-5" aria-label={w.title}>
       <h2>{w.title}</h2>
       <p>{w.intro}</p>
-      <div className="flex flex-wrap gap-2 mt-3" aria-label="Steps">
+      <div className="flex flex-wrap gap-2 mt-3" aria-label={tx("Steps")}>
         {[w.step1, w.step2, w.step3].map((title, index) => (
           <button
             key={title}
@@ -278,9 +235,11 @@ export function PrinterSubmission() {
                 "Bluetooth Classic",
                 "USB",
                 "Wi-Fi / LAN",
-                "Unknown",
+                tx("Unknown"),
               ].map((x) => (
-                <option key={x}>{x}</option>
+                <option key={x} value={x}>
+                  {tx(x)}
+                </option>
               ))}
             </select>
           </label>
@@ -338,11 +297,7 @@ export function PrinterSubmission() {
             </select>
             <span className="block text-ui-xs text-ink-400">{w.tipTest}</span>
           </label>
-          {field(
-            "observations",
-            w.addDetails,
-            "What happened? / Wat gebeurde er?",
-          )}
+          {field("observations", w.addDetails, w.observations)}
         </div>
       )}
       <p className="text-ui-xs my-3">{w.privacy}</p>
@@ -363,7 +318,7 @@ export function PrinterSubmission() {
             className="studio-primary"
             onClick={() => {
               if (step === 0 && !valid) {
-                setFeedback(w.required);
+                setFeedback(words.required);
                 return;
               }
               setFeedback("");
@@ -384,7 +339,7 @@ export function PrinterSubmission() {
       </div>
       {feedback && (
         <p role="status" className="my-2">
-          {feedback}
+          {tx(feedback)}
         </p>
       )}
       {step === 2 && showReview && valid && (

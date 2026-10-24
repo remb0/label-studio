@@ -1,3 +1,15 @@
+import {
+  useNumberFormatter,
+  useT,
+  useLanguage,
+  t,
+  LANGUAGES,
+  type Language,
+  type UiMessage,
+  errorMessage,
+  asMessage,
+} from "./lib/i18n.ts";
+
 import { useEffect, useState } from "react";
 import {
   Bluetooth,
@@ -28,7 +40,7 @@ import {
   isPrintSessionBusy,
   usePrintSession,
 } from "./lib/print-session.ts";
-import { useLanguage, t, LANGUAGES, type Language } from "./lib/i18n.ts";
+
 import { AboutPage } from "./features/about/AboutPage.tsx";
 import { AccountPage } from "./features/account/AccountPage.tsx";
 import { PrinterSubmission } from "./features/printers/PrinterSubmission.tsx";
@@ -42,9 +54,13 @@ declare const __COMMIT_SHA__: string;
 type Page = "editor" | "single" | "bulk" | "printer" | "about" | "account";
 
 function PrinterWorkspace() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const state = usePrinterStore();
   const { disconnect, reconnect } = useWebBluetooth();
-  const [diagnostic, setDiagnostic] = useState("");
+  const [diagnostic, setDiagnostic] = useState<
+    { label: string; value: UiMessage }[]
+  >([]);
   const [reading, setReading] = useState(false);
   const busy = usePrintSession();
   const profile = state.modelId ? getDevice(state.modelId) : null;
@@ -55,7 +71,12 @@ function PrinterWorkspace() {
     if (!release) return;
     setReading(true);
     try {
-      const lines = [`Printer: ${state.peripheral?.name || "Onbekend"}`];
+      const lines: { label: string; value: UiMessage }[] = [
+        {
+          label: "Printer",
+          value: state.peripheral?.name || asMessage("Onbekend"),
+        },
+      ];
       for (const [label, read] of [
         ["Model", () => printer.getModel()],
         ["Batterij", () => printer.getBattery()],
@@ -63,13 +84,11 @@ function PrinterWorkspace() {
         ["Firmware", () => printer.getInfo("firmware")],
       ] as const) {
         try {
-          lines.push(`${label}: ${JSON.stringify(await read())}`);
+          lines.push({ label, value: JSON.stringify(await read()) });
         } catch (error) {
-          lines.push(
-            `${label}: ${error instanceof Error ? error.message : "Niet beschikbaar"}`,
-          );
+          lines.push({ label, value: asMessage(errorMessage(error)) });
         }
-        setDiagnostic(lines.join("\n"));
+        setDiagnostic([...lines]);
       }
     } finally {
       setReading(false);
@@ -79,9 +98,11 @@ function PrinterWorkspace() {
   return (
     <section className="studio-page">
       <div className="studio-page-title">
-        <span className="studio-eyebrow">VERBINDEN & CONTROLEREN</span>
-        <h1>Jouw printer</h1>
-        <p>Verbind een Bluetooth-printer en bekijk het herkende profiel.</p>
+        <span className="studio-eyebrow">{tx("VERBINDEN & CONTROLEREN")}</span>
+        <h1>{tx("Jouw printer")}</h1>
+        <p>
+          {tx("Verbind een Bluetooth-printer en bekijk het herkende profiel.")}
+        </p>
       </div>
       <PrinterModelPicker className="studio-printer-picker" />
       <div className="studio-cards">
@@ -90,12 +111,14 @@ function PrinterWorkspace() {
           <h2>
             {state.isConnected
               ? state.peripheral?.name
-              : "Klaar om te verbinden"}
+              : tx("Klaar om te verbinden")}
           </h2>
           <p>
             {state.isConnected
-              ? "Verbonden via de Bluetooth-adapter van dit apparaat."
-              : "Zet de printer aan en kies hem in het Bluetooth-venster van je browser."}
+              ? tx("Verbonden via de Bluetooth-adapter van dit apparaat.")
+              : tx(
+                  "Zet de printer aan en kies hem in het Bluetooth-venster van je browser.",
+                )}
           </p>
           <button
             className="studio-primary"
@@ -105,10 +128,10 @@ function PrinterWorkspace() {
             }
           >
             {state.isConnecting
-              ? "Verbinden…"
+              ? tx("Verbinden…")
               : state.isConnected
-                ? "Verbinding verbreken"
-                : "Printer verbinden"}
+                ? tx("Verbinding verbreken")
+                : tx("Printer verbinden")}
           </button>
           {!state.isConnected && (
             <button
@@ -116,51 +139,63 @@ function PrinterWorkspace() {
               disabled={busy || state.isConnecting}
               onClick={() => void reconnect()}
             >
-              Eerder toegestane printer verbinden
+              {tx("Eerder toegestane printer verbinden")}{" "}
             </button>
           )}
           {state.error && (
             <p role="alert" className="studio-error">
-              {state.error}
+              {tx(state.error)}
             </p>
           )}
         </article>
         <article className="studio-card">
-          <h2>Herkend profiel</h2>
+          <h2>{tx("Herkend profiel")}</h2>
           <dl>
-            <dt>Model</dt>
-            <dd>{state.modelId || "Nog geen printer geselecteerd"}</dd>
-            <dt>Printbreedte</dt>
+            <dt>{tx("Model")}</dt>
+            <dd>{state.modelId || tx("Nog geen printer geselecteerd")}</dd>
+            <dt>{tx("Printbreedte")}</dt>
             <dd>
               {profile?.printWidth
-                ? `${profile.printWidth} pixels`
-                : "Niet uitgelezen"}
+                ? `${number(profile.printWidth)} px`
+                : tx("Niet uitgelezen")}
             </dd>
-            <dt>Batterij</dt>
+            <dt>{tx("Batterij")}</dt>
             <dd>
-              {state.battery >= 0 ? `${state.battery}%` : "Niet uitgelezen"}
+              {state.battery >= 0 ? `${state.battery}%` : tx("Niet uitgelezen")}
             </dd>
-            <dt>Firmware</dt>
-            <dd>{state.deviceInfo.firmware || "Niet uitgelezen"}</dd>
+            <dt>{tx("Firmware")}</dt>
+            <dd>{state.deviceInfo.firmware || tx("Niet uitgelezen")}</dd>
           </dl>
           <p>
-            Een onbekende printer krijgt geen willekeurige protocolinstellingen.
+            {tx(
+              "Een onbekende printer krijgt geen willekeurige protocolinstellingen.",
+            )}{" "}
           </p>
         </article>
         <article className="studio-card">
-          <h2>Diagnose</h2>
+          <h2>{tx("Diagnose")}</h2>
           <p>
-            Lees model, batterij en status. Niet iedere firmware beantwoordt
-            alle informatievragen.
+            {tx(
+              "Lees model, batterij en status. Niet iedere firmware beantwoordt alle informatievragen.",
+            )}{" "}
           </p>
           <button
             className="studio-secondary"
             disabled={busy || !state.isConnected || reading || state.isPrinting}
             onClick={() => void diagnose()}
           >
-            {reading ? "Bezig met uitlezen…" : "Printerdiagnose lezen"}
+            {reading ? tx("Bezig met uitlezen…") : tx("Printerdiagnose lezen")}
           </button>
-          {diagnostic && <pre aria-live="polite">{diagnostic}</pre>}
+          {diagnostic.length > 0 && (
+            <pre aria-live="polite">
+              {diagnostic
+                .map(
+                  ({ label, value }) =>
+                    `${tx(label)}: ${typeof value === "string" ? value : tx(value)}`,
+                )
+                .join("\n")}
+            </pre>
+          )}
         </article>
       </div>
       <BluetoothBrowserHelp />
@@ -168,14 +203,15 @@ function PrinterWorkspace() {
       <PrinterSubmission />
       <CalibrationWizard />
       <p className="studio-footnote">
-        Label Studio {__APP_VERSION__} · commit {__COMMIT_SHA__.slice(0, 12)} ·
-        Adressen worden lokaal verwerkt.
+        Label Studio {__APP_VERSION__} · commit {__COMMIT_SHA__.slice(0, 12)}{" "}
+        {tx("· Adressen worden lokaal verwerkt.")}{" "}
       </p>
     </section>
   );
 }
 
 export function App() {
+  const tx = useT();
   const [page, setPage] = useState<Page>("editor");
   const language = useLanguage((s) => s.language);
   const setLanguage = useLanguage((s) => s.setLanguage);
@@ -212,7 +248,7 @@ export function App() {
   }, []);
   return (
     <div className="studio-shell">
-      <nav className="studio-nav" aria-label="Hoofdnavigatie">
+      <nav className="studio-nav" aria-label={tx("Hoofdnavigatie")}>
         <a
           href="#"
           className="studio-brand"
@@ -274,14 +310,16 @@ export function App() {
       </nav>
       {!window.isSecureContext && (
         <div className="studio-banner">
-          Bluetooth vereist HTTPS of localhost. Open de app via
-          https://labels.remb0.nl of de lokale ontwikkelserver.
+          {tx(
+            "Bluetooth vereist HTTPS of localhost. Open de app via https://labels.remb0.nl of de lokale ontwikkelserver.",
+          )}{" "}
         </div>
       )}
       {!("bluetooth" in navigator) && (
         <div className="studio-banner">
-          Ontwerpen en importeren kan in deze browser. Gebruik Chrome of Edge
-          met Web Bluetooth om rechtstreeks te printen.
+          {tx(
+            "Ontwerpen en importeren kan in deze browser. Gebruik Chrome of Edge met Web Bluetooth om rechtstreeks te printen.",
+          )}{" "}
         </div>
       )}
       <main className="studio-main">
@@ -307,7 +345,7 @@ export function App() {
         <>
           <button
             className="studio-backdrop"
-            aria-label="Paneel sluiten"
+            aria-label={tx("Paneel sluiten")}
             onClick={() => setPanel(null)}
           />
           {panel === "library" ? (

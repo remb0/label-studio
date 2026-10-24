@@ -1,3 +1,4 @@
+import { LocalizedError } from "./i18n.ts";
 import { zipSync, strToU8 } from "fflate";
 import type { BaseElement, LabelSize } from "../store/editor-store.ts";
 import { parseLabelSize } from "../label/document.ts";
@@ -187,7 +188,7 @@ export function validateSavedLabel(value: unknown): Omit<SavedLabel, "id"> {
       "src",
     ]) {
       if (el.props[key] !== undefined && typeof el.props[key] !== "string")
-        throw new Error(`Ongeldige tekstwaarde: ${key}.`);
+        throw new LocalizedError("invalidTextValue", { key });
     }
     for (const key of [
       "fontSize",
@@ -204,7 +205,7 @@ export function validateSavedLabel(value: unknown): Omit<SavedLabel, "id"> {
           !Number.isFinite(number) ||
           Math.abs(number) > 10000)
       )
-        throw new Error(`Ongeldige objectwaarde: ${key}.`);
+        throw new LocalizedError("invalidObjectValue", { key });
     }
     if (
       el.props.align !== undefined &&

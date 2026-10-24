@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
+import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { commands, type Command } from "./commands.ts";
@@ -9,18 +11,21 @@ export function Palette() {
 }
 
 function OpenPalette() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     if (!query.trim()) return commands;
     const q = query.toLowerCase();
     return commands.filter(
       (c) =>
-        c.label.toLowerCase().includes(q) || c.group.toLowerCase().includes(q),
+        tx(c.label).toLowerCase().includes(q) ||
+        tx(c.group).toLowerCase().includes(q),
     );
-  }, [query]);
+  })();
 
   // Mounting an open palette resets its local state.
   useEffect(() => {
@@ -76,7 +81,7 @@ function OpenPalette() {
               setQuery(e.target.value);
               setCursor(0);
             }}
-            placeholder="Type a command, template, or label size…"
+            placeholder={tx("Type a command, template, or label size…")}
             className="flex-1 bg-transparent outline-none text-ui-md text-ink-100 placeholder:text-ink-500"
           />
           <kbd>ESC</kbd>
@@ -86,13 +91,13 @@ function OpenPalette() {
         <div className="max-h-96 overflow-y-auto py-1">
           {filtered.length === 0 && (
             <div className="px-4 py-8 text-center text-ui-base text-ink-500">
-              No commands match &ldquo;{query}&rdquo;
+              {tx("noCommands", { query })}
             </div>
           )}
           {Object.entries(groups).map(([group, items]) => (
             <div key={group}>
               <div className="px-4 pt-2 pb-1 text-ui-2xs font-mono uppercase tracking-[0.15em] text-ink-500">
-                {group}
+                {tx(group)}
               </div>
               {items.map(({ i, icon: Icon, ...cmd }) => (
                 <div
@@ -115,7 +120,7 @@ function OpenPalette() {
                       cursor === i ? "text-ink-50" : "text-ink-200"
                     }`}
                   >
-                    {cmd.label}
+                    {tx(cmd.label)}
                   </span>
                   {cmd.shortcut && <kbd>{cmd.shortcut}</kbd>}
                 </div>
@@ -128,13 +133,15 @@ function OpenPalette() {
         <div className="flex items-center justify-between px-4 h-8 border-t border-white/5 text-ui-xs text-ink-500">
           <div className="flex items-center gap-3">
             <span>
-              <kbd>↑↓</kbd> navigate
+              <kbd>↑↓</kbd> {tx("navigate")}{" "}
             </span>
             <span>
-              <kbd>↵</kbd> run
+              <kbd>↵</kbd> {tx("run")}{" "}
             </span>
           </div>
-          <span className="font-mono">{filtered.length} commands</span>
+          <span className="font-mono">
+            {number(filtered.length)} {tx("commands")}
+          </span>
         </div>
       </div>
     </div>

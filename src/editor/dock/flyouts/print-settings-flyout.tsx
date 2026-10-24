@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../../lib/i18n.ts";
+
 import { Settings, X } from "lucide-react";
 import { useState } from "react";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
@@ -59,6 +61,8 @@ interface Props {
 }
 
 export function PrintSettingsFlyout({ onClose }: Props) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const [units, setUnits] = useState<"mm" | "px">("mm");
   const [sizeError, setSizeError] = useState("");
   const rollDirection = useEditorV2Store((s) => s.rollDirection);
@@ -128,18 +132,18 @@ export function PrintSettingsFlyout({ onClose }: Props) {
   return (
     <div
       role="dialog"
-      aria-label="Label- en printinstellingen"
+      aria-label={tx("Label- en printinstellingen")}
       className="fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[420px] md:max-h-[calc(100dvh-240px)] flex flex-col overflow-hidden bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel z-40"
     >
       <div className="flex items-center justify-between px-3 h-9 border-b border-white/5">
         <div className="flex items-center gap-2">
           <Settings size={14} className="text-accent" />
           <span className="text-ui-base font-semibold text-ink-100">
-            Label- en printinstellingen
+            {tx("Label- en printinstellingen")}{" "}
           </span>
         </div>
         <button
-          aria-label="Instellingen sluiten"
+          aria-label={tx("Instellingen sluiten")}
           onClick={onClose}
           className="text-ink-400 hover:text-ink-100"
         >
@@ -149,10 +153,11 @@ export function PrintSettingsFlyout({ onClose }: Props) {
       <div className="p-4 space-y-5 overflow-y-auto overscroll-contain min-h-0">
         <section className="space-y-3">
           <div>
-            <h3 className="font-semibold">Kies je labelformaat</h3>
+            <h3 className="font-semibold">{tx("Kies je labelformaat")}</h3>
             <p className="text-ui-sm text-ink-400 mt-1">
-              Kies de vorm en maat van je rol. Je kunt de afmetingen daarna
-              aanpassen.
+              {tx(
+                "Kies de vorm en maat van je rol. Je kunt de afmetingen daarna aanpassen.",
+              )}{" "}
             </p>
           </div>
           <FormatPicker
@@ -176,14 +181,15 @@ export function PrintSettingsFlyout({ onClose }: Props) {
           {printerWidth !== undefined &&
             exceedsPrintWidth(label, rollDirection, printerWidth) && (
               <p role="status" className="text-ui-sm text-amber-400">
-                Dit formaat is in deze doorvoerrichting breder dan de printkop.
-                Kies een kleiner formaat of pas de doorvoerrichting aan.
+                {tx(
+                  "Dit formaat is in deze doorvoerrichting breder dan de printkop. Kies een kleiner formaat of pas de doorvoerrichting aan.",
+                )}{" "}
               </p>
             )}
         </section>
         <details className="space-y-3 border-b border-white/10 pb-4">
           <summary className="font-semibold cursor-pointer py-2">
-            Formaat aanpassen
+            {tx("Formaat aanpassen")}{" "}
           </summary>
           <div className="flex gap-2">
             {(["mm", "px"] as const).map((unit) => (
@@ -200,9 +206,9 @@ export function PrintSettingsFlyout({ onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             {(["width", "height"] as const).map((axis) => (
               <label key={axis} className="text-ui-sm text-ink-300">
-                {axis === "width" ? "Breedte" : "Hoogte"} ({units})
+                {axis === "width" ? tx("Breedte") : tx("Hoogte")} ({units})
                 <input
-                  aria-label={`${axis === "width" ? "Breedte" : "Hoogte"} (${units})`}
+                  aria-label={`${axis === "width" ? tx("Breedte") : tx("Hoogte")} (${units})`}
                   type="number"
                   min={1}
                   step={units === "px" ? 1 : 0.1}
@@ -225,13 +231,13 @@ export function PrintSettingsFlyout({ onClose }: Props) {
           </div>
           {sizeError && (
             <p role="alert" className="text-ui-sm text-red-400">
-              {sizeError}
+              {tx(sizeError)}
             </p>
           )}
           <label className="block text-ui-sm text-ink-300">
-            Documentresolutie
+            {tx("Documentresolutie")}{" "}
             <select
-              aria-label="Documentresolutie"
+              aria-label={tx("Documentresolutie")}
               className="w-full mt-1 h-9 px-2 bg-ink-800 border border-white/10 rounded-md"
               value={labelDpi(label)}
               onChange={(e) => {
@@ -264,14 +270,15 @@ export function PrintSettingsFlyout({ onClose }: Props) {
             </select>
           </label>
           <p className="text-ui-sm text-ink-400 leading-relaxed">
-            {label.widthPx} × {label.heightPx} pixels. Documentresolutie bepaalt
-            de ontwerpscherpte. De huidige printerprofielen printen op 203 dpi;
-            uitvoer wordt naar de fysieke labelmaat omgerekend.
+            {number(label.widthPx)} × {number(label.heightPx)}{" "}
+            {tx(
+              "pixels. Documentresolutie bepaalt de ontwerpscherpte. De huidige printerprofielen printen op 203 dpi; uitvoer wordt naar de fysieke labelmaat omgerekend.",
+            )}{" "}
           </p>
           <label className="block text-ui-sm text-ink-300">
-            Vorm
+            {tx("Vorm")}{" "}
             <select
-              aria-label="Labelvorm"
+              aria-label={tx("Labelvorm")}
               className="w-full mt-1 h-9 px-2 bg-ink-800 border border-white/10 rounded-md"
               value={label.shape ?? "rectangle"}
               onChange={(e) =>
@@ -284,15 +291,15 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                 })
               }
             >
-              <option value="rectangle">Rechthoek</option>
-              <option value="rounded">Afgeronde hoeken</option>
-              <option value="circle">Cirkel / ovaal</option>
+              <option value="rectangle">{tx("Rechthoek")}</option>
+              <option value="rounded">{tx("Afgeronde hoeken")}</option>
+              <option value="circle">{tx("Cirkel / ovaal")}</option>
             </select>
           </label>
           <label className="block text-ui-sm text-ink-300">
-            Verdeling
+            {tx("Verdeling")}{" "}
             <select
-              aria-label="Labelverdeling"
+              aria-label={tx("Labelverdeling")}
               className="w-full mt-1 h-9 px-2 bg-ink-800 border border-white/10 rounded-md"
               value={label.split ?? "none"}
               onChange={(e) =>
@@ -305,15 +312,17 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                 })
               }
             >
-              <option value="none">Geen</option>
-              <option value="horizontal">Horizontale scheidingslijn</option>
-              <option value="vertical">Verticale scheidingslijn</option>
+              <option value="none">{tx("Geen")}</option>
+              <option value="horizontal">
+                {tx("Horizontale scheidingslijn")}
+              </option>
+              <option value="vertical">{tx("Verticale scheidingslijn")}</option>
             </select>
           </label>
           <label className="block text-ui-sm text-ink-300">
-            Doorvoerrichting
+            {tx("Doorvoerrichting")}{" "}
             <select
-              aria-label="Doorvoerrichting"
+              aria-label={tx("Doorvoerrichting")}
               className="w-full mt-1 h-9 px-2 bg-ink-800 border border-white/10 rounded-md"
               value={rollDirection}
               onChange={(e) =>
@@ -324,32 +333,33 @@ export function PrintSettingsFlyout({ onClose }: Props) {
               }
             >
               <option value="horizontal">
-                Horizontaal (ontwerp 90° draaien)
+                {tx("Horizontaal (ontwerp 90° draaien)")}{" "}
               </option>
-              <option value="vertical">Verticaal (rechtstreeks)</option>
+              <option value="vertical">{tx("Verticaal (rechtstreeks)")}</option>
             </select>
           </label>
           <p className="text-ui-sm text-ink-400">
-            Labelinstellingen worden samen met het sjabloon bewaard. De
-            scheidingslijn wordt ook geprint.
+            {tx(
+              "Labelinstellingen worden samen met het sjabloon bewaard. De scheidingslijn wordt ook geprint.",
+            )}{" "}
           </p>
         </details>
         {/* Interfacegrootte */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div className="text-ui-2xs font-mono uppercase tracking-wider text-ink-400">
-              Interfacegrootte
+              {tx("Interfacegrootte")}{" "}
             </div>
             <div className="flex items-center gap-2">
               <span className="text-ui-xs font-mono text-ink-100 tabular-nums">
-                {Math.round(uiScale * 100)}%
+                {number(Math.round(uiScale * 100))}%
               </span>
               {uiScale !== 1 && (
                 <button
                   onClick={() => setUiScale(1)}
                   className="text-ui-2xs font-mono text-ink-400 hover:text-accent hover-fade"
                 >
-                  Reset
+                  {tx("Reset")}{" "}
                 </button>
               )}
             </div>
@@ -375,12 +385,12 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div className="text-ui-2xs font-mono uppercase tracking-wider text-ink-400">
-              Theme
+              {tx("Theme")}{" "}
             </div>
             <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-ink-800 border border-white/5">
-              {(["dark", "light"] as const).map((m) => (
+              {([tx("dark"), tx("light")] as const).map((m) => (
                 <button
-                  key={m}
+                  key={tx(m)}
                   onClick={() => setMode(m)}
                   className={`px-2 h-6 rounded-[3px] text-ui-2xs font-medium capitalize ${
                     mode === m
@@ -388,7 +398,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                       : "text-ink-400 hover:text-ink-100"
                   }`}
                 >
-                  {m}
+                  {tx(m)}
                 </button>
               ))}
             </div>
@@ -405,13 +415,13 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                       ? "bg-accent/10 border-accent/40 text-accent"
                       : "bg-ink-800 border-white/5 text-ink-200 hover:border-white/15"
                   }`}
-                  title={`${t.name} theme`}
+                  title={tx("themeName", { name: tx(t.name) })}
                 >
                   <span
                     className="w-3.5 h-3.5 rounded-full shrink-0 ring-1 ring-black/20"
                     style={{ background: t.swatch }}
                   />
-                  <span className="text-ui-xs font-medium">{t.name}</span>
+                  <span className="text-ui-xs font-medium">{tx(t.name)}</span>
                 </button>
               );
             })}
@@ -423,7 +433,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         {/* Papiersoort */}
         <div>
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
-            Papiersoort
+            {tx("Papiersoort")}{" "}
           </div>
           <div className="flex items-center gap-1 p-0.5 rounded-md bg-ink-800 border border-white/5">
             {(["gap", "continuous"] as const).map((pt) => {
@@ -441,14 +451,20 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                         : "text-ink-600 cursor-not-allowed"
                   }`}
                 >
-                  {pt === "gap" ? "Losse labels (gap)" : "Doorlopend"}
+                  {pt === "gap" ? tx("Losse labels (gap)") : tx("Doorlopend")}
                 </button>
               );
             })}
           </div>
           {hasProfile && supportedPaperTypes.length === 1 && (
             <div className="text-ui-2xs text-ink-500 mt-1 font-mono">
-              Alleen {supportedPaperTypes[0]} ondersteund door deze printer
+              {tx("Alleen")}{" "}
+              {tx(
+                supportedPaperTypes[0] === "gap"
+                  ? "Losse labels"
+                  : "Doorlopende rol",
+              )}{" "}
+              {tx("ondersteund door deze printer")}{" "}
             </div>
           )}
         </div>
@@ -456,10 +472,10 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         {/* Extra maten uit het printerprofiel */}
         <details>
           <summary className="text-ui-sm cursor-pointer">
-            Alle printermaten
+            {tx("Alle printermaten")}{" "}
           </summary>
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
-            Labelmaat
+            {tx("Labelmaat")}{" "}
           </div>
           <div className="grid grid-cols-2 gap-1">
             {availableSizes.map((s) => {
@@ -475,7 +491,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                       : "bg-ink-800 text-ink-300 border-white/5 hover:text-ink-100 hover:bg-ink-750"
                   }`}
                 >
-                  {s.widthMm} × {s.heightMm} mm
+                  {number(s.widthMm)} × {number(s.heightMm)} mm
                 </button>
               );
             })}
@@ -485,7 +501,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         {/* Zwarting */}
         <div>
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
-            Zwarting
+            {tx("Zwarting")}{" "}
           </div>
           <div className="flex items-center gap-1 p-0.5 rounded-md bg-ink-800 border border-white/5">
             {[1, 2, 3].map((d) => (
@@ -498,7 +514,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                     : "text-ink-300"
                 }`}
               >
-                {["Licht", "Normaal", "Donker"][d - 1]}
+                {[tx("Licht"), tx("Normaal"), tx("Donker")][d - 1]}
               </button>
             ))}
           </div>
@@ -507,13 +523,13 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         {/* Dither */}
         <div>
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
-            Dither
+            {tx("Dither")}{" "}
           </div>
           <div className="grid grid-cols-3 gap-1">
             {[
               { v: "floyd-steinberg", l: "Floyd-S" },
-              { v: "threshold", l: "Drempel" },
-              { v: "none", l: "Geen" },
+              { v: "threshold", l: tx("Drempel") },
+              { v: "none", l: tx("Geen") },
             ].map((o) => (
               <button
                 key={o.v}
@@ -524,7 +540,7 @@ export function PrintSettingsFlyout({ onClose }: Props) {
                     : "bg-ink-800 text-ink-300 border-white/5"
                 }`}
               >
-                {o.l}
+                {tx(o.l)}
               </button>
             ))}
           </div>
@@ -534,10 +550,10 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400">
-              Drempel
+              {tx("Drempel")}{" "}
             </div>
             <div className="text-ui-sm font-mono text-ink-100">
-              {printSettings.threshold}
+              {number(printSettings.threshold)}
             </div>
           </div>
           <input
@@ -555,15 +571,16 @@ export function PrintSettingsFlyout({ onClose }: Props) {
         {/* Printer info */}
         <div className="pt-2 border-t border-white/5 text-ui-sm">
           <div className="flex items-center justify-between">
-            <span className="text-ink-400">Printer</span>
+            <span className="text-ink-400">{tx("Printer")}</span>
             <span className="text-ink-100 font-mono">
-              {isConnected ? modelId || "Connected" : "Niet verbonden"}
+              {isConnected ? modelId || tx("Connected") : tx("Niet verbonden")}
             </span>
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-ink-400">Huidig label</span>
+            <span className="text-ink-400">{tx("Huidig label")}</span>
             <span className="text-ink-100 font-mono">
-              {label.widthMm} × {label.heightMm} mm · {paperType}
+              {number(label.widthMm)} × {number(label.heightMm)} mm ·{" "}
+              {tx(paperType === "gap" ? "Losse labels" : "Doorlopende rol")}
             </span>
           </div>
         </div>

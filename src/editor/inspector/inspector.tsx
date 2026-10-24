@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import {
   Type,
   QrCode,
@@ -40,6 +42,8 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
 };
 
 export function Inspector() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const elements = useEditorV2Store((s) => s.elements);
   const selectedIds = useEditorV2Store((s) => s.selectedIds);
   const duplicateSelected = useEditorV2Store((s) => s.duplicateSelected);
@@ -67,35 +71,35 @@ export function Inspector() {
             <div className="flex items-center gap-2">
               {TypeIcon && <TypeIcon size={15} className="text-accent" />}
               <span className="text-ui-base font-semibold text-ink-100">
-                {typeLabel}
+                {tx(typeLabel || "")}
               </span>
             </div>
             <div className="flex items-center gap-0.5">
               <button
                 onClick={duplicateSelected}
                 className="w-6 h-6 rounded hover:bg-ink-700 text-ink-400 hover:text-ink-100 flex items-center justify-center"
-                title="Duplicate (⌘D)"
+                title={tx("Duplicate (⌘D)")}
               >
                 <Copy size={14} />
               </button>
               <button
                 onClick={() => zOrder(el.id, "up")}
                 className="w-6 h-6 rounded hover:bg-ink-700 text-ink-400 hover:text-ink-100 flex items-center justify-center"
-                title="Bring forward"
+                title={tx("Bring forward")}
               >
                 <ArrowUp size={14} />
               </button>
               <button
                 onClick={() => zOrder(el.id, "down")}
                 className="w-6 h-6 rounded hover:bg-ink-700 text-ink-400 hover:text-ink-100 flex items-center justify-center"
-                title="Send backward"
+                title={tx("Send backward")}
               >
                 <ArrowDown size={14} />
               </button>
               <button
                 onClick={removeSelected}
                 className="w-6 h-6 rounded hover:bg-red-500/20 text-ink-400 hover:text-red-400 flex items-center justify-center"
-                title="Delete"
+                title={tx("Delete")}
               >
                 <Trash2 size={14} />
               </button>
@@ -118,7 +122,7 @@ export function Inspector() {
         </>
       ) : (
         <div className="p-4 text-center text-ui-sm text-ink-400">
-          {selected.length} elements selected
+          {number(selected.length)} {tx("elements selected")}{" "}
         </div>
       )}
     </div>

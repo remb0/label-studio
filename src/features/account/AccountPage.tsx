@@ -1,3 +1,11 @@
+import {
+  type UiMessage,
+  errorMessage,
+  useT,
+  useLanguage,
+  t,
+} from "../../lib/i18n.ts";
+
 import { useEffect, useState } from "react";
 import {
   cloudConfigured,
@@ -9,12 +17,13 @@ import {
   logoutCloud,
   type CloudSession,
 } from "../../lib/cloud-account.ts";
-import { useLanguage, t } from "../../lib/i18n.ts";
+
 export function AccountPage() {
+  const tx = useT();
   const lang = useLanguage((s) => s.language);
   const [session, setSession] = useState<CloudSession | null>(null);
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<UiMessage>("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -24,7 +33,7 @@ export function AccountPage() {
           (await completeMagicLinkFromUrl()) || (await restoreCloudSession());
         if (alive) setSession(s);
       } catch (e) {
-        if (alive) setStatus(String(e));
+        if (alive) setStatus(errorMessage(e));
       }
     })();
     return () => {
@@ -37,7 +46,7 @@ export function AccountPage() {
     try {
       await fn();
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : String(e));
+      setStatus(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -45,7 +54,7 @@ export function AccountPage() {
   return (
     <section className="studio-page">
       <div className="studio-page-title">
-        <span className="studio-eyebrow">OPTIONAL CLOUD</span>
+        <span className="studio-eyebrow">{tx("OPTIONAL CLOUD")}</span>
         <h1>{t(lang, "accountTitle")}</h1>
         <p>{t(lang, "cloudPrefs")}</p>
       </div>
@@ -77,7 +86,7 @@ export function AccountPage() {
                 e.preventDefault();
                 void work(async () => {
                   await requestMagicLink(email);
-                  setStatus(t(lang, "linkSent"));
+                  setStatus("linkSent");
                 });
               }}
             >
@@ -100,13 +109,13 @@ export function AccountPage() {
           )}
           {status && (
             <p role="status" className="mt-3">
-              {status}
+              {tx(status)}
             </p>
           )}
         </article>
         {session && (
           <article className="studio-card">
-            <h2>Cloud sync</h2>
+            <h2>{tx("Cloud sync")}</h2>
             <p>{t(lang, "syncWarning")}</p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -115,7 +124,7 @@ export function AccountPage() {
                 onClick={() =>
                   void work(async () => {
                     await uploadCloudData();
-                    setStatus(t(lang, "savedCloud"));
+                    setStatus("savedCloud");
                   })
                 }
               >
@@ -128,7 +137,7 @@ export function AccountPage() {
                   if (window.confirm(t(lang, "syncConfirm")))
                     void work(async () => {
                       const found = await downloadCloudData();
-                      setStatus(t(lang, found ? "loadedCloud" : "cloudEmpty"));
+                      setStatus(found ? "loadedCloud" : "cloudEmpty");
                     });
                 }}
               >
@@ -141,8 +150,10 @@ export function AccountPage() {
           <h2>{t(lang, "guest")}</h2>
           <p>{t(lang, "cloudPrefs")}</p>
           <p>
-            {t(lang, "guest")}: labels remain in this browser until you export
-            or clear them.
+            {t(lang, "guest")}
+            {tx(
+              ": labels remain in this browser until you export or clear them.",
+            )}{" "}
           </p>
         </article>
       </div>

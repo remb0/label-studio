@@ -1,3 +1,4 @@
+import { useT } from "../../lib/i18n.ts";
 import {
   Undo2,
   Redo2,
@@ -22,6 +23,7 @@ interface TopChromeProps {
 }
 
 export function TopChrome({ onPrint }: TopChromeProps) {
+  const tx = useT();
   const zoom = useEditorV2Store((s) => s.zoom);
   const label = useEditorV2Store((s) => s.label);
   const gridVisible = useEditorV2Store((s) => s.gridVisible);
@@ -61,14 +63,14 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <button
             onClick={() => useEditorV2Store.temporal.getState().undo()}
             className="w-8 h-8 flex items-center justify-center rounded-md text-ink-300 hover:bg-ink-800 hover:text-ink-100"
-            title="Undo (⌘Z)"
+            title={tx("Undo (⌘Z)")}
           >
             <Undo2 size={16} />
           </button>
           <button
             onClick={() => useEditorV2Store.temporal.getState().redo()}
             className="w-8 h-8 flex items-center justify-center rounded-md text-ink-300 hover:bg-ink-800 hover:text-ink-100"
-            title="Redo (⌘⇧Z)"
+            title={tx("Redo (⌘⇧Z)")}
           >
             <Redo2 size={16} />
           </button>
@@ -79,7 +81,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
         >
           <Search size={14} className="shrink-0" />
           <span className="text-ui-sm flex-1 min-w-0 text-left truncate">
-            Zoek opdrachten, sjablonen, objecten…
+            {tx("Zoek opdrachten, sjablonen, objecten…")}{" "}
           </span>
           <kbd>⌘K</kbd>
         </button>
@@ -101,7 +103,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <button
             onClick={handleFit}
             className="w-7 h-full flex items-center justify-center text-ink-300 hover:bg-ink-700"
-            title="Fit to screen (1)"
+            title={tx("Fit to screen (1)")}
           >
             <Maximize2 size={15} />
           </button>
@@ -110,7 +112,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
         <div className="flex items-center gap-1">
           <button
             className={viewBtn(gridVisible)}
-            title="Grid (G)"
+            title={tx("Grid (G)")}
             onClick={() =>
               useEditorV2Store.setState((s) => ({
                 gridVisible: !s.gridVisible,
@@ -121,7 +123,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           </button>
           <button
             className={viewBtn(rulersVisible)}
-            title="Rulers"
+            title={tx("Rulers")}
             onClick={() =>
               useEditorV2Store.setState((s) => ({
                 rulersVisible: !s.rulersVisible,
@@ -137,8 +139,8 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="w-8 h-8 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-          title="Label Studio op GitHub"
-          aria-label="Label Studio op GitHub"
+          title={tx("Label Studio op GitHub")}
+          aria-label={tx("Label Studio op GitHub")}
         >
           <Heart size={16} />
         </a>
@@ -160,14 +162,14 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <button
             onClick={() => useEditorV2Store.temporal.getState().undo()}
             className="w-7 h-7 flex items-center justify-center rounded-md text-ink-300 hover:bg-ink-800 hover:text-ink-100"
-            title="Undo"
+            title={tx("Undo")}
           >
             <Undo2 size={14} />
           </button>
           <button
             onClick={() => useEditorV2Store.temporal.getState().redo()}
             className="w-7 h-7 flex items-center justify-center rounded-md text-ink-300 hover:bg-ink-800 hover:text-ink-100"
-            title="Redo"
+            title={tx("Redo")}
           >
             <Redo2 size={14} />
           </button>
@@ -190,7 +192,7 @@ export function TopChrome({ onPrint }: TopChromeProps) {
             <button
               onClick={handleFit}
               className="w-6 h-full flex items-center justify-center text-ink-300 hover:bg-ink-700"
-              title="Fit"
+              title={tx("Fit")}
             >
               <Maximize2 size={12} />
             </button>
@@ -202,13 +204,13 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           >
             <Search size={12} className="shrink-0" />
             <span className="text-ui-xs flex-1 text-left truncate">
-              Zoeken…
+              {tx("Zoeken…")}{" "}
             </span>
           </button>
           <div className="w-px h-5 bg-white/5" />
           <button
             className={`w-7 h-7 flex items-center justify-center rounded-md border hover-fade ${gridVisible ? "bg-accent/10 text-accent border-accent/30" : "bg-ink-800 text-ink-300 border-white/5"}`}
-            title="Grid"
+            title={tx("Grid")}
             onClick={() =>
               useEditorV2Store.setState((s) => ({
                 gridVisible: !s.gridVisible,
@@ -223,8 +225,8 @@ export function TopChrome({ onPrint }: TopChromeProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="w-7 h-7 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-            title="Label Studio op GitHub"
-            aria-label="Label Studio op GitHub"
+            title={tx("Label Studio op GitHub")}
+            aria-label={tx("Label Studio op GitHub")}
           >
             <Heart size={14} />
           </a>

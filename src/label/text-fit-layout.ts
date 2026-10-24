@@ -1,3 +1,4 @@
+import { message, LocalizedError, type UiMessage, t } from "../lib/i18n.ts";
 import Konva from "konva";
 import type { BaseElement, LabelSize } from "../store/editor-store.ts";
 import { elementInsideLabel, fitTextSize } from "./text-fit.ts";
@@ -65,6 +66,7 @@ export function getTextLayout(element: BaseElement) {
 export interface ContentWarning {
   id: string;
   message: string;
+  localized: Exclude<UiMessage, string>;
 }
 
 export function getContentWarnings(
@@ -73,15 +75,23 @@ export function getContentWarnings(
 ): ContentWarning[] {
   return elements.flatMap((element, index) => {
     const layout = element.type === "text" ? getTextLayout(element) : null;
-    const name =
-      element.type === "text" ? `Tekst ${index + 1}` : `Element ${index + 1}`;
+    const name = message(
+      element.type === "text" ? "textNumber" : "elementNumber",
+      { number: index + 1 },
+    );
     if (layout && !layout.fits)
       return [
         {
           id: element.id,
-          message: element.props.autoFit
-            ? `${name}: tekst past niet, zelfs op ${layout.fontSize} px. Vergroot het tekstvak of verkort de tekst.`
-            : `${name}: tekst past niet in de breedte. Vergroot het tekstvak of schakel automatisch passend maken in.`,
+          message: t(
+            "nl",
+            element.props.autoFit ? "textTooSmall" : "textTooWide",
+            { name, size: layout.fontSize },
+          ),
+          localized: message(
+            element.props.autoFit ? "textTooSmall" : "textTooWide",
+            { name, size: layout.fontSize },
+          ),
         },
       ];
     const bounds = {
@@ -96,7 +106,8 @@ export function getContentWarnings(
       return [
         {
           id: element.id,
-          message: `${name}: valt buiten de labelrand en kan worden afgesneden. Verplaats of verklein het element.`,
+          message: t("nl", "elementClipped", { name }),
+          localized: message("elementClipped", { name }),
         },
       ];
     return [];
@@ -109,7 +120,7 @@ export function assertLabelContentFits(
 ) {
   const warnings = getContentWarnings(elements, label);
   if (warnings.length)
-    throw new Error(
-      `Controleer de labelinhoud vóór het printen. ${warnings[0].message}`,
-    );
+    throw new LocalizedError("checkContent", {
+      warning: warnings[0].localized,
+    });
 }

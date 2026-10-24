@@ -1,3 +1,4 @@
+import { LocalizedError } from "../lib/i18n.ts";
 import type {
   BleTransport,
   BleConnection,
@@ -184,9 +185,7 @@ export class WebBluetoothTransport implements BleTransport {
     if (!deviceMap.has(peripheral.id)) await this.getPermittedDevices();
     const device = deviceMap.get(peripheral.id);
     if (!device) {
-      throw new Error(
-        `Device "${peripheral.name}" (${peripheral.id}) not found — was it discovered?`,
-      );
+      throw new LocalizedError("deviceNotFound", { name: peripheral.name });
     }
 
     const server = device.gatt;

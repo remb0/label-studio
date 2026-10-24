@@ -1,3 +1,4 @@
+import { useT } from "../lib/i18n.ts";
 import { Star } from "lucide-react";
 import {
   favoriteKey,
@@ -14,11 +15,12 @@ export function FavoriteButton({
   id: string;
   name: string;
 }) {
+  const tx = useT();
   const active = useFavorites((state) =>
     state.ids.includes(favoriteKey(kind, id)),
   );
   const toggle = useFavorites((state) => state.toggle);
-  const label = `${name} ${active ? "uit favorieten verwijderen" : "aan favorieten toevoegen"}`;
+  const label = tx(active ? "favoriteRemove" : "favoriteAdd", { name });
   return (
     <button
       type="button"
@@ -38,11 +40,13 @@ export function FavoriteButton({
 }
 
 export function FavoritesStorageNotice() {
+  const tx = useT();
   const unavailable = useFavorites((state) => state.storageUnavailable);
   return unavailable ? (
     <p role="status" className="text-ui-xs text-amber-300 mt-2">
-      Favorieten werken nu tijdelijk. Je browser kan ze niet bewaren na het
-      sluiten.
+      {tx(
+        "Favorieten werken nu tijdelijk. Je browser kan ze niet bewaren na het sluiten.",
+      )}{" "}
     </p>
   ) : null;
 }

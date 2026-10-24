@@ -1,8 +1,12 @@
+import { useNumberFormatter, useT } from "../lib/i18n.ts";
+
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { useEditorV2Store } from "../store/editor-store.ts";
 
 export function PrintProgressToast() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const printing = useEditorV2Store((s) => s.printing);
   const copies = useEditorV2Store((s) => s.printingCopies);
   const startedAt = useEditorV2Store((s) => s.printingStartedAt);
@@ -70,18 +74,25 @@ export function PrintProgressToast() {
 
         <div className="flex-1 min-w-0">
           <div className="text-ui-base text-ink-50 font-semibold truncate">
-            {isComplete ? "Gegevens verzonden naar" : "Verzenden naar"} {dest}
+            {isComplete ? tx("Gegevens verzonden naar") : tx("Verzenden naar")}{" "}
+            {dest}
           </div>
           <div className="text-ui-xs font-mono text-ink-400 mt-0.5">
             {isComplete
-              ? `${n} ${n === 1 ? "label" : "labels"} · controleer de afdruk`
-              : `Label ${currentLabel} van ${n} · ${hasRealProgress ? "verzenden" : "voortgang geschat"}`}
+              ? tx("progressComplete", { count: n })
+              : tx("progressLabel", {
+                  current: currentLabel,
+                  total: n,
+                  status: tx(
+                    hasRealProgress ? "verzenden" : "voortgang geschat",
+                  ),
+                })}
           </div>
         </div>
 
         <div className="text-right shrink-0">
           <div className="text-[18px] font-mono font-semibold text-ink-50 tabular-nums leading-none">
-            {displayPct}
+            {number(displayPct)}
             <span className="text-ui-sm text-ink-400 font-normal">%</span>
           </div>
         </div>

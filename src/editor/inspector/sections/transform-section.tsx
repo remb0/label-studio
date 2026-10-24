@@ -1,3 +1,4 @@
+import { useT } from "../../../lib/i18n.ts";
 import {
   AlignHorizontalJustifyCenter,
   AlignVerticalJustifyCenter,
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function TransformSection({ element }: Props) {
+  const tx = useT();
   const updateElement = useEditorV2Store((s) => s.updateElement);
   const label = useEditorV2Store((s) => s.label);
 
@@ -28,7 +30,7 @@ export function TransformSection({ element }: Props) {
     });
 
   return (
-    <Section title="Transform">
+    <Section title={tx("Transform")}>
       <div className="grid grid-cols-2 gap-1.5">
         <Field label="X" mono>
           <NumInput
@@ -71,21 +73,21 @@ export function TransformSection({ element }: Props) {
           <button
             onClick={alignH}
             className="flex-1 h-7 rounded-md bg-ink-800 border border-white/5 hover:bg-ink-750 text-ink-300 hover:text-ink-100 flex items-center justify-center"
-            title="Center horizontally"
+            title={tx("Center horizontally")}
           >
             <AlignHorizontalJustifyCenter size={14} />
           </button>
           <button
             onClick={alignV}
             className="flex-1 h-7 rounded-md bg-ink-800 border border-white/5 hover:bg-ink-750 text-ink-300 hover:text-ink-100 flex items-center justify-center"
-            title="Center vertically"
+            title={tx("Center vertically")}
           >
             <AlignVerticalJustifyCenter size={14} />
           </button>
           <button
             onClick={alignBoth}
             className="flex-1 h-7 rounded-md bg-ink-800 border border-white/5 hover:bg-ink-750 text-ui-xs font-mono text-ink-300 hover:text-ink-100"
-            title="Center both"
+            title={tx("Center both")}
           >
             CTR
           </button>

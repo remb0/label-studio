@@ -34,11 +34,11 @@ test("BoxCare CSV wizard maps, validates, corrects and prepares private local la
   await expect(
     page.getByText("2 adressen · 1 volledig · 2 geselecteerd"),
   ).toBeVisible();
-  await expect(page.getByLabel("Rij 2 postal")).toHaveValue("1234 AB");
+  await expect(page.getByLabel("Rij 2 Postcode")).toHaveValue("1234 AB");
   await expect(
     page.getByRole("button", { name: "Ontwerp bekijken →" }),
   ).toBeDisabled();
-  await page.getByLabel("Rij 4 city").fill("Rotterdam");
+  await page.getByLabel("Rij 4 Plaats").fill("Rotterdam");
   await page.getByRole("button", { name: "Ontwerp bekijken →" }).click();
   await expect(page.getByLabel("Voorbeeld etiket Jan Jansen")).toBeVisible();
   await page.getByRole("button", { name: "Naar printopdracht →" }).click();
@@ -46,7 +46,7 @@ test("BoxCare CSV wizard maps, validates, corrects and prepares private local la
     page.getByText("2 geselecteerde adressen · 2 etiketten"),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Print 2 etiketten", exact: true })
+    .getByRole("button", { name: "Afdrukken 2 etiketten", exact: true })
     .click();
   await expect(page.getByRole("alert")).toContainText(
     "Verbind eerst een printer",
@@ -63,12 +63,12 @@ test("BoxCare CSV wizard maps, validates, corrects and prepares private local la
   await expect(page.locator(".address-steps button").nth(3)).toBeDisabled();
   await page.getByRole("button", { name: "Filters instellen →" }).click();
   await page.getByRole("button", { name: "Adressen controleren →" }).click();
-  await expect(page.getByLabel("Rij 2 name")).toHaveValue("");
+  await expect(page.getByLabel("Rij 2 Naam / contactpersoon")).toHaveValue("");
   await page.locator(".address-steps button").nth(2).click();
   await page.getByLabel("Alleen actieve rijen").uncheck();
   await expect(page.locator(".address-steps button").nth(5)).toBeDisabled();
   await page.getByRole("button", { name: "Adressen controleren →" }).click();
-  await expect(page.getByLabel("Rij 3 name")).toBeVisible();
+  await expect(page.getByLabel("Rij 3 Naam / contactpersoon")).toBeVisible();
 });
 
 test("single address renders and warns when its text overflows", async ({

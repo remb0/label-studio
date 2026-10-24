@@ -21,12 +21,12 @@ test("recover unsaved artwork after reload, retain across navigation, discard ex
   });
   await expect(recovery).toBeVisible();
   await recovery.getByRole("button", { name: "Concept herstellen" }).click();
-  await expect(page.getByText("1 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("1 elementen", { exact: true })).toBeVisible();
   await page.reload();
   await recovery.getByRole("button", { name: "Concept verwijderen" }).click();
   await page.reload();
   await expect(recovery).not.toBeVisible();
-  await expect(page.getByText("0 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("0 elementen", { exact: true })).toBeVisible();
 });
 
 test("saving a named template invalidates its recovery slot", async ({

@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import { useEffect, useRef } from "react";
 import {
   Bluetooth,
@@ -37,11 +39,12 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 function StatusBadge({ status }: { status: string | null }) {
+  const tx = useT();
   if (!status || status === "cover_closed") {
     return (
       <div className="flex items-center gap-1.5 mb-3 px-2 py-1.5 rounded-md bg-emerald-400/10 border border-emerald-400/20 text-ui-sm text-emerald-400 font-medium">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-        Ready
+        {tx("Ready")}{" "}
       </div>
     );
   }
@@ -54,7 +57,7 @@ function StatusBadge({ status }: { status: string | null }) {
       className={`flex items-center gap-1.5 mb-3 px-2 py-1.5 rounded-md border text-ui-sm font-medium ${info.color}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
-      {info.label}
+      {tx(info.label)}
     </div>
   );
 }
@@ -82,6 +85,8 @@ function MiniRow({ label, value }: { label: string; value: string }) {
 }
 
 export function PrinterChip() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const printer = useEditorV2Store((s) => s.printer);
   const printFlyoutOpen = useEditorV2Store((s) => s.printFlyoutOpen);
   const battery = usePrinterStore((s) => s.battery);
@@ -119,12 +124,12 @@ export function PrinterChip() {
     return (
       <button
         onClick={openPrinterConnect}
-        aria-label="Connect printer"
+        aria-label={tx("Connect printer")}
         className="shrink-0 flex items-center gap-2 h-8 px-2 md:px-3 rounded-md border border-accent/30 bg-accent/10 text-accent hover:bg-accent/15 hover-fade"
       >
         <Bluetooth size={15} />
         <span className="hidden md:inline text-ui-sm font-semibold">
-          Connect printer
+          {tx("Connect printer")}{" "}
         </span>
       </button>
     );
@@ -151,7 +156,7 @@ export function PrinterChip() {
         {/* Desktop: full info */}
         <div className="hidden md:flex min-w-0 flex-col items-start leading-tight">
           <span className="text-ui-xs font-mono uppercase tracking-wider text-ink-400">
-            Connected
+            {tx("Connected")}{" "}
           </span>
           <span className="text-ui-sm text-ink-100 font-medium truncate max-w-[110px]">
             {printer.name}
@@ -175,7 +180,7 @@ export function PrinterChip() {
               <div className="hidden md:flex items-center gap-1 ml-1 pl-2 border-l border-white/5">
                 <BatIcon size={13} className={color} />
                 <span className={`text-ui-xs font-mono ${color}`}>
-                  {battery}%
+                  {number(battery)}%
                 </span>
               </div>
             );
@@ -190,7 +195,7 @@ export function PrinterChip() {
           <div className="flex items-start justify-between mb-3">
             <div>
               <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400">
-                Printer
+                {tx("Printer")}{" "}
               </div>
               <div className="text-sm font-semibold text-ink-50">
                 {printer.name}
@@ -212,32 +217,35 @@ export function PrinterChip() {
           </div>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <Metric
-              label="Battery"
+              label={tx("Battery")}
               value={battery >= 0 ? `${battery}%` : "—"}
             />
-            <Metric label="Model" value={deviceModel || printer.model || "—"} />
             <Metric
-              label="Protocol"
+              label={tx("Model")}
+              value={deviceModel || printer.model || "—"}
+            />
+            <Metric
+              label={tx("Protocol")}
               value={profile?.protocolId?.toUpperCase() || "—"}
             />
           </div>
           <StatusBadge status={printerStatus} />
           <div className="space-y-1.5 text-ui-sm">
             {deviceInfo.firmware && (
-              <MiniRow label="Firmware" value={deviceInfo.firmware} />
+              <MiniRow label={tx("Firmware")} value={deviceInfo.firmware} />
             )}
             {deviceInfo.serial && (
-              <MiniRow label="Serial" value={deviceInfo.serial} />
+              <MiniRow label={tx("Serial")} value={deviceInfo.serial} />
             )}
             {deviceInfo.mac && <MiniRow label="MAC" value={deviceInfo.mac} />}
             {deviceInfo.btVersion && (
-              <MiniRow label="BT module" value={deviceInfo.btVersion} />
+              <MiniRow label={tx("BT module")} value={deviceInfo.btVersion} />
             )}
             {deviceInfo.btName && (
-              <MiniRow label="BT name" value={deviceInfo.btName} />
+              <MiniRow label={tx("BT name")} value={deviceInfo.btName} />
             )}
             {deviceInfo.speed && (
-              <MiniRow label="Speed" value={deviceInfo.speed} />
+              <MiniRow label={tx("Speed")} value={deviceInfo.speed} />
             )}
           </div>
           <DebugLogSection />
@@ -246,7 +254,7 @@ export function PrinterChip() {
               onClick={handleDisconnect}
               className="w-full h-7 rounded-md bg-ink-800 hover:bg-ink-750 border border-white/5 text-ui-sm text-ink-300"
             >
-              Disconnect
+              {tx("Disconnect")}{" "}
             </button>
           </div>
         </div>

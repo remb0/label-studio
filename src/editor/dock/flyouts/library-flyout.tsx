@@ -1,3 +1,12 @@
+import {
+  useNumberFormatter,
+  type UiMessage,
+  errorMessage,
+  useT,
+  useLanguage,
+  formatRelativeTime,
+} from "../../../lib/i18n.ts";
+
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -261,19 +270,6 @@ function LabelThumbnail({
 
 // ---- Relative time ----
 
-function relTime(ts: number): string {
-  const diff = Date.now() - ts;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-  if (diff < 2 * 86_400_000) return "yesterday";
-  if (diff < 7 * 86_400_000) return `${Math.floor(diff / 86_400_000)}d ago`;
-  return new Date(ts).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
-
 // ---- Context menu ----
 
 interface MenuState {
@@ -289,6 +285,9 @@ interface Props {
 }
 
 export function LibraryFlyout({ onClose }: Props) {
+  const number = useNumberFormatter();
+  const tx = useT();
+  const language = useLanguage((s) => s.language);
   const favorites = useFavorites((state) => state.ids);
   const library = useEditorV2Store((s) => s.library);
   const currentLabelId = useEditorV2Store((s) => s.currentLabelId);
@@ -299,7 +298,7 @@ export function LibraryFlyout({ onClose }: Props) {
   const importLabel = useEditorV2Store((s) => s.importLabel);
 
   const [query, setQuery] = useState("");
-  const [importError, setImportError] = useState("");
+  const [importError, setImportError] = useState<UiMessage>("");
   const [menu, setMenu] = useState<MenuState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -332,7 +331,7 @@ export function LibraryFlyout({ onClose }: Props) {
   );
   const starterTemplates = favoritesFirst(
     STARTER_TEMPLATES.filter((item) =>
-      `${item.name} ${item.category} ${item.description}`
+      `${tx(item.name)} ${tx(item.category === "Verzenden" ? "shippingCategory" : item.category)} ${tx(item.description)}`
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
     ),
@@ -344,7 +343,9 @@ export function LibraryFlyout({ onClose }: Props) {
     if (
       useEditorV2Store.getState().currentLabelDirty &&
       !confirm(
-        "Je hebt niet-opgeslagen wijzigingen. Wil je deze vervangen door het gekozen sjabloon? Sla je ontwerp eerst op als je het wilt bewaren.",
+        tx(
+          "Je hebt niet-opgeslagen wijzigingen. Wil je deze vervangen door het gekozen sjabloon? Sla je ontwerp eerst op als je het wilt bewaren.",
+        ),
       )
     )
       return;
@@ -375,9 +376,7 @@ export function LibraryFlyout({ onClose }: Props) {
         importLabel(data);
         setImportError("");
       } catch (err) {
-        setImportError(
-          err instanceof Error ? err.message : "Importeren mislukt.",
-        );
+        setImportError(errorMessage(err));
       }
     };
     input.click();
@@ -386,7 +385,7 @@ export function LibraryFlyout({ onClose }: Props) {
   return (
     <div
       role="dialog"
-      aria-label="Sjablonen"
+      aria-label={tx("Sjablonen")}
       className="fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[680px] md:h-[480px] md:max-h-[calc(100dvh-240px)] bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-xl shadow-panel z-40 overflow-hidden flex flex-col"
     >
       {/* Header */}
@@ -396,10 +395,10 @@ export function LibraryFlyout({ onClose }: Props) {
           <div className="flex items-center gap-2">
             <Folder size={16} className="text-accent" />
             <span className="text-ui-md font-semibold text-ink-50">
-              Sjablonen
+              {tx("Sjablonen")}{" "}
             </span>
             <span className="text-ui-xs font-mono tabular-nums text-ink-500 ml-1">
-              {library.labels.length} labels
+              {number(library.labels.length)} {tx("labels")}{" "}
             </span>
           </div>
           <button onClick={onClose} className="text-ink-400 hover:text-ink-100">
@@ -413,26 +412,26 @@ export function LibraryFlyout({ onClose }: Props) {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Zoek sjablonen..."
+              placeholder={tx("Zoek sjablonen...")}
               className="bg-transparent text-ui-sm text-ink-100 placeholder-ink-500 outline-none flex-1 min-w-0"
             />
           </div>
           <button
             onClick={handleImport}
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-ink-800 border border-white/5 text-ink-300 hover:text-ink-100 text-ui-sm shrink-0"
-            title="Import JSON"
+            title={tx("Import JSON")}
           >
             <Upload size={13} />
-            <span className="hidden md:inline">Import</span>
+            <span className="hidden md:inline">{tx("Import")}</span>
           </button>
           {library.labels.length > 0 && (
             <button
               onClick={() => downloadLibraryAsZip(library.labels)}
               className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-ink-800 border border-white/5 text-ink-300 hover:text-ink-100 text-ui-sm shrink-0"
-              title="Export all labels as ZIP"
+              title={tx("Export all labels as ZIP")}
             >
               <Download size={13} />
-              <span className="hidden md:inline">Export all</span>
+              <span className="hidden md:inline">{tx("Export all")}</span>
             </button>
           )}
           <button
@@ -441,7 +440,9 @@ export function LibraryFlyout({ onClose }: Props) {
               const hasId = useEditorV2Store.getState().currentLabelId;
               if (dirty || !hasId) {
                 const ok = confirm(
-                  "You have unsaved changes. Discard and create a new label?",
+                  tx(
+                    "You have unsaved changes. Discard and create a new label?",
+                  ),
                 );
                 if (!ok) return;
               }
@@ -451,7 +452,7 @@ export function LibraryFlyout({ onClose }: Props) {
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-accent/10 border border-accent/30 text-accent hover:bg-accent/15 text-ui-sm font-semibold shrink-0"
           >
             <Plus size={13} />
-            <span className="hidden md:inline">Nieuw label</span>
+            <span className="hidden md:inline">{tx("Nieuw label")}</span>
           </button>
         </div>
       </div>
@@ -459,22 +460,25 @@ export function LibraryFlyout({ onClose }: Props) {
       {/* Grid */}
       {importError && (
         <p role="alert" className="px-4 py-2 text-red-400 text-ui-sm">
-          {importError}
+          {tx(importError)}
         </p>
       )}
       <div className="flex-1 overflow-auto p-3">
         <p className="text-ui-xs text-ink-400 mb-3">
-          Markeer met een ster. Favorieten staan bovenaan binnen elke groep.
+          {tx(
+            "Markeer met een ster. Favorieten staan bovenaan binnen elke groep.",
+          )}{" "}
         </p>
         <FavoritesStorageNotice />
         {starterTemplates.length > 0 && (
-          <section aria-label="Start met een sjabloon" className="mb-5">
+          <section aria-label={tx("Start met een sjabloon")} className="mb-5">
             <h2 className="text-ui-md font-semibold text-ink-100">
-              Start met een sjabloon
+              {tx("Start met een sjabloon")}{" "}
             </h2>
             <p className="text-ui-sm text-ink-400 mt-1 mb-3">
-              Kies een ontwerp. Tekst, formaat en objecten kun je daarna
-              aanpassen.
+              {tx(
+                "Kies een ontwerp. Tekst, formaat en objecten kun je daarna aanpassen.",
+              )}{" "}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {starterTemplates.map((item) => (
@@ -485,7 +489,7 @@ export function LibraryFlyout({ onClose }: Props) {
                 >
                   <button
                     type="button"
-                    aria-label={`Gebruik sjabloon ${item.name}`}
+                    aria-label={tx("useTemplate", { name: tx(item.name) })}
                     onClick={() => startFromTemplate(item.id)}
                     className="w-full h-full text-left rounded-lg border border-white/10 bg-ink-800 hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-accent overflow-hidden"
                   >
@@ -498,36 +502,40 @@ export function LibraryFlyout({ onClose }: Props) {
                     </div>
                     <div className="p-2.5">
                       <span className="text-[10px] uppercase tracking-wider text-accent">
-                        {item.category}
+                        {tx(
+                          item.category === "Verzenden"
+                            ? "shippingCategory"
+                            : item.category,
+                        )}
                       </span>
                       <div className="text-ui-sm font-semibold text-ink-100 mt-0.5">
-                        {item.name}
+                        {tx(item.name)}
                       </div>
                       <p className="text-ui-xs text-ink-400 mt-1 leading-relaxed">
-                        {item.description}
+                        {tx(item.description)}
                       </p>
                       <div className="text-ui-xs text-ink-500 mt-2">
-                        {item.document.label.widthMm} ×{" "}
-                        {item.document.label.heightMm} mm ·{" "}
+                        {number(item.document.label.widthMm)} ×{" "}
+                        {number(item.document.label.heightMm)} mm ·{" "}
                         {item.document.label.shape === "circle"
-                          ? "rond"
-                          : "rechthoekig"}
+                          ? tx("rond")
+                          : tx("rechthoekig")}
                       </div>
                     </div>
                   </button>
                   <FavoriteButton
                     kind="starter"
                     id={item.id}
-                    name={`Sjabloon ${item.name}`}
+                    name={tx("templateName", { name: tx(item.name) })}
                   />
                 </div>
               ))}
             </div>
           </section>
         )}
-        <section aria-label="Mijn sjablonen">
+        <section aria-label={tx("Mijn sjablonen")}>
           <h2 className="text-ui-md font-semibold text-ink-100 mb-3">
-            Mijn sjablonen
+            {tx("Mijn sjablonen")}{" "}
           </h2>
           {filtered.length === 0 ? (
             <div className="h-full min-h-[240px] flex flex-col items-center justify-center text-center">
@@ -535,12 +543,14 @@ export function LibraryFlyout({ onClose }: Props) {
                 <Folder size={18} className="text-ink-400" />
               </div>
               <div className="text-ui-md font-semibold text-ink-100">
-                {query ? "Geen resultaten" : "Geen opgeslagen sjablonen"}
+                {query
+                  ? tx("Geen resultaten")
+                  : tx("Geen opgeslagen sjablonen")}
               </div>
               <div className="text-ui-sm text-ink-400 mt-0.5">
                 {query
-                  ? "Probeer een andere zoekterm"
-                  : "Maak een nieuw label en sla het op als sjabloon"}
+                  ? tx("Probeer een andere zoekterm")
+                  : tx("Maak een nieuw label en sla het op als sjabloon")}
               </div>
             </div>
           ) : (
@@ -558,13 +568,15 @@ export function LibraryFlyout({ onClose }: Props) {
                     } overflow-hidden hover-fade`}
                   >
                     <button
-                      aria-label={`Open sjabloon ${item.name}`}
+                      aria-label={tx("openTemplate", { name: item.name })}
                       onClick={() => {
                         const s = useEditorV2Store.getState();
                         if (s.currentLabelDirty || !s.currentLabelId) {
                           if (
                             !confirm(
-                              "You have unsaved changes. Discard and open this label?",
+                              tx(
+                                "You have unsaved changes. Discard and open this label?",
+                              ),
                             )
                           )
                             return;
@@ -592,17 +604,20 @@ export function LibraryFlyout({ onClose }: Props) {
                         </div>
                         <div className="flex items-center justify-between mt-1 text-ui-xs font-mono text-ink-400">
                           <span className="tabular-nums">
-                            {item.label.widthMm}x{item.label.heightMm}mm ·{" "}
-                            {item.elements.length} el
+                            {number(item.label.widthMm)}x
+                            {number(item.label.heightMm)}mm ·{" "}
+                            {number(item.elements.length)} el
                           </span>
-                          <span>{relTime(item.updatedAt)}</span>
+                          <span>
+                            {formatRelativeTime(language, item.updatedAt)}
+                          </span>
                         </div>
                       </div>
                     </button>
                     <FavoriteButton
                       kind="saved"
                       id={item.id}
-                      name={`Eigen sjabloon ${item.name}`}
+                      name={tx("customTemplate", { name: item.name })}
                     />
 
                     {/* Card actions (visible on hover) */}
@@ -612,11 +627,15 @@ export function LibraryFlyout({ onClose }: Props) {
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          if (confirm(`Delete "${item.name}"?`))
+                          if (
+                            confirm(
+                              tx("deleteLabelConfirm", { name: item.name }),
+                            )
+                          )
                             deleteLabel(item.id);
                         }}
                         className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-400 hover:text-red-400 hover:border-red-400/30 flex items-center justify-center"
-                        title="Delete"
+                        title={tx("Delete")}
                       >
                         <Trash2 size={13} />
                       </button>
@@ -629,7 +648,7 @@ export function LibraryFlyout({ onClose }: Props) {
                           setMenu({ id: item.id, x: r.right, y: r.bottom });
                         }}
                         className="w-7 h-7 rounded-md bg-ink-900/80 border border-white/10 text-ink-300 hover:text-ink-50 flex items-center justify-center"
-                        title="More options"
+                        title={tx("More options")}
                       >
                         <MoreHorizontal size={13} />
                       </button>
@@ -658,7 +677,7 @@ export function LibraryFlyout({ onClose }: Props) {
               }}
               className="w-full text-left px-3 h-8 flex items-center gap-2 text-ink-200 hover:bg-ink-800"
             >
-              Open
+              {tx("Open")}{" "}
             </button>
             <button
               onClick={() => {
@@ -668,7 +687,7 @@ export function LibraryFlyout({ onClose }: Props) {
               className="w-full text-left px-3 h-8 flex items-center gap-2 text-ink-200 hover:bg-ink-800"
             >
               <Copy size={13} className="text-ink-400" />
-              Duplicate
+              {tx("Duplicate")}{" "}
             </button>
             <button
               onClick={() => {
@@ -679,13 +698,19 @@ export function LibraryFlyout({ onClose }: Props) {
               className="w-full text-left px-3 h-8 flex items-center gap-2 text-ink-200 hover:bg-ink-800"
             >
               <Download size={13} className="text-ink-400" />
-              Download JSON
+              {tx("Download JSON")}{" "}
             </button>
             <div className="my-1 border-t border-white/5" />
             <button
               onClick={() => {
                 const lbl = library.labels.find((l) => l.id === menu.id);
-                if (confirm(`Delete "${lbl?.name || "this label"}"?`)) {
+                if (
+                  confirm(
+                    tx("deleteLabelConfirm", {
+                      name: lbl?.name || tx("this label"),
+                    }),
+                  )
+                ) {
                   deleteLabel(menu.id);
                 }
                 setMenu(null);
@@ -693,7 +718,7 @@ export function LibraryFlyout({ onClose }: Props) {
               className="w-full text-left px-3 h-8 flex items-center gap-2 text-red-400 hover:bg-ink-800"
             >
               <Trash2 size={13} />
-              Delete label
+              {tx("Delete label")}{" "}
             </button>
           </div>,
           document.body,

@@ -1,3 +1,4 @@
+import { translate } from "../lib/i18n.ts";
 import { create } from "zustand";
 import { createId } from "../lib/id.ts";
 import { temporal } from "zundo";
@@ -233,7 +234,7 @@ export const useEditorV2Store = create<EditorState>()(
         currentLabelId: null,
       },
       currentLabelId: null,
-      currentLabelName: "Nieuw label",
+      currentLabelName: translate("Nieuw label"),
       currentLabelDirty: false,
 
       // Transient UI
@@ -253,12 +254,12 @@ export const useEditorV2Store = create<EditorState>()(
         const { library, currentLabelId, elements, label, currentLabelName } =
           s;
         if (!currentLabelId) {
-          get().saveLabelAs(currentLabelName || "Nieuw label");
+          get().saveLabelAs(currentLabelName || translate("Nieuw label"));
           return;
         }
         const idx = library.labels.findIndex((l) => l.id === currentLabelId);
         if (idx < 0) {
-          get().saveLabelAs(currentLabelName || "Nieuw label");
+          get().saveLabelAs(currentLabelName || translate("Nieuw label"));
           return;
         }
         const updated: SavedLabel = {
@@ -295,7 +296,7 @@ export const useEditorV2Store = create<EditorState>()(
         } = get();
         const nl: SavedLabel = {
           id: uid(),
-          name: name || "Nieuw label",
+          name: name || translate("Nieuw label"),
           label: { ...label },
           settings: {
             paperType,
@@ -387,7 +388,7 @@ export const useEditorV2Store = create<EditorState>()(
             set({
               library: nextLib,
               currentLabelId: null,
-              currentLabelName: "Nieuw label",
+              currentLabelName: translate("Nieuw label"),
               currentLabelDirty: false,
               elements: [],
               label: DEFAULT_LABEL,
@@ -407,7 +408,7 @@ export const useEditorV2Store = create<EditorState>()(
         const copy: SavedLabel = {
           ...structuredClone(src),
           id: uid(),
-          name: `${src.name} copy`,
+          name: translate("labelCopy", { name: src.name }),
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };
@@ -449,7 +450,7 @@ export const useEditorV2Store = create<EditorState>()(
       newLabel: () => {
         set({
           currentLabelId: null,
-          currentLabelName: "Nieuw label",
+          currentLabelName: translate("Nieuw label"),
           currentLabelDirty: false,
           elements: [],
           label: DEFAULT_LABEL,

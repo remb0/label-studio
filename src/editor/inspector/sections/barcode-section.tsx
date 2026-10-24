@@ -1,3 +1,4 @@
+import { useT } from "../../../lib/i18n.ts";
 import type { BaseElement } from "../../../store/editor-store.ts";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
 import { Section, Field, TextInput, Select } from "../fields.tsx";
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function BarcodeSection({ element }: Props) {
+  const tx = useT();
   const updateElement = useEditorV2Store((s) => s.updateElement);
 
   const p = element.props as {
@@ -19,15 +21,15 @@ export function BarcodeSection({ element }: Props) {
     updateElement(element.id, { props: patch });
 
   return (
-    <Section title="Barcode">
-      <Field label="Data">
+    <Section title={tx("Barcode")}>
+      <Field label={tx("Data")}>
         <TextInput
           value={p.content || ""}
           onChange={(v) => update({ content: v })}
         />
       </Field>
       <div className="mt-1.5">
-        <Field label="Format">
+        <Field label={tx("Format")}>
           <Select
             value={p.format || "CODE128"}
             onChange={(v) => update({ format: v })}
@@ -44,7 +46,9 @@ export function BarcodeSection({ element }: Props) {
           onChange={(e) => update({ displayValue: e.target.checked })}
           className="accent-accent"
         />
-        <span className="text-ui-sm text-ink-300">Show value below bars</span>
+        <span className="text-ui-sm text-ink-300">
+          {tx("Show value below bars")}
+        </span>
       </div>
     </Section>
   );

@@ -1,3 +1,4 @@
+import { useT } from "../../../lib/i18n.ts";
 import { Bold, Italic, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import type { BaseElement } from "../../../store/editor-store.ts";
 import { useEditorV2Store } from "../../../store/editor-store.ts";
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function TextSection({ element }: Props) {
+  const tx = useT();
   const updateElement = useEditorV2Store((s) => s.updateElement);
 
   const p = element.props as {
@@ -36,19 +38,19 @@ export function TextSection({ element }: Props) {
     updateElement(element.id, { props: patch });
 
   return (
-    <Section title="Text">
-      <Field label="Content">
+    <Section title={tx("Text")}>
+      <Field label={tx("Content")}>
         <TextInput value={p.text || ""} onChange={(v) => update({ text: v })} />
       </Field>
       <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-        <Field label="Size" mono>
+        <Field label={tx("Size")} mono>
           <NumInput
             value={p.fontSize || 18}
             onChange={(v) => update({ fontSize: v })}
             suffix="px"
           />
         </Field>
-        <Field label="Track" mono>
+        <Field label={tx("Track")} mono>
           <NumInput
             value={p.letterSpacing || 0}
             onChange={(v) => update({ letterSpacing: v })}
@@ -58,7 +60,7 @@ export function TextSection({ element }: Props) {
         </Field>
       </div>
       <div className="mt-1.5">
-        <Field label="Font">
+        <Field label={tx("Font")}>
           <Select
             value={p.fontFamily || "Inter"}
             onChange={(v) => update({ fontFamily: v })}
@@ -79,14 +81,14 @@ export function TextSection({ element }: Props) {
             onClick={() =>
               update({ fontWeight: (p.fontWeight || 400) >= 600 ? 400 : 700 })
             }
-            title="Bold"
+            title={tx("Bold")}
           >
             <Bold size={14} />
           </SegBtn>
           <SegBtn
             active={!!p.italic}
             onClick={() => update({ italic: !p.italic })}
-            title="Italic"
+            title={tx("Italic")}
           >
             <Italic size={14} />
           </SegBtn>
@@ -113,7 +115,7 @@ export function TextSection({ element }: Props) {
         </SegGroup>
       </div>
       <div className="mt-1.5">
-        <Field label="Color">
+        <Field label={tx("Color")}>
           <ColorInput
             value={p.fill || "#000000"}
             onChange={(v) => update({ fill: v })}
@@ -126,12 +128,17 @@ export function TextSection({ element }: Props) {
           checked={p.autoFit === true}
           onChange={(event) => update({ autoFit: event.target.checked })}
         />
-        Tekst automatisch passend maken
+        {tx("Tekst automatisch passend maken")}{" "}
       </label>
       <p className="mt-1 text-ui-xs text-ink-400">
         {p.autoFit
-          ? `Weergave: ${getTextLayout(element).fontSize} px. Het tekstvak blijft even groot; vergroot het vak als de tekst te klein wordt.`
-          : "Schakel in om tekst binnen de breedte en hoogte van dit tekstvak te houden. De ingestelde lettergrootte blijft het maximum."}
+          ? tx(
+              "Weergave: {size} px. Het tekstvak blijft even groot; vergroot het vak als de tekst te klein wordt.",
+              { size: getTextLayout(element).fontSize },
+            )
+          : tx(
+              "Schakel in om tekst binnen de breedte en hoogte van dit tekstvak te houden. De ingestelde lettergrootte blijft het maximum.",
+            )}
       </p>
     </Section>
   );

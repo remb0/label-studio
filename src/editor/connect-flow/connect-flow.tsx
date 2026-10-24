@@ -1,3 +1,6 @@
+import { errorMessage } from "../../lib/i18n.ts";
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import { useEffect, useCallback } from "react";
 import { Bluetooth, X, Check } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
@@ -20,6 +23,8 @@ function setFlow(patch: Partial<{ open: boolean; step: Step }>) {
 }
 
 export function ConnectFlow() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const open = useEditorV2Store((s) => s.connectFlow.open);
   const step = useConnectFlowStep();
   const { scan, connect } = useWebBluetooth();
@@ -97,11 +102,7 @@ export function ConnectFlow() {
         setFlow({ step: usePrinterStore.getState().error ? "error" : "idle" });
       }
     } catch (error) {
-      usePrinterStore
-        .getState()
-        .setError(
-          error instanceof Error ? error.message : "Printer zoeken mislukt.",
-        );
+      usePrinterStore.getState().setError(errorMessage(error));
       setFlow({ step: "error" });
     }
   }, [scan, connect, printSessionBusy]);
@@ -125,7 +126,7 @@ export function ConnectFlow() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Printer verbinden"
+        aria-label={tx("Printer verbinden")}
         className="w-full max-w-[620px] max-h-[calc(100dvh-32px)] overflow-y-auto mx-4 bg-ink-850 border border-white/10 rounded-xl shadow-panel"
       >
         {/* Header */}
@@ -136,22 +137,25 @@ export function ConnectFlow() {
             </div>
             <div>
               <div className="text-ui-lg font-semibold text-ink-50">
-                Printer verbinden
+                {tx("Printer verbinden")}{" "}
               </div>
               <div className="text-ui-sm text-ink-400 mt-0.5">
                 {step === "idle" &&
-                  "Verbind een thermische printer via Bluetooth om te printen."}
+                  tx(
+                    "Verbind een thermische printer via Bluetooth om te printen.",
+                  )}
                 {step === "scanning" &&
-                  "Kies je printer in het Bluetoothvenster van de browser…"}
+                  tx("Kies je printer in het Bluetoothvenster van de browser…")}
                 {step === "pairing" &&
-                  "Verbinding opbouwen. Dit duurt meestal enkele seconden."}
-                {step === "connected" && "Verbonden."}
-                {step === "error" && (error || "Er ging iets mis.")}
+                  tx("Verbinding opbouwen. Dit duurt meestal enkele seconden.")}
+                {step === "connected" && tx("Verbonden.")}
+                {step === "error" &&
+                  (error ? tx(error) : tx("Er ging iets mis."))}
               </div>
             </div>
           </div>
           <button
-            aria-label="Verbindingsvenster sluiten"
+            aria-label={tx("Verbindingsvenster sluiten")}
             onClick={close}
             className="text-ink-400 hover:text-ink-100"
           >
@@ -164,20 +168,22 @@ export function ConnectFlow() {
           <div className="px-5 pb-4">
             <div className="rounded-lg border border-white/5 bg-ink-800/50 p-4">
               <div className="text-ui-sm text-ink-400 font-mono uppercase tracking-wider mb-3">
-                Voor je begint
+                {tx("Voor je begint")}{" "}
               </div>
               <ol className="space-y-2.5">
                 {[
-                  "Zet de printer aan en activeer Bluetooth volgens de handleiding.",
-                  "Schakel Bluetooth in op dit apparaat.",
-                  "Houd de printer binnen drie meter van dit apparaat.",
+                  tx(
+                    "Zet de printer aan en activeer Bluetooth volgens de handleiding.",
+                  ),
+                  tx("Schakel Bluetooth in op dit apparaat."),
+                  tx("Houd de printer binnen drie meter van dit apparaat."),
                 ].map((t, i) => (
                   <li
                     key={i}
                     className="flex items-start gap-3 text-ui-base text-ink-200"
                   >
                     <div className="w-4 h-4 rounded-full bg-ink-700 border border-white/5 flex items-center justify-center text-ui-xs font-mono text-ink-300 shrink-0 mt-0.5">
-                      {i + 1}
+                      {number(i + 1)}
                     </div>
                     <span>{t}</span>
                   </li>
@@ -190,13 +196,15 @@ export function ConnectFlow() {
               role="status"
             >
               {printSessionBusy
-                ? "Rond eerst de actieve printopdracht af."
-                : "Zoek direct via Bluetooth, zonder vooraf een profiel te kiezen. Na jouw apparaatkeuze herkennen we ondersteunde modellen aan de Bluetoothnaam en laden we hun instellingen. Een onbekend model verbinden we niet op goed geluk."}
+                ? tx("Rond eerst de actieve printopdracht af.")
+                : tx(
+                    "Zoek direct via Bluetooth, zonder vooraf een profiel te kiezen. Na jouw apparaatkeuze herkennen we ondersteunde modellen aan de Bluetoothnaam en laden we hun instellingen. Een onbekend model verbinden we niet op goed geluk.",
+                  )}
             </p>
             <div className="mt-4 flex items-center justify-between">
               <div className="text-ui-sm text-ink-500">
-                Uses <span className="text-ink-200">Web Bluetooth</span>.
-                Chrome, Edge, or Opera.
+                {tx("Uses")} <span className="text-ink-200">Web Bluetooth</span>
+                {tx(". Chrome, Edge, or Opera.")}{" "}
               </div>
               <button
                 onClick={handleScan}
@@ -205,15 +213,14 @@ export function ConnectFlow() {
                 className="flex items-center gap-2 h-9 px-4 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 shadow-[0_0_16px_-4px_color-mix(in_srgb,var(--color-accent)_50%,transparent)] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Bluetooth size={15} />
-                Printer zoeken
+                {tx("Printer zoeken")}{" "}
               </button>
             </div>
             <div className="mt-5 border-t border-white/10 pt-4">
               <p className="mb-3 text-ui-sm text-ink-400">
-                Optioneel: kies vooraf een ontwerpprofiel. Bluetooth zoeken
-                blijft beschikbaar, ook bij een profiel dat alleen ontwerpen
-                ondersteunt. Bij verbinden gebruiken we het werkelijk herkende
-                apparaat.
+                {tx(
+                  "Optioneel: kies vooraf een ontwerpprofiel. Bluetooth zoeken blijft beschikbaar, ook bij een profiel dat alleen ontwerpen ondersteunt. Bij verbinden gebruiken we het werkelijk herkende apparaat.",
+                )}{" "}
               </p>
               <PrinterModelPicker />
             </div>
@@ -231,7 +238,9 @@ export function ConnectFlow() {
                     <span className="absolute inset-0 rounded-full bg-accent" />
                   </div>
                   <span className="text-ui-sm font-mono uppercase tracking-wider text-ink-300">
-                    {step === "pairing" ? "Pairing" : "Waiting for selection"}
+                    {step === "pairing"
+                      ? tx("Pairing")
+                      : tx("Waiting for selection")}
                   </span>
                 </div>
               </div>
@@ -244,10 +253,10 @@ export function ConnectFlow() {
                       <div className="absolute inset-4 rounded-full bg-accent/80" />
                     </div>
                     <div className="text-ui-base">
-                      Choose your printer from the browser dialog…
+                      {tx("Choose your printer from the browser dialog…")}{" "}
                     </div>
                     <div className="text-ui-xs text-ink-500 mt-1">
-                      The native Bluetooth picker should be open
+                      {tx("The native Bluetooth picker should be open")}{" "}
                     </div>
                   </>
                 )}
@@ -255,9 +264,9 @@ export function ConnectFlow() {
                   <>
                     <div className="w-8 h-8 mb-3 rounded-full border-2 border-accent/20 border-t-accent animate-spin" />
                     <div className="text-ui-base text-ink-200">
-                      Connecting to{" "}
+                      {tx("Connecting to")}{" "}
                       <span className="text-accent font-medium">
-                        {peripheral?.name || "device"}
+                        {peripheral?.name || tx("device")}
                       </span>
                       …
                     </div>
@@ -267,7 +276,9 @@ export function ConnectFlow() {
             </div>
             <div className="mt-3 flex items-center justify-between text-ui-xs text-ink-500">
               <span>
-                Tip: hold power for 3s to put the printer in pairing mode.
+                {tx(
+                  "Tip: hold power for 3s to put the printer in pairing mode.",
+                )}{" "}
               </span>
               <span className="font-mono">BLE · 2.4GHz</span>
             </div>
@@ -283,11 +294,12 @@ export function ConnectFlow() {
               </div>
               <div className="flex-1">
                 <div className="text-ui-md font-semibold text-ink-50">
-                  Verbonden met {printerName}
+                  {tx("Verbonden met")} {printerName}
                 </div>
                 <div className="text-ui-sm text-ink-400 mt-0.5">
-                  Klaar om te printen
-                  {printerBattery >= 0 && ` · battery ${printerBattery}%`}
+                  {tx("Klaar om te printen")}{" "}
+                  {printerBattery >= 0 &&
+                    tx("batteryValue", { value: printerBattery })}
                 </div>
               </div>
             </div>
@@ -299,10 +311,10 @@ export function ConnectFlow() {
           <div className="px-5 pb-4">
             <div className="rounded-lg border border-red-400/20 bg-red-400/5 p-4">
               <div className="text-ui-md font-semibold text-red-300">
-                Verbinding mislukt
+                {tx("Verbinding mislukt")}{" "}
               </div>
               <div className="text-ui-sm text-ink-400 mt-1">
-                {error || "Unknown error. Opnieuw proberen."}
+                {error ? tx(error) : tx("Unknown error. Opnieuw proberen.")}
               </div>
             </div>
             <div className="mt-4 flex justify-end">
@@ -310,7 +322,7 @@ export function ConnectFlow() {
                 onClick={() => setFlow({ step: "idle" })}
                 className="flex items-center gap-2 h-8 px-4 rounded-md bg-ink-800 border border-white/5 text-ink-200 text-ui-base hover:bg-ink-750"
               >
-                Opnieuw proberen
+                {tx("Opnieuw proberen")}{" "}
               </button>
             </div>
           </div>
@@ -328,7 +340,7 @@ export function ConnectFlow() {
               onClick={close}
               className="text-ui-sm text-ink-400 hover:text-ink-100"
             >
-              Annuleren
+              {tx("Annuleren")}{" "}
             </button>
           </div>
         )}

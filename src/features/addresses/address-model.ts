@@ -1,3 +1,17 @@
+export const addressSteps = [
+  "Bestand",
+  "Kolommen",
+  "Filters",
+  "Controleren",
+  "Ontwerp",
+  "Afdrukken",
+] as const;
+export const addressStyleLabels = [
+  "Vet",
+  "Cursief",
+  "Onderstrepen",
+  "Rand",
+] as const;
 export type AddressField =
   | "company"
   | "name"

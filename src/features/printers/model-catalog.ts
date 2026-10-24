@@ -1,3 +1,4 @@
+import { LocalizedError } from "../../lib/i18n.ts";
 import {
   findDeviceByName,
   getDevice,
@@ -189,16 +190,15 @@ export function validatePrinterModel(
 ) {
   const detected = findDeviceByName(peripheral.name);
   if (!detected)
-    throw new Error(
-      `Geen ondersteund printerprofiel gevonden voor “${peripheral.name}”.`,
-    );
+    throw new LocalizedError("unknownPrinter", { name: peripheral.name });
   if (preferredModelId && detected.modelId !== preferredModelId) {
     const selected =
       PRINTER_MODELS.find((model) => model.id === preferredModelId)?.name ??
       preferredModelId;
-    throw new Error(
-      `Je koos ${selected}, maar “${peripheral.name}” hoort bij een ander printerprofiel. Kies het juiste model of Automatisch herkennen.`,
-    );
+    throw new LocalizedError("wrongPrinter", {
+      selected,
+      name: peripheral.name,
+    });
   }
   return detected;
 }

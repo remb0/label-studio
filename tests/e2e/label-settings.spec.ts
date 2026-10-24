@@ -113,7 +113,7 @@ test("editor objects survive save, new document and reopen", async ({
     .getByRole("dialog", { name: "Sjablonen" })
     .getByRole("button", { name: "Nieuw label", exact: true })
     .click();
-  await expect(page.getByText("0 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("0 elementen", { exact: true })).toBeVisible();
   await page
     .getByRole("navigation", { name: "Hoofdnavigatie" })
     .getByRole("button", { name: "Sjablonen", exact: true })
@@ -122,7 +122,7 @@ test("editor objects survive save, new document and reopen", async ({
     .getByRole("dialog", { name: "Sjablonen" })
     .getByRole("button", { name: "Open sjabloon Nieuw label", exact: true })
     .click();
-  await expect(page.getByText("5 elements", { exact: true })).toBeVisible();
+  await expect(page.getByText("5 elementen", { exact: true })).toBeVisible();
 });
 
 test("PNG export includes selected artwork but excludes cyan selection controls", async ({
@@ -168,7 +168,9 @@ for (const width of [390, 600, 768, 1113, 1280]) {
   test(`Print control stays inside ${width}px viewport`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/");
-    const printButton = page.getByRole("button", { name: /^Print(?: ⌘P)?$/ });
+    const printButton = page.getByRole("button", {
+      name: /^Afdrukken(?: ⌘P)?$/,
+    });
     await expect(printButton).toBeVisible();
     const bounds = await printButton.boundingBox();
     expect(bounds).not.toBeNull();

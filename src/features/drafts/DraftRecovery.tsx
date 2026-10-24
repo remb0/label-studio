@@ -1,8 +1,11 @@
+import { formatDate, useLanguage, useT } from "../../lib/i18n.ts";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { DraftAutosaver } from "../../lib/drafts.ts";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 
 export function DraftRecovery() {
+  const tx = useT();
+  const language = useLanguage((s) => s.language);
   const [autosaver] = useState(() => {
     let storage: Storage | null = null;
     try {
@@ -57,16 +60,18 @@ export function DraftRecovery() {
           className="max-w-md rounded-2xl border border-ink-600 bg-ink-900 p-6 shadow-2xl"
         >
           <h2 id="draft-title" className="text-lg font-semibold text-ink-50">
-            Niet-opgeslagen concept gevonden
+            {tx("Niet-opgeslagen concept gevonden")}{" "}
           </h2>
           <p className="mt-3 text-sm text-ink-200">
-            “{status.pending.document.name}” is automatisch bewaard op{" "}
-            {new Date(status.pending.savedAt).toLocaleString("nl-NL")}. Wil je
-            hiermee verder?
+            {tx("draftRecoveryBody", {
+              name: status.pending.document.name,
+              date: formatDate(language, status.pending.savedAt),
+            })}
           </p>
           <p className="mt-2 text-xs text-ink-400">
-            Herstellen opent een bewerkbare kopie. Opgeslagen sjablonen blijven
-            ongewijzigd; er wordt niets geprint of verbonden.
+            {tx(
+              "Herstellen opent een bewerkbare kopie. Opgeslagen sjablonen blijven ongewijzigd; er wordt niets geprint of verbonden.",
+            )}{" "}
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
@@ -77,13 +82,13 @@ export function DraftRecovery() {
                 useEditorV2Store.temporal.getState().clear();
               }}
             >
-              Concept herstellen
+              {tx("Concept herstellen")}{" "}
             </button>
             <button
               className="rounded-lg border border-ink-600 px-4 py-2 text-sm text-ink-100"
               onClick={autosaver.discard}
             >
-              Concept verwijderen
+              {tx("Concept verwijderen")}{" "}
             </button>
           </div>
         </section>
@@ -95,7 +100,7 @@ export function DraftRecovery() {
         role="alert"
         className="fixed bottom-12 right-3 z-30 max-w-sm rounded-lg border border-amber-600 bg-ink-900 p-3 text-xs text-amber-200"
       >
-        {status.error}
+        {tx(status.error)}
       </p>
     );
   if (status.savedAt)
@@ -104,7 +109,7 @@ export function DraftRecovery() {
         role="status"
         className="pointer-events-none fixed bottom-12 right-3 z-20 rounded-lg border border-ink-700 bg-ink-900/95 px-3 py-2 text-xs text-ink-300"
       >
-        Concept automatisch bewaard · alleen in deze browser
+        {tx("Concept automatisch bewaard · alleen in deze browser")}{" "}
       </p>
     );
   return null;

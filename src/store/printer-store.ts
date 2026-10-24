@@ -1,3 +1,4 @@
+import { type UiMessage } from "../lib/i18n.ts";
 import { create } from "zustand";
 import type { BlePeripheral, PrinterStatus } from "@thermoprint/core";
 import { getDevice } from "@thermoprint/core";
@@ -23,7 +24,7 @@ interface PrinterState {
   status: PrinterStatus | null;
   battery: number;
   printProgress: { bytesSent: number; totalBytes: number } | null;
-  error: string | null;
+  error: UiMessage | null;
 
   modelId: string | null;
   preferredModelId: string | null;
@@ -52,7 +53,7 @@ interface PrinterState {
   setPrintProgress: (
     p: { bytesSent: number; totalBytes: number } | null,
   ) => void;
-  setError: (e: string | null) => void;
+  setError: (e: UiMessage | null) => void;
   setModelId: (id: string | null) => void;
   selectPreferredModel: (id: string | null) => void;
   updateSettings: (patch: Partial<PrintSettings>) => void;

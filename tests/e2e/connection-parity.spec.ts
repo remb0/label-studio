@@ -18,7 +18,7 @@ test("automatic printer choice is shared with Connect printer and survives cance
     .click();
   await page.getByRole("button", { name: "Ontwerpen", exact: true }).click();
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "Printer verbinden",
@@ -38,7 +38,7 @@ test("automatic printer choice is shared with Connect printer and survives cance
   expect(calls[0].options).toEqual(calls[1].options);
   await page.reload();
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   await expect(scan).toBeEnabled();
   await scan.click();
@@ -69,7 +69,7 @@ test("printer page, editor, navbar and Print call the same Bluetooth picker on a
     .click();
   await page.getByRole("button", { name: "Ontwerpen", exact: true }).click();
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   await scan.click();
   await expect(scan).toBeEnabled();
@@ -82,7 +82,7 @@ test("printer page, editor, navbar and Print call the same Bluetooth picker on a
   await dialog
     .getByRole("button", { name: "Verbindingsvenster sluiten" })
     .click();
-  await page.getByRole("button", { name: /^Print\s*⌘P$/ }).click();
+  await page.getByRole("button", { name: /^Afdrukken\s*⌘P$/ }).click();
   await scan.click();
   await expect(scan).toBeEnabled();
   const state = await bluetoothState(page);
@@ -94,7 +94,7 @@ test("printer page, editor, navbar and Print call the same Bluetooth picker on a
   expect(state.writes).toBe(0);
 });
 
-for (const entry of ["printer page", "Connect printer"]) {
+for (const entry of ["printer page", "Printer verbinden"]) {
   test(`${entry} reports errors, retries and connects a simulated BLE printer without printing`, async ({
     page,
   }) => {
@@ -110,7 +110,7 @@ for (const entry of ["printer page", "Connect printer"]) {
         .click();
     } else {
       await page
-        .getByRole("button", { name: "Connect printer", exact: true })
+        .getByRole("button", { name: "Printer verbinden", exact: true })
         .click();
     }
     const dialog = page.getByRole("dialog", {
@@ -125,7 +125,10 @@ for (const entry of ["printer page", "Connect printer"]) {
     ).toBeVisible();
     await expect(
       dialog
-        .getByText("Bluetooth-toegang geweigerd door de test", { exact: true })
+        .getByText(
+          "Bewerking mislukt. Technische informatie: Bluetooth-toegang geweigerd door de test",
+          { exact: true },
+        )
         .last(),
     ).toBeVisible();
     await page.evaluate(() => {
@@ -157,7 +160,7 @@ test("an unknown device is rejected instead of forcing the selected printer prot
   );
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "Printer verbinden",
@@ -192,7 +195,7 @@ for (const preferred of [null, "p12", "niimbot-d11-h"]) {
       );
     await page.goto("/");
     await page
-      .getByRole("button", { name: "Connect printer", exact: true })
+      .getByRole("button", { name: "Printer verbinden", exact: true })
       .click();
     await page
       .getByRole("dialog", { name: "Printer verbinden", exact: true })
@@ -223,7 +226,7 @@ test("cancelling scan-first keeps the existing preferred model", async ({
   );
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   const scan = page
     .getByRole("dialog", { name: "Printer verbinden", exact: true })
@@ -247,7 +250,7 @@ test("a failed Bluetooth connection does not replace the preferred model", async
   );
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Connect printer", exact: true })
+    .getByRole("button", { name: "Printer verbinden", exact: true })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "Printer verbinden",

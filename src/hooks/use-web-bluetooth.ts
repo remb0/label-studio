@@ -1,3 +1,4 @@
+import { errorMessage } from "../lib/i18n.ts";
 import { useCallback } from "react";
 import { Printer, type BlePeripheral } from "@thermoprint/core";
 import { WebBluetoothTransport } from "../transport/web-bluetooth.ts";
@@ -50,9 +51,7 @@ export function useWebBluetooth() {
         .setError(
           err instanceof DOMException && err.name === "NotFoundError"
             ? null
-            : err instanceof Error
-              ? err.message
-              : "Scan failed",
+            : errorMessage(err),
         );
       store.getState().setScanning(false);
       return null;
@@ -218,9 +217,7 @@ export function useWebBluetooth() {
           printer = null;
         }
         store.getState().setConnected(false);
-        store
-          .getState()
-          .setError(err instanceof Error ? err.message : "Connection failed");
+        store.getState().setError(errorMessage(err));
         store.getState().setConnecting(false);
       }
     },
@@ -264,11 +261,7 @@ export function useWebBluetooth() {
               : "Geen eerder toegestane printer beschikbaar. Kies Printer verbinden.",
           );
     } catch (error) {
-      store
-        .getState()
-        .setError(
-          error instanceof Error ? error.message : "Opnieuw verbinden mislukt",
-        );
+      store.getState().setError(errorMessage(error));
     }
   }, [connect, store]);
 

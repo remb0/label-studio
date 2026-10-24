@@ -1,3 +1,10 @@
+import {
+  useNumberFormatter,
+  type UiMessage,
+  errorMessage,
+  useT,
+} from "../../lib/i18n.ts";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Printer, ChevronDown, X, Plus, Minus } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
@@ -23,8 +30,10 @@ interface PrintButtonProps {
 }
 
 export function PrintButton({ onPrint }: PrintButtonProps) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const [open, setOpen] = useState(false);
-  const [printError, setPrintError] = useState("");
+  const [printError, setPrintError] = useState<UiMessage>("");
   const [copies, setCopies] = useState(() => {
     try {
       return parseInt(localStorage.getItem("tp.copies") || "1", 10) || 1;
@@ -42,7 +51,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
   const sessionBusy = usePrintSession();
   useEffect(() => {
     const onError = (event: Event) =>
-      setPrintError(String((event as CustomEvent).detail));
+      setPrintError((event as CustomEvent<UiMessage>).detail);
     window.addEventListener("label-studio:print-error", onError);
     return () =>
       window.removeEventListener("label-studio:print-error", onError);
@@ -107,11 +116,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
         );
       }
     } catch (err) {
-      setPrintError(
-        err instanceof Error
-          ? err.message
-          : "Printen mislukt. Controleer de printer.",
-      );
+      setPrintError(errorMessage(err));
       useEditorV2Store.getState().endPrint();
     }
   }, [copies, onPrint, printer.connected]);
@@ -125,10 +130,10 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
           className="flex items-center gap-2 h-8 pl-2.5 pr-3 bg-accent text-on-accent font-bold text-ui-base hover:bg-accent-600 hover-fade"
         >
           <Printer size={15} />
-          Print
+          {tx("Print")}{" "}
           {copies > 1 && (
             <span className="px-1.5 h-4 flex items-center rounded-sm bg-ink-950/15 text-ui-xs font-mono">
-              ×{copies}
+              ×{number(copies)}
             </span>
           )}
           <kbd
@@ -145,7 +150,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
         <button
           onClick={() => setOpen((o) => !o)}
           className={`w-7 flex items-center justify-center border-l border-ink-950/20 bg-accent text-on-accent hover:bg-accent-600 hover-fade ${open ? "bg-accent-600" : ""}`}
-          title="Print options"
+          title={tx("Print options")}
         >
           <ChevronDown size={14} />
         </button>
@@ -157,13 +162,13 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
           className="fixed top-28 right-3 z-[80] max-w-sm p-4 bg-ink-850 border border-red-400/40 rounded-lg shadow-panel text-ui-base text-red-300"
         >
           <button
-            aria-label="Foutmelding sluiten"
+            aria-label={tx("Foutmelding sluiten")}
             onClick={() => setPrintError("")}
             className="float-right ml-2"
           >
             <X size={16} />
           </button>
-          {printError}
+          {tx(printError)}
         </div>
       )}
 
@@ -173,10 +178,10 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
           <div className="flex items-start justify-between mb-3">
             <div>
               <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400">
-                Print job
+                {tx("Print job")}{" "}
               </div>
               <div className="text-sm font-semibold text-ink-50">
-                Send to printer
+                {tx("Send to printer")}{" "}
               </div>
             </div>
             <button
@@ -190,7 +195,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
           {/* Copies stepper */}
           <div className="mb-3">
             <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
-              Copies
+              {tx("Copies")}{" "}
             </div>
             <div className="flex items-stretch rounded-md bg-ink-800 border border-white/5 overflow-hidden">
               <button
@@ -228,7 +233,7 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
                       : "bg-ink-800 border-white/5 text-ink-400 hover:text-ink-100"
                   }`}
                 >
-                  {n}
+                  {number(n)}
                 </button>
               ))}
             </div>
@@ -237,16 +242,16 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
           {/* Info rows */}
           <div className="space-y-1.5 text-ui-sm mb-3">
             <MiniRow
-              label="Printer"
+              label={tx("Printer")}
               value={printer.connected ? printer.name : "Niet verbonden"}
             />
             <MiniRow
-              label="Media"
-              value={`${label.widthMm} × ${label.heightMm} mm · ${paperType}`}
+              label={tx("Media")}
+              value={`${number(label.widthMm)} × ${number(label.heightMm)} mm · ${tx(paperType === "gap" ? "Losse labels" : "Doorlopende rol")}`}
             />
             <MiniRow
-              label="Est. time"
-              value={`${(copies * 0.6).toFixed(1)}s`}
+              label={tx("Est. time")}
+              value={`${number(copies * 0.6, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`}
             />
           </div>
 
@@ -256,7 +261,8 @@ export function PrintButton({ onPrint }: PrintButtonProps) {
             className="w-full h-8 rounded-md bg-accent text-on-accent font-semibold text-ui-base hover:bg-accent-600 flex items-center justify-center gap-2"
           >
             <Printer size={15} />
-            Print {copies} {copies === 1 ? "label" : "labels"}
+            {tx("Print")} {number(copies)}{" "}
+            {copies === 1 ? tx("label") : tx("labels")}
           </button>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { useT } from "../../lib/i18n.ts";
 import { useState } from "react";
 import { Printer } from "lucide-react";
 import { getPrinterImage } from "./printer-images.ts";
@@ -9,6 +10,7 @@ export function PrinterModelImage({
   modelId: string;
   name: string;
 }) {
+  const tx = useT();
   const photo = getPrinterImage(modelId);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo && failedSrc !== photo.src;
@@ -20,7 +22,7 @@ export function PrinterModelImage({
       {showPhoto ? (
         <img
           src={photo.src}
-          alt={`Productfoto ${name}`}
+          alt={tx("productPhoto", { name })}
           width={88}
           height={88}
           decoding="async"
@@ -30,7 +32,9 @@ export function PrinterModelImage({
         <>
           <Printer size={28} aria-hidden="true" />
           <span>
-            {photo ? "Foto niet beschikbaar" : "Foto nog niet bevestigd"}
+            {photo
+              ? tx("Foto niet beschikbaar")
+              : tx("Foto nog niet bevestigd")}
           </span>
         </>
       )}

@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../lib/i18n.ts";
+
 import { Check } from "lucide-react";
 import { isDesignOnlyModel } from "../features/printers/model-catalog.ts";
 import {
@@ -24,12 +26,14 @@ export function FormatPicker({
   maxPixels,
   onSelect,
 }: Props) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const favorites = useFavorites((state) => state.ids);
   return (
     <>
       <div
         className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-        aria-label="Labelformaten"
+        aria-label={tx("Labelformaten")}
       >
         {favoritesFirst(getFormatPresets(modelId), "format", favorites).map(
           (preset) => {
@@ -55,7 +59,7 @@ export function FormatPicker({
               >
                 <button
                   type="button"
-                  aria-label={`${preset.name}, ${preset.widthMm} × ${preset.heightMm} mm, ${preset.paperType === "gap" ? "los label" : "doorlopend"}`}
+                  aria-label={`${tx(preset.name)}, ${number(preset.widthMm)} × ${number(preset.heightMm)} mm, ${preset.paperType === "gap" ? tx("los label") : tx("doorlopend")}`}
                   aria-pressed={active}
                   onClick={() => {
                     if (!tooWide) onSelect(preset);
@@ -92,23 +96,23 @@ export function FormatPicker({
                     </span>
                   </span>
                   <span className="block text-ui-xs font-semibold truncate">
-                    {preset.name}
+                    {tx(preset.name)}
                   </span>
                   <span className="block text-ui-2xs font-mono mt-0.5">
-                    {preset.widthMm} × {preset.heightMm} mm
+                    {number(preset.widthMm)} × {number(preset.heightMm)} mm
                   </span>
                   <span className="block text-ui-2xs text-ink-400 mt-1">
                     {tooWide
-                      ? "Breder dan printer"
+                      ? tx("Breder dan printer")
                       : preset.paperType === "gap"
-                        ? "Los label"
-                        : "Doorlopend"}
+                        ? tx("Los label")
+                        : tx("Doorlopend")}
                   </span>
                 </button>
                 <FavoriteButton
                   kind="format"
                   id={preset.id}
-                  name={`Formaat ${preset.name}`}
+                  name={tx("formatName", { name: tx(preset.name) })}
                 />
               </div>
             );

@@ -1,49 +1,63 @@
+import { useT, useLanguage, formatDate, formatNumber } from "../../lib/i18n.ts";
+
 import { getPrinterSpecs } from "./printer-specs.ts";
 import { CONNECTION_LABELS } from "./printer-discovery.ts";
 
 export function PrinterSpecifications({ modelId }: { modelId: string }) {
+  const tx = useT();
+  const language = useLanguage((s) => s.language);
   const specs = getPrinterSpecs(modelId);
   return (
     <details
       className="printer-specifications"
       open={specs.evidence === "conflicting" || specs.evidence === "unverified"}
     >
-      <summary>Specificaties en bronnen</summary>
+      <summary>{tx("Specificaties en bronnen")}</summary>
       <p>
-        Hardwaregegevens staan los van de ontwerppreset en van direct printen in
-        deze app. Gecontroleerd: {specs.checkedOn}.
+        {tx("specsChecked", {
+          date: formatDate(language, specs.checkedOn + "T12:00:00", {
+            dateStyle: "medium",
+          }),
+        })}
       </p>
       <dl>
-        <dt>Resolutie</dt>
-        <dd>{specs.dpi ? `${specs.dpi} dpi` : "Niet bevestigd"}</dd>
-        <dt>Printkop</dt>
+        <dt>{tx("Resolutie")}</dt>
+        <dd>{specs.dpi ? `${specs.dpi} dpi` : tx("Niet bevestigd")}</dd>
+        <dt>{tx("Printkop")}</dt>
         <dd>
           {specs.headDots
-            ? `${specs.headDots} dots · circa ${((specs.headDots * 25.4) / specs.dpi!).toFixed(1)} mm`
-            : "Niet bevestigd / betwist"}
+            ? tx("headWidth", {
+                dots: specs.headDots,
+                width: formatNumber(
+                  language,
+                  (specs.headDots * 25.4) / specs.dpi!,
+                  { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+                ),
+              })
+            : tx("Niet bevestigd / betwist")}
         </dd>
-        <dt>Papierbreedte</dt>
+        <dt>{tx("Papierbreedte")}</dt>
         <dd>
           {specs.mediaWidthMm
             ? `${specs.mediaWidthMm[0]}–${specs.mediaWidthMm[1]} mm`
-            : "Niet bevestigd"}
+            : tx("Niet bevestigd")}
         </dd>
-        <dt>Hardwareverbinding</dt>
+        <dt>{tx("Hardwareverbinding")}</dt>
         <dd>
           {specs.connections
-            .map((connection) => CONNECTION_LABELS[connection])
+            .map((connection) => tx(CONNECTION_LABELS[connection]))
             .join(" · ")}
         </dd>
-        <dt>Onderbouwing</dt>
+        <dt>{tx("Onderbouwing")}</dt>
         <dd>
-          {
+          {tx(
             {
               product: "Productdocumentatie",
               project: "Community-/projectbron",
               conflicting: "Bronnen spreken elkaar deels tegen",
               unverified: "Nog niet onderbouwd",
-            }[specs.evidence]
-          }
+            }[specs.evidence],
+          )}
         </dd>
       </dl>
       {specs.notes.map((note) => (
@@ -55,7 +69,7 @@ export function PrinterSpecifications({ modelId }: { modelId: string }) {
               : ""
           }
         >
-          {note}
+          {tx(note)}
         </p>
       ))}
       {specs.sources.length > 0 && (
@@ -63,15 +77,16 @@ export function PrinterSpecifications({ modelId }: { modelId: string }) {
           {specs.sources.map((source) => (
             <li key={source.url}>
               <a href={source.url} target="_blank" rel="noopener noreferrer">
-                {source.title}
+                {tx(source.title)}
               </a>
             </li>
           ))}
         </ul>
       )}
       <p>
-        Geen nieuwe printerdriver of hardwarecertificering toegekend op basis
-        van deze gegevens.
+        {tx(
+          "Geen nieuwe printerdriver of hardwarecertificering toegekend op basis van deze gegevens.",
+        )}{" "}
       </p>
     </details>
   );

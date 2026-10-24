@@ -1,12 +1,15 @@
+import { useT, useLanguage, t } from "../../lib/i18n.ts";
+
 import { Github, Heart, ExternalLink } from "lucide-react";
-import { useLanguage, t } from "../../lib/i18n.ts";
+
 const url = "https://github.com/remb0/label-studio";
 export function AboutPage() {
+  const tx = useT();
   const lang = useLanguage((s) => s.language);
   return (
     <section className="studio-page">
       <div className="studio-page-title">
-        <span className="studio-eyebrow">OPEN SOURCE</span>
+        <span className="studio-eyebrow">{tx("OPEN SOURCE")}</span>
         <h1>{t(lang, "titleAbout")}</h1>
       </div>
       <div className="studio-cards">
@@ -42,7 +45,9 @@ export function AboutPage() {
         <article className="studio-card">
           <Github size={26} />
           <h2>GitHub</h2>
-          <p>MIT licensed · community driven · contributions welcome.</p>
+          <p>
+            {tx("MIT licensed · community driven · contributions welcome.")}
+          </p>
           <a
             className="studio-secondary inline-flex gap-2 items-center"
             href={url}

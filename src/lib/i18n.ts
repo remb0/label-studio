@@ -1,351 +1,16 @@
+import { useCallback } from "react";
+import nl from "./locales/nl.json" with { type: "json" };
+import en from "./locales/en.json" with { type: "json" };
+import de from "./locales/de.json" with { type: "json" };
+import fr from "./locales/fr.json" with { type: "json" };
+import es from "./locales/es.json" with { type: "json" };
 import { create } from "zustand";
 
 export const LANGUAGES = ["nl", "en", "de", "fr", "es"] as const;
 export type Language = (typeof LANGUAGES)[number];
 type Dictionary = Record<string, string>;
-const messages: Record<Language, Dictionary> = {
-  nl: {
-    editor: "Ontwerpen",
-    single: "Adreslabels",
-    bulk: "Bulklabels",
-    printer: "Printer",
-    templates: "Sjablonen",
-    settings: "Instellingen",
-    about: "Over",
-    account: "Account",
-    language: "Taal",
-    connect: "Verbinden",
-    connected: "Verbonden",
-    titleAbout: "Over Label Studio",
-    reason: "Waarom dit project?",
-    reasonBody:
-      "Ik begon Label Studio omdat de Android-apps bij veel compacte labelprinters beperkingen hebben in het ontwerpen, bewaren en hergebruiken van labels. Met dit open-source project wil ik een toegankelijke studio maken die op meerdere apparaten werkt en uiteindelijk meer printers ondersteunt.",
-    author: "Over de maker",
-    authorBody:
-      "Dit onafhankelijke open-source project wordt ontwikkeld door Remco (GitHub: remb0).",
-    donate: "Steun het project",
-    donateBody:
-      "Vind je Label Studio nuttig? Je kunt een bijdrage leveren aan de ontwikkeling of een donatiemogelijkheid voorstellen via GitHub.",
-    github: "Bekijk op GitHub",
-    donateLink: "Doneren / contact via GitHub",
-    guest: "Verdergaan zonder account",
-    accountTitle: "Mijn account",
-    signIn: "Inloggen met e-mail",
-    email: "E-mailadres",
-    sendLink: "Stuur inloglink",
-    signOut: "Uitloggen",
-    signedIn: "Ingelogd als",
-    linkSent: "Controleer je e-mail voor de inloglink.",
-    cloudNotConfigured:
-      "Cloudaccounts zijn nog niet ingesteld door de beheerder. Je kunt de studio zonder account gebruiken.",
-    syncUpload: "Bewaar naar cloud",
-    syncDownload: "Haal op uit cloud",
-    syncWarning:
-      "Cloudgegevens ophalen vervangt je lokale bibliotheek en voorkeuren. Exporteer eerst een back-up.",
-    syncConfirm: "Lokale gegevens vervangen door opgeslagen cloudgegevens?",
-    savedCloud: "Gegevens veilig in je account opgeslagen.",
-    loadedCloud: "Cloudgegevens geladen.",
-    cloudEmpty: "Nog geen gegevens in dit account.",
-    cloudPrefs:
-      "Je account bewaart labels, favorieten, thema, taal en gekozen printermodel.",
-    printerHelp: "Printer aanmelden",
-    printerHelpTitle: "Help een nieuwe printer ondersteunen",
-    printerHelpIntro:
-      "Geen technische kennis nodig. Vul in wat op de printer of verpakking staat; onbekende velden mag je overslaan.",
-    brand: "Merk",
-    model: "Model",
-    connection: "Verbinding",
-    labelWidth: "Maximale labelbreedte (mm)",
-    labelFormats: "Labelformaten (bijvoorbeeld 40 × 30 mm)",
-    deviceName: "Bluetoothnaam (indien bekend)",
-    link: "Link naar product of handleiding",
-    photo: "Foto / schermafbeelding (optioneel)",
-    notes: "Wat werkt wel of niet?",
-    generate: "Maak GitHub-aanmelding",
-    privacy: "Deel geen serienummer, MAC-adres, adres of andere privégegevens.",
-    validation: "Compatibiliteitsstatus",
-    unknown: "Niet getest",
-    reported: "Door gebruikers gemeld",
-    certified: "Studio Certified",
-    reportWorking: "Werkt bij mij",
-    reportFail: "Werkt niet bij mij",
-    reportIntro:
-      "Meld je ervaringen via GitHub. Een gebruikersmelding is nog geen certificering.",
-    experimental: "Experimenteel / alleen ontwerpen",
-    moreInfo: "Meer informatie",
-    configError: "Cloudverbinding mislukt.",
-    confirmEmail: "Vraag een inloglink aan met je e-mailadres.",
-    reportedNote:
-      "Gebruikersmeldingen worden beoordeeld; er worden geen automatische certificeringen uitgegeven.",
-  },
-  en: {
-    editor: "Design",
-    single: "Address labels",
-    bulk: "Bulk labels",
-    printer: "Printer",
-    templates: "Templates",
-    settings: "Settings",
-    about: "About",
-    account: "Account",
-    language: "Language",
-    connect: "Connect",
-    connected: "Connected",
-    titleAbout: "About Label Studio",
-    reason: "Why this project?",
-    reasonBody:
-      "I started Label Studio because Android apps for compact label printers often make designing, saving and reusing labels unnecessarily difficult. This open-source project aims to make label design accessible across devices and support more printers.",
-    author: "About the maker",
-    authorBody:
-      "This independent open-source project is developed by Remco (GitHub: remb0).",
-    donate: "Support the project",
-    donateBody:
-      "If you find Label Studio useful, consider supporting development or suggesting a donation channel through GitHub.",
-    github: "View on GitHub",
-    donateLink: "Donate / contact on GitHub",
-    guest: "Continue without an account",
-    accountTitle: "My account",
-    signIn: "Sign in with email",
-    email: "Email address",
-    sendLink: "Send sign-in link",
-    signOut: "Sign out",
-    signedIn: "Signed in as",
-    linkSent: "Check your email for the sign-in link.",
-    cloudNotConfigured:
-      "Cloud accounts are not configured yet. You can use the studio without an account.",
-    syncUpload: "Save to cloud",
-    syncDownload: "Load from cloud",
-    syncWarning:
-      "Loading cloud data replaces your local library and preferences. Export a backup first.",
-    syncConfirm: "Replace local data with saved cloud data?",
-    savedCloud: "Data saved to your account.",
-    loadedCloud: "Cloud data loaded.",
-    cloudEmpty: "No cloud data saved to this account yet.",
-    cloudPrefs:
-      "Your account stores labels, favorites, theme, language and selected printer model.",
-    printerHelp: "Submit a printer",
-    printerHelpTitle: "Help support a new printer",
-    printerHelpIntro:
-      "No technical skills required. Enter what's written on the printer or box; you may leave unknown fields blank.",
-    brand: "Brand",
-    model: "Model",
-    connection: "Connection",
-    labelWidth: "Maximum label width (mm)",
-    labelFormats: "Label sizes (e.g. 40 × 30 mm)",
-    deviceName: "Bluetooth name (if known)",
-    link: "Product or manual link",
-    photo: "Photo / screenshot (optional)",
-    notes: "What works or fails?",
-    generate: "Create GitHub submission",
-    privacy:
-      "Do not share serial numbers, MAC addresses, home addresses or other private data.",
-    validation: "Compatibility status",
-    unknown: "Not tested",
-    reported: "Reported by users",
-    certified: "Studio Certified",
-    reportWorking: "Works for me",
-    reportFail: "Does not work for me",
-    reportIntro:
-      "Share your results on GitHub. User reports do not grant certification.",
-    experimental: "Experimental / design only",
-    moreInfo: "More information",
-    configError: "Cloud connection failed.",
-    confirmEmail: "Request a sign-in link with your email.",
-    reportedNote: "Reports are reviewed; certification is never automatic.",
-  },
-  de: {
-    editor: "Entwerfen",
-    single: "Adressetiketten",
-    bulk: "Serienetiketten",
-    printer: "Drucker",
-    templates: "Vorlagen",
-    settings: "Einstellungen",
-    about: "Über",
-    account: "Konto",
-    language: "Sprache",
-    connect: "Verbinden",
-    connected: "Verbunden",
-    titleAbout: "Über Label Studio",
-    reason: "Warum dieses Projekt?",
-    reasonBody:
-      "Label Studio entstand, weil Android-Apps für Etikettendrucker das Gestalten, Speichern und Wiederverwenden oft einschränken. Dieses Open-Source-Projekt soll mehr Freiheit und Geräteunterstützung bieten.",
-    author: "Über den Entwickler",
-    authorBody: "Entwickelt von Remco (GitHub: remb0).",
-    donate: "Projekt unterstützen",
-    donateBody: "Unterstütze die Entwicklung über GitHub.",
-    github: "Auf GitHub ansehen",
-    donateLink: "Spenden / Kontakt über GitHub",
-    guest: "Ohne Konto fortfahren",
-    accountTitle: "Mein Konto",
-    email: "E-Mail-Adresse",
-    sendLink: "Anmeldelink senden",
-    signOut: "Abmelden",
-    signedIn: "Angemeldet als",
-    linkSent: "Bitte E-Mail auf Anmeldelink prüfen.",
-    cloudNotConfigured:
-      "Cloud-Konten sind nicht konfiguriert. Ohne Konto fortfahren.",
-    syncUpload: "In Cloud speichern",
-    syncDownload: "Aus Cloud laden",
-    syncWarning: "Laden überschreibt lokale Daten. Bitte vorher sichern.",
-    syncConfirm: "Lokale Daten ersetzen?",
-    savedCloud: "Daten gespeichert.",
-    loadedCloud: "Cloud-Daten geladen.",
-    cloudEmpty: "Keine Cloud-Daten vorhanden.",
-    cloudPrefs: "Etiketten, Favoriten und Einstellungen synchronisieren.",
-    printerHelp: "Drucker melden",
-    printerHelpTitle: "Neuen Drucker vorschlagen",
-    printerHelpIntro:
-      "Einfach Typenschild oder Verpackung ablesen. Unbekannte Angaben freilassen.",
-    brand: "Marke",
-    model: "Modell",
-    connection: "Verbindung",
-    labelWidth: "Maximale Etikettenbreite (mm)",
-    labelFormats: "Etikettenformate",
-    deviceName: "Bluetooth-Name",
-    link: "Produkt- oder Handbuchlink",
-    notes: "Was funktioniert?",
-    generate: "GitHub-Meldung erstellen",
-    privacy: "Keine Seriennummern oder persönlichen Daten teilen.",
-    validation: "Kompatibilitätsstatus",
-    unknown: "Ungetestet",
-    reported: "Von Nutzern gemeldet",
-    certified: "Studio Certified",
-    reportWorking: "Funktioniert",
-    reportFail: "Funktioniert nicht",
-    reportIntro:
-      "Erfahrungen auf GitHub melden. Keine automatische Zertifizierung.",
-    experimental: "Experimentell / nur Entwurf",
-    moreInfo: "Weitere Informationen",
-  },
-  fr: {
-    editor: "Créer",
-    single: "Étiquettes adresse",
-    bulk: "Étiquettes en série",
-    printer: "Imprimante",
-    templates: "Modèles",
-    settings: "Paramètres",
-    about: "À propos",
-    account: "Compte",
-    language: "Langue",
-    connect: "Connecter",
-    connected: "Connecté",
-    titleAbout: "À propos de Label Studio",
-    reason: "Pourquoi ce projet ?",
-    reasonBody:
-      "Label Studio est né des limites des applications Android pour les imprimantes d'étiquettes. Ce projet libre facilite la conception, la sauvegarde et la réutilisation sur plusieurs appareils.",
-    author: "Créateur",
-    authorBody: "Développé par Remco (GitHub : remb0).",
-    donate: "Soutenir le projet",
-    donateBody: "Soutenez le développement via GitHub.",
-    github: "Voir sur GitHub",
-    donateLink: "Don / contact via GitHub",
-    guest: "Continuer sans compte",
-    accountTitle: "Mon compte",
-    email: "Adresse e-mail",
-    sendLink: "Envoyer le lien",
-    signOut: "Déconnexion",
-    signedIn: "Connecté en tant que",
-    linkSent: "Vérifiez votre boîte mail.",
-    cloudNotConfigured:
-      "Les comptes cloud ne sont pas configurés. Utilisez l'application sans compte.",
-    syncUpload: "Enregistrer dans le cloud",
-    syncDownload: "Charger du cloud",
-    syncWarning:
-      "Le chargement remplace les données locales. Faites une sauvegarde.",
-    syncConfirm: "Remplacer les données locales ?",
-    savedCloud: "Données enregistrées.",
-    loadedCloud: "Données chargées.",
-    cloudEmpty: "Aucune donnée cloud.",
-    cloudPrefs: "Sauvegarde des étiquettes et préférences.",
-    printerHelp: "Proposer une imprimante",
-    printerHelpTitle: "Aidez-nous à ajouter une imprimante",
-    printerHelpIntro:
-      "Copiez simplement les informations sur l'appareil ou sa boîte.",
-    brand: "Marque",
-    model: "Modèle",
-    connection: "Connexion",
-    labelWidth: "Largeur max. (mm)",
-    labelFormats: "Formats",
-    deviceName: "Nom Bluetooth",
-    link: "Lien produit / manuel",
-    notes: "Que fonctionne-t-il ?",
-    generate: "Créer une demande GitHub",
-    privacy: "Ne partagez pas de numéros de série ou de données privées.",
-    validation: "Statut de compatibilité",
-    unknown: "Non testé",
-    reported: "Signalé par les utilisateurs",
-    certified: "Studio Certified",
-    reportWorking: "Fonctionne chez moi",
-    reportFail: "Ne fonctionne pas",
-    reportIntro:
-      "Signalez vos essais sur GitHub. Aucune certification automatique.",
-    experimental: "Expérimental / conception seulement",
-    moreInfo: "En savoir plus",
-  },
-  es: {
-    editor: "Diseñar",
-    single: "Etiquetas dirección",
-    bulk: "Etiquetas en lote",
-    printer: "Impresora",
-    templates: "Plantillas",
-    settings: "Ajustes",
-    about: "Acerca de",
-    account: "Cuenta",
-    language: "Idioma",
-    connect: "Conectar",
-    connected: "Conectada",
-    titleAbout: "Acerca de Label Studio",
-    reason: "¿Por qué este proyecto?",
-    reasonBody:
-      "Label Studio nació de las limitaciones de las aplicaciones Android de impresoras de etiquetas. Este proyecto abierto facilita diseñar, guardar y reutilizar etiquetas en distintos dispositivos.",
-    author: "Creador",
-    authorBody: "Desarrollado por Remco (GitHub: remb0).",
-    donate: "Apoya el proyecto",
-    donateBody: "Apoya el desarrollo a través de GitHub.",
-    github: "Ver en GitHub",
-    donateLink: "Donar / contactar en GitHub",
-    guest: "Continuar sin cuenta",
-    accountTitle: "Mi cuenta",
-    email: "Correo electrónico",
-    sendLink: "Enviar enlace",
-    signOut: "Cerrar sesión",
-    signedIn: "Sesión iniciada como",
-    linkSent: "Revisa tu correo para el enlace.",
-    cloudNotConfigured:
-      "Las cuentas en la nube no están configuradas. Puedes usar la aplicación sin cuenta.",
-    syncUpload: "Guardar en nube",
-    syncDownload: "Cargar de nube",
-    syncWarning:
-      "Al cargar se sustituyen los datos locales. Haz una copia antes.",
-    syncConfirm: "¿Reemplazar datos locales?",
-    savedCloud: "Datos guardados.",
-    loadedCloud: "Datos cargados.",
-    cloudEmpty: "No hay datos en la nube.",
-    cloudPrefs: "Guarda etiquetas y preferencias.",
-    printerHelp: "Enviar impresora",
-    printerHelpTitle: "Ayuda a añadir otra impresora",
-    printerHelpIntro:
-      "Introduce los datos de la impresora o su caja. Omite lo que desconozcas.",
-    brand: "Marca",
-    model: "Modelo",
-    connection: "Conexión",
-    labelWidth: "Anchura máxima (mm)",
-    labelFormats: "Tamaños de etiqueta",
-    deviceName: "Nombre Bluetooth",
-    link: "Producto / manual",
-    notes: "¿Qué funciona?",
-    generate: "Crear solicitud GitHub",
-    privacy: "No compartas números de serie ni datos privados.",
-    validation: "Estado de compatibilidad",
-    unknown: "Sin probar",
-    reported: "Reportado por usuarios",
-    certified: "Studio Certified",
-    reportWorking: "Me funciona",
-    reportFail: "No me funciona",
-    reportIntro: "Comparte resultados en GitHub; no certifica automáticamente.",
-    experimental: "Experimental / solo diseño",
-    moreInfo: "Más información",
-  },
-};
+export const messages: Record<Language, Dictionary> = { nl, en, de, fr, es };
+
 function initialLanguage(): Language {
   try {
     const stored = localStorage.getItem("label-studio:lang");
@@ -353,7 +18,10 @@ function initialLanguage(): Language {
   } catch {
     /* no storage */
   }
-  const browser = navigator.language.slice(0, 2);
+  const browser =
+    typeof navigator === "undefined"
+      ? "en"
+      : (navigator.language || "en").slice(0, 2).toLowerCase();
   return LANGUAGES.includes(browser as Language) ? (browser as Language) : "en";
 }
 export const useLanguage = create<{
@@ -361,16 +29,144 @@ export const useLanguage = create<{
   setLanguage: (lang: Language) => void;
 }>((set) => ({
   language: initialLanguage(),
-  setLanguage: (language) => {
+  setLanguage: (requested) => {
+    const language = LANGUAGES.includes(requested) ? requested : "en";
     try {
       localStorage.setItem("label-studio:lang", language);
     } catch {
       /* optional */
     }
-    document.documentElement.lang = language;
+    if (typeof document !== "undefined")
+      document.documentElement.lang = language;
     set({ language });
   },
 }));
-export function t(language: Language, key: string): string {
-  return messages[language][key] ?? messages.en[key] ?? key;
+export function t(
+  language: Language,
+  key: UiMessage,
+  values?: MessageValues,
+): string {
+  if (typeof key !== "string")
+    return key.items
+      ? key.items.map((item) => t(language, item)).join(", ")
+      : t(language, key.key, key.values);
+  const dictionary = messages[language] ?? messages.en;
+  const text = Object.hasOwn(dictionary, key)
+    ? dictionary[key]
+    : Object.hasOwn(messages.en, key)
+      ? messages.en[key]
+      : key;
+  return text.replace(/\{(\w+)\}/g, (token, name: string) => {
+    const value = values?.[name];
+    return value === undefined
+      ? token
+      : typeof value === "number"
+        ? formatNumber(language, value)
+        : typeof value === "string"
+          ? value
+          : t(language, value);
+  });
+}
+
+export const LOCALES: Record<Language, string> = {
+  nl: "nl-NL",
+  en: "en-GB",
+  de: "de-DE",
+  fr: "fr-FR",
+  es: "es-ES",
+};
+export function formatNumber(
+  language: Language,
+  value: number,
+  options?: Intl.NumberFormatOptions,
+) {
+  return new Intl.NumberFormat(LOCALES[language] ?? LOCALES.en, options).format(
+    value,
+  );
+}
+export function formatDate(
+  language: Language,
+  value: number | string | Date,
+  options?: Intl.DateTimeFormatOptions,
+) {
+  return new Intl.DateTimeFormat(
+    LOCALES[language] ?? LOCALES.en,
+    options ?? { dateStyle: "medium", timeStyle: "short" },
+  ).format(new Date(value));
+}
+
+/** Subscribe each translated surface so open dialogs update without remounting. */
+export function useT() {
+  const language = useLanguage((state) => state.language);
+  return useCallback(
+    (key: UiMessage, values?: MessageValues) => t(language, key, values),
+    [language],
+  );
+}
+
+export type UiMessage =
+  string | { key: string; values?: MessageValues; items?: UiMessage[] };
+export type MessageValues = {
+  [name: string]: string | number | Exclude<UiMessage, string>;
+};
+export function message(
+  key: string,
+  values?: MessageValues,
+): Exclude<UiMessage, string> {
+  return { key, values };
+}
+export class LocalizedError extends Error {
+  readonly localized: UiMessage;
+  constructor(key: string, values?: MessageValues) {
+    super(t("nl", key, values));
+    this.localized = message(key, values);
+  }
+}
+/** Preserve translation metadata across async state and custom events. */
+export function errorMessage(error: unknown): UiMessage {
+  if (error instanceof LocalizedError) return error.localized;
+  const text = error instanceof Error ? error.message : String(error);
+  return Object.hasOwn(messages.en, text)
+    ? text
+    : message("externalError", { detail: text });
+}
+
+export function formatRelativeTime(
+  language: Language,
+  value: number,
+  now = Date.now(),
+) {
+  const seconds = (value - now) / 1000;
+  const [divisor, unit]: [number, Intl.RelativeTimeFormatUnit] =
+    Math.abs(seconds) < 60
+      ? [1, "second"]
+      : Math.abs(seconds) < 3600
+        ? [60, "minute"]
+        : Math.abs(seconds) < 86400
+          ? [3600, "hour"]
+          : [86400, "day"];
+  return new Intl.RelativeTimeFormat(LOCALES[language], {
+    numeric: "auto",
+  }).format(Math.trunc(seconds / divisor), unit);
+}
+
+export function asMessage(value: UiMessage): Exclude<UiMessage, string> {
+  return typeof value === "string" ? message(value) : value;
+}
+export function messageList(items: UiMessage[]): Exclude<UiMessage, string> {
+  return { key: "", items };
+}
+
+export function useNumberFormatter() {
+  const language = useLanguage((s) => s.language);
+  return useCallback(
+    (value: number, options?: Intl.NumberFormatOptions) =>
+      formatNumber(language, value, options),
+    [language],
+  );
+}
+
+/** Resolve a message at the time an imperative action runs. */
+export function translate(key: UiMessage, values?: MessageValues) {
+  return t(useLanguage.getState().language, key, values);
 }

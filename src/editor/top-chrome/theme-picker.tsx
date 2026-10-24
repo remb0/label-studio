@@ -1,3 +1,4 @@
+import { useT } from "../../lib/i18n.ts";
 import { useState, useEffect, useRef } from "react";
 import { Palette, Sun, Moon } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
@@ -12,6 +13,7 @@ const THEMES = [
 ];
 
 export function ThemePicker() {
+  const tx = useT();
   const theme = useEditorV2Store((s) => s.theme);
   const mode = useEditorV2Store((s) => s.mode);
   const setTheme = useEditorV2Store((s) => s.setTheme);
@@ -39,7 +41,7 @@ export function ThemePicker() {
             ? "bg-accent/10 text-accent border-accent/30"
             : "bg-ink-800 text-accent border-white/5 hover:text-accent"
         }`}
-        title="Theme"
+        title={tx("Theme")}
       >
         <Palette size={15} />
       </button>
@@ -48,9 +50,9 @@ export function ThemePicker() {
         <div className="absolute right-0 top-10 w-56 bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel p-3 z-[60]">
           {/* Dark / Light toggle */}
           <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-ink-800 border border-white/5 mb-2.5">
-            {(["dark", "light"] as const).map((m) => (
+            {([tx("dark"), tx("light")] as const).map((m) => (
               <button
-                key={m}
+                key={tx(m)}
                 onClick={() => setMode(m)}
                 className={`flex-1 flex items-center justify-center gap-1.5 h-7 rounded-[4px] text-ui-xs font-medium capitalize ${
                   mode === m
@@ -59,7 +61,7 @@ export function ThemePicker() {
                 }`}
               >
                 {m === "dark" ? <Moon size={12} /> : <Sun size={12} />}
-                {m}
+                {tx(m)}
               </button>
             ))}
           </div>
@@ -82,7 +84,7 @@ export function ThemePicker() {
                     className="w-3 h-3 rounded-full shrink-0 ring-1 ring-black/20"
                     style={{ background: t.swatch }}
                   />
-                  <span className="text-ui-xs font-medium">{t.name}</span>
+                  <span className="text-ui-xs font-medium">{tx(t.name)}</span>
                 </button>
               );
             })}

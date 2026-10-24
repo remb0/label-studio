@@ -1,3 +1,12 @@
+import {
+  useNumberFormatter,
+  type UiMessage,
+  errorMessage,
+  message,
+  asMessage,
+  useT,
+} from "../../lib/i18n.ts";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getDevice } from "@thermoprint/core";
 import { usePrinterStore } from "../../store/printer-store.ts";
@@ -49,6 +58,8 @@ function pattern(
 }
 
 export function CalibrationWizard() {
+  const number = useNumberFormatter();
+  const tx = useT();
   const state = usePrinterStore();
   const busy = usePrintSession();
   const [open, setOpen] = useState(false);
@@ -61,8 +72,8 @@ export function CalibrationWizard() {
   });
   const [density, setDensity] = useState<1 | 2 | 3>(2);
   const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [notice, setMessage] = useState<UiMessage>("");
+  const [error, setError] = useState<UiMessage>("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [target, setTarget] = useState("");
   const dialogRef = useRef<HTMLElement>(null);
@@ -100,7 +111,7 @@ export function CalibrationWizard() {
         image: null,
         error:
           error instanceof Error
-            ? error.message
+            ? errorMessage(error)
             : "Kalibratievoorbeeld mislukt.",
       };
     }
@@ -188,7 +199,7 @@ export function CalibrationWizard() {
       );
     } catch (e) {
       setError(
-        `${e instanceof Error ? e.message : "Testprint mislukt."} Controleer de printer voordat je opnieuw print; een deel kan al verzonden zijn.`,
+        message("testPrintWarning", { error: asMessage(errorMessage(e)) }),
       );
     } finally {
       setSending(false);
@@ -229,13 +240,14 @@ export function CalibrationWizard() {
   return (
     <>
       <article className="studio-card calibration-card">
-        <h2>Kalibratie & testlabel</h2>
+        <h2>{tx("Kalibratie & testlabel")}</h2>
         <p>
-          Controleer uitlijning en donkerte. Bewaar een correctie per fysieke
-          printer, zonder je ontwerp te verplaatsen.
+          {tx(
+            "Controleer uitlijning en donkerte. Bewaar een correctie per fysieke printer, zonder je ontwerp te verplaatsen.",
+          )}{" "}
         </p>
         <button className="studio-secondary" disabled={busy} onClick={start}>
-          Kalibratie starten
+          {tx("Kalibratie starten")}{" "}
         </button>
       </article>
       {open && (
@@ -246,7 +258,7 @@ export function CalibrationWizard() {
             className="calibration-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Printer kalibreren"
+            aria-label={tx("Printer kalibreren")}
             onKeyDown={(event) => {
               event.stopPropagation();
               if (event.key === "Escape" && !busy && !sending) {
@@ -278,9 +290,9 @@ export function CalibrationWizard() {
             }}
           >
             <header>
-              <h2>Printer kalibreren</h2>
+              <h2>{tx("Printer kalibreren")}</h2>
               <button
-                aria-label="Kalibratie sluiten"
+                aria-label={tx("Kalibratie sluiten")}
                 disabled={sending || busy}
                 onClick={() => setOpen(false)}
               >
@@ -288,28 +300,30 @@ export function CalibrationWizard() {
               </button>
             </header>
             <p>
-              Stap {step + 1} van 3 ·{" "}
+              {tx("Stap")} {number(step + 1)} {tx("van 3 ·")}{" "}
               {step === 0
-                ? "Papier controleren"
+                ? tx("Papier controleren")
                 : step === 1
-                  ? "Testen & corrigeren"
-                  : "Opgeslagen"}
+                  ? tx("Testen & corrigeren")
+                  : tx("Opgeslagen")}
             </p>
             {changedDevice && (
               <p role="alert">
-                De printer is veranderd. Sluit de wizard en begin opnieuw.
+                {tx(
+                  "De printer is veranderd. Sluit de wizard en begin opnieuw.",
+                )}{" "}
               </p>
             )}
             {step === 0 && (
               <>
                 <p>
-                  Meet het label in de doorvoerrichting: breedte dwars over de
-                  printkop, lengte langs de rol. Dit verandert je ontwerpformaat
-                  niet.
+                  {tx(
+                    "Meet het label in de doorvoerrichting: breedte dwars over de printkop, lengte langs de rol. Dit verandert je ontwerpformaat niet.",
+                  )}{" "}
                 </p>
                 <div className="calibration-fields">
                   <label>
-                    Testlabel breedte (mm)
+                    {tx("Testlabel breedte (mm)")}{" "}
                     <input
                       type="number"
                       min="2"
@@ -320,7 +334,7 @@ export function CalibrationWizard() {
                     />
                   </label>
                   <label>
-                    Testlabel lengte (mm)
+                    {tx("Testlabel lengte (mm)")}{" "}
                     <input
                       type="number"
                       min="2"
@@ -333,12 +347,16 @@ export function CalibrationWizard() {
                 </div>
                 <p>
                   {state.isConnected
-                    ? `Printer: ${state.peripheral?.name} · ${dpi} dpi · ${state.settings.paperType === "gap" ? "losse labels" : "doorlopende rol"}`
-                    : "Nog niet verbonden. Je kunt de wizard bekijken; verbind eerst om te printen of op te slaan."}
+                    ? `${tx("Printer")}: ${state.peripheral?.name} · ${number(dpi)} dpi · ${state.settings.paperType === "gap" ? tx("losse labels") : tx("doorlopende rol")}`
+                    : tx(
+                        "Nog niet verbonden. Je kunt de wizard bekijken; verbind eerst om te printen of op te slaan.",
+                      )}
                 </p>
                 {!validSize && (
                   <p role="alert">
-                    Kies een geldige maat die binnen de printkopbreedte past.
+                    {tx(
+                      "Kies een geldige maat die binnen de printkopbreedte past.",
+                    )}{" "}
                   </p>
                 )}
                 <button
@@ -346,32 +364,31 @@ export function CalibrationWizard() {
                   disabled={!validSize || changedDevice || busy}
                   onClick={() => setStep(1)}
                 >
-                  Verder naar testlabel
+                  {tx("Verder naar testlabel")}{" "}
                 </button>
               </>
             )}
             {step === 1 && (
               <>
                 <p>
-                  Het kader hoort gecentreerd te staan. Positief X verschuift
-                  rechts; positief Y schuift naar het einde van de rol.
-                  Beoordeel dit in de richting waarin het label uit de printer
-                  komt.
+                  {tx(
+                    "Het kader hoort gecentreerd te staan. Positief X verschuift rechts; positief Y schuift naar het einde van de rol. Beoordeel dit in de richting waarin het label uit de printer komt.",
+                  )}{" "}
                 </p>
                 <div className="calibration-preview">
                   <canvas
                     ref={canvasRef}
-                    aria-label="Voorbeeld kalibratielabel"
+                    aria-label={tx("Voorbeeld kalibratielabel")}
                   />
                 </div>
                 {preview.error && (
                   <p role="alert" className="studio-error">
-                    {preview.error}
+                    {tx(preview.error)}
                   </p>
                 )}
                 <div className="calibration-fields">
                   <label>
-                    Correctie X (mm)
+                    {tx("Correctie X (mm)")}{" "}
                     <input
                       disabled={busy}
                       type="number"
@@ -388,7 +405,7 @@ export function CalibrationWizard() {
                     />
                   </label>
                   <label>
-                    Correctie Y (mm)
+                    {tx("Correctie Y (mm)")}{" "}
                     <input
                       disabled={busy}
                       type="number"
@@ -405,7 +422,7 @@ export function CalibrationWizard() {
                     />
                   </label>
                   <label>
-                    Testdichtheid
+                    {tx("Testdichtheid")}{" "}
                     <select
                       disabled={busy}
                       value={density}
@@ -413,16 +430,16 @@ export function CalibrationWizard() {
                         setDensity(Number(e.target.value) as 1 | 2 | 3)
                       }
                     >
-                      <option value="1">1 · licht</option>
-                      <option value="2">2 · normaal</option>
-                      <option value="3">3 · donker</option>
+                      <option value="1">{tx("1 · licht")}</option>
+                      <option value="2">{tx("2 · normaal")}</option>
+                      <option value="3">{tx("3 · donker")}</option>
                     </select>
                   </label>
                 </div>
                 <p>
-                  Correctie geldt na rotatie voor alle Bluetooth-afdrukken.
-                  PNG-export blijft je ongewijzigde ontwerp. Inhoud die door
-                  correctie zou worden afgesneden wordt geblokkeerd.
+                  {tx(
+                    "Correctie geldt na rotatie voor alle Bluetooth-afdrukken. PNG-export blijft je ongewijzigde ontwerp. Inhoud die door correctie zou worden afgesneden wordt geblokkeerd.",
+                  )}{" "}
                 </p>
                 <div className="calibration-actions">
                   <button
@@ -430,7 +447,7 @@ export function CalibrationWizard() {
                     disabled={busy}
                     onClick={() => setStep(0)}
                   >
-                    Terug
+                    {tx("Terug")}{" "}
                   </button>
                   <button
                     className="studio-secondary"
@@ -443,7 +460,7 @@ export function CalibrationWizard() {
                     }
                     onClick={() => void testPrint()}
                   >
-                    {sending ? "Verzenden…" : "Eén testlabel printen"}
+                    {sending ? tx("Verzenden…") : tx("Eén testlabel printen")}
                   </button>
                   <button
                     className="studio-primary"
@@ -456,20 +473,20 @@ export function CalibrationWizard() {
                     }
                     onClick={save}
                   >
-                    Kalibratie opslaan
+                    {tx("Kalibratie opslaan")}{" "}
                   </button>
                 </div>
               </>
             )}
             {error && (
               <p role="alert" className="studio-error">
-                {error}
+                {tx(error)}
               </p>
             )}
-            {message && <p role="status">{message}</p>}
+            {notice && <p role="status">{tx(notice)}</p>}
             {step === 2 && (
               <button className="studio-primary" onClick={() => setOpen(false)}>
-                Klaar
+                {tx("Klaar")}{" "}
               </button>
             )}
           </section>

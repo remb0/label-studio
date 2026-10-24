@@ -1,3 +1,5 @@
+import { useNumberFormatter, useT } from "../../lib/i18n.ts";
+
 import { useEffect, useState } from "react";
 import { Bluetooth, Check, ChevronLeft, Search } from "lucide-react";
 import { usePrinterStore } from "../../store/printer-store.ts";
@@ -24,6 +26,8 @@ export function PrinterModelPicker({
   className?: string;
   onReadyChange?: (ready: boolean) => void;
 }) {
+  const number = useNumberFormatter();
+  const tx = useT();
   const selected = usePrinterStore((s) => s.preferredModelId);
   const confirmed = usePrinterStore((s) => s.hasConfirmedPrinterChoice);
   const locked = usePrinterStore(
@@ -77,33 +81,36 @@ export function PrinterModelPicker({
   return (
     <section
       className={`printer-wizard ${className}`}
-      aria-label="Printermodel kiezen"
+      aria-label={tx("Printermodel kiezen")}
     >
       <header>
-        <h3>Vind jouw printer</h3>
+        <h3>{tx("Vind jouw printer")}</h3>
         <p>
-          Kijk op de onderkant of verpakking. Kies eerst het merk, vind je model
-          en controleer wat al werkt.
+          {tx(
+            "Kijk op de onderkant of verpakking. Kies eerst het merk, vind je model en controleer wat al werkt.",
+          )}{" "}
         </p>
       </header>
-      <ol className="printer-steps" aria-label="Stappen printerkeuze">
-        {["Merk", "Model vinden", "Controleren"].map((name, index) => (
-          <li key={name} aria-current={step === index ? "step" : undefined}>
-            <span>{index + 1}</span>
-            {name}
-          </li>
-        ))}
+      <ol className="printer-steps" aria-label={tx("Stappen printerkeuze")}>
+        {[tx("Merk"), tx("Model vinden"), tx("Controleren")].map(
+          (name, index) => (
+            <li key={name} aria-current={step === index ? "step" : undefined}>
+              <span>{number(index + 1)}</span>
+              {name}
+            </li>
+          ),
+        )}
       </ol>
       {step === 0 && (
         <>
-          <h4>Welk merk staat op jouw printer?</h4>
+          <h4>{tx("Welk merk staat op jouw printer?")}</h4>
           <div className="printer-brands">
             {BRANDS.map((brand) => (
               <button
                 key={brand.id}
                 type="button"
                 disabled={disabled}
-                aria-label={`Kies merk ${brand.name}`}
+                aria-label={tx("chooseBrand", { name: brand.name })}
                 onClick={() => {
                   change({ ...EMPTY_FILTERS, brand: brand.id });
                   setStep(1);
@@ -123,7 +130,7 @@ export function PrinterModelPicker({
                 </span>
                 <span className="printer-card-copy">
                   <strong>{brand.name}</strong>
-                  <small>{brand.hint}</small>
+                  <small>{tx(brand.hint)}</small>
                 </span>
               </button>
             ))}
@@ -136,7 +143,7 @@ export function PrinterModelPicker({
                 setStep(1);
               }}
             >
-              Ik weet het merk niet
+              {tx("Ik weet het merk niet")}{" "}
             </button>
             <button
               disabled={disabled}
@@ -146,7 +153,8 @@ export function PrinterModelPicker({
                 setStep(1);
               }}
             >
-              Alles tonen ({filterPrinters(EMPTY_FILTERS).length})
+              {tx("Alles tonen (")}
+              {number(filterPrinters(EMPTY_FILTERS).length)})
             </button>
           </div>
           <button
@@ -157,10 +165,11 @@ export function PrinterModelPicker({
           >
             <Bluetooth size={20} />
             <span>
-              <strong>Automatisch herkennen</strong>
+              <strong>{tx("Automatisch herkennen")}</strong>
               <small>
-                Voor ondersteunde BLE-printers. Je kiest zelf het apparaat in
-                het browservenster.
+                {tx(
+                  "Voor ondersteunde BLE-printers. Je kiest zelf het apparaat in het browservenster.",
+                )}{" "}
               </small>
             </span>
           </button>
@@ -174,31 +183,33 @@ export function PrinterModelPicker({
             onClick={() => setStep(0)}
           >
             <ChevronLeft size={16} />
-            Terug naar merk
+            {tx("Terug naar merk")}{" "}
           </button>
-          <h4>Zoek het modelnummer of filter op eigenschappen</h4>
+          <h4>{tx("Zoek het modelnummer of filter op eigenschappen")}</h4>
           <label className="printer-search">
             <Search size={18} />
-            <span className="sr-only">Zoek printermodel of Bluetoothnaam</span>
+            <span className="sr-only">
+              {tx("Zoek printermodel of Bluetoothnaam")}
+            </span>
             <input
               disabled={disabled}
               value={filters.query}
-              placeholder="Bijvoorbeeld D11s, 450 Turbo, P15 of LP90"
+              placeholder={tx("Bijvoorbeeld D11s, 450 Turbo, P15 of LP90")}
               onChange={(e) => change({ query: e.target.value })}
             />
           </label>
           <div className="printer-filters">
             <label>
-              Merk
+              {tx("Merk")}{" "}
               <select
-                aria-label="Merk"
+                aria-label={tx("Merk")}
                 disabled={disabled}
                 value={filters.brand}
                 onChange={(e) =>
                   change({ brand: e.target.value as PrinterFilters["brand"] })
                 }
               >
-                <option value="any">Alle merken</option>
+                <option value="any">{tx("Alle merken")}</option>
                 {BRANDS.map((brand) => (
                   <option key={brand.id} value={brand.id}>
                     {brand.name}
@@ -207,94 +218,110 @@ export function PrinterModelPicker({
               </select>
             </label>
             <label>
-              Verbinding
+              {tx("Verbinding")}{" "}
               <select
                 disabled={disabled}
                 value={filters.connection}
-                aria-label="Verbinding"
+                aria-label={tx("Verbinding")}
                 onChange={(e) =>
                   change({
                     connection: e.target.value as PrinterFilters["connection"],
                   })
                 }
               >
-                <option value="any">Maakt niet uit</option>
+                <option value="any">{tx("Maakt niet uit")}</option>
                 {Object.entries(CONNECTION_LABELS).map(([key, label]) => (
                   <option key={key} value={key}>
-                    {label}
+                    {tx(label)}
                   </option>
                 ))}
               </select>
             </label>
             <label>
-              Resolutie
+              {tx("Resolutie")}{" "}
               <select
                 disabled={disabled}
                 value={filters.dpi}
-                aria-label="Resolutie"
+                aria-label={tx("Resolutie")}
                 onChange={(e) =>
                   change({ dpi: e.target.value as PrinterFilters["dpi"] })
                 }
               >
-                <option value="any">Weet ik niet</option>
+                <option value="any">{tx("Weet ik niet")}</option>
                 <option value="203">203 dpi</option>
                 <option value="300">300 dpi</option>
               </select>
             </label>
             <label>
-              Papier
+              {tx("Papier")}{" "}
               <select
                 disabled={disabled}
                 value={filters.paper}
-                aria-label="Papier"
+                aria-label={tx("Papier")}
                 onChange={(e) =>
                   change({ paper: e.target.value as PrinterFilters["paper"] })
                 }
               >
-                <option value="any">Alle typen</option>
-                <option value="gap">Losse labels</option>
-                <option value="continuous">Doorlopende rol</option>
+                <option value="any">{tx("Alle typen")}</option>
+                <option value="gap">{tx("Losse labels")}</option>
+                <option value="continuous">{tx("Doorlopende rol")}</option>
               </select>
             </label>
             <label>
-              Labelmaat
+              {tx("Labelmaat")}{" "}
               <select
                 disabled={disabled}
                 value={filters.size}
-                aria-label="Labelmaat"
+                aria-label={tx("Labelmaat")}
                 onChange={(e) =>
                   change({ size: e.target.value as PrinterFilters["size"] })
                 }
               >
-                <option value="any">Alle maten</option>
+                <option value="any">{tx("Alle maten")}</option>
                 <option value="small">
-                  Kleine labels · korte zijde ≤ 15 mm
+                  {tx("Kleine labels · korte zijde ≤ 15 mm")}{" "}
                 </option>
                 <option value="shipping">
-                  Verzendlabels · korte zijde ≥ 100 mm
+                  {tx("Verzendlabels · korte zijde ≥ 100 mm")}{" "}
                 </option>
               </select>
             </label>
           </div>
           <p className="printer-count" role="status">
             {results.length
-              ? `${visible.length} van ${results.length} passende modellen`
-              : "Geen passend model gevonden. Probeer minder filters of meld jouw printer aan onderaan de printerpagina."}
+              ? tx("matchingModels", {
+                  visible: visible.length,
+                  total: results.length,
+                })
+              : tx(
+                  "Geen passend model gevonden. Probeer minder filters of meld jouw printer aan onderaan de printerpagina.",
+                )}
           </p>
           <div className="printer-results">
             {visible.map((model) => (
               <button
                 key={model.id}
                 data-printer-result={model.id}
-                aria-label={`${model.name} ${model.subtitle}`}
+                aria-label={`${model.id === "action-pocket-300" ? tx(model.name) : model.name} ${tx(model.subtitle)}`}
                 disabled={disabled}
                 aria-pressed={selected === model.id}
                 onClick={() => propose(model.id)}
               >
-                <PrinterModelImage modelId={model.id} name={model.name} />
+                <PrinterModelImage
+                  modelId={model.id}
+                  name={
+                    model.id === "action-pocket-300"
+                      ? tx(model.name)
+                      : model.name
+                  }
+                />
                 <span className="printer-card-copy">
-                  <strong>{model.name}</strong>
-                  <small>{model.subtitle}</small>
+                  <strong>
+                    {model.id === "action-pocket-300"
+                      ? tx(model.name)
+                      : model.name}
+                  </strong>
+                  <small>{tx(model.subtitle)}</small>
                   <span
                     className={
                       model.designOnly
@@ -303,22 +330,22 @@ export function PrinterModelPicker({
                     }
                   >
                     {model.designOnly
-                      ? "Alleen ontwerpen"
-                      : "BLE-printprotocol aanwezig"}
+                      ? tx("Alleen ontwerpen")
+                      : tx("BLE-printprotocol aanwezig")}
                   </span>
                   <small>
                     {model.specs.dpi
                       ? `${model.specs.dpi} dpi`
-                      : "Resolutie niet bevestigd"}{" "}
+                      : tx("Resolutie niet bevestigd")}{" "}
                     ·{" "}
                     {model.connections
-                      .map((connection) => CONNECTION_LABELS[connection])
+                      .map((connection) => tx(CONNECTION_LABELS[connection]))
                       .join(" / ")}
                   </small>
                   {(model.specs.evidence === "conflicting" ||
                     model.specs.evidence === "unverified") && (
                     <small className="printer-limited">
-                      Firmware / specificaties controleren
+                      {tx("Firmware / specificaties controleren")}{" "}
                     </small>
                   )}
                 </span>
@@ -331,7 +358,9 @@ export function PrinterModelPicker({
               className="printer-more"
               onClick={() => setShowAll(!showAll)}
             >
-              {showAll ? "Minder tonen" : `Alles tonen (${results.length})`}
+              {showAll
+                ? tx("Minder tonen")
+                : tx("showAllModels", { count: results.length })}
             </button>
           )}
           <button
@@ -339,38 +368,44 @@ export function PrinterModelPicker({
             disabled={disabled}
             onClick={() => change({ ...EMPTY_FILTERS })}
           >
-            Filters wissen
+            {tx("Filters wissen")}{" "}
           </button>
         </>
       )}
       {step === 2 && candidate !== undefined && (
         <>
-          <h4>Controleer jouw keuze</h4>
+          <h4>{tx("Controleer jouw keuze")}</h4>
           <div className="printer-review">
-            <strong>{chosen?.name ?? "Automatisch herkennen"}</strong>
+            <strong>{chosen?.name ?? tx("Automatisch herkennen")}</strong>
             {chosen ? (
               <>
                 <p>
-                  Ontwerppreset: {chosen.defaults.recommendedSize.widthMm} ×{" "}
-                  {chosen.defaults.recommendedSize.heightMm} mm ·{" "}
-                  {chosen.defaults.dpi} dpi · dichtheid{" "}
+                  {tx("Ontwerppreset:")}{" "}
+                  {number(chosen.defaults.recommendedSize.widthMm)} ×{" "}
+                  {number(chosen.defaults.recommendedSize.heightMm)} mm ·{" "}
+                  {number(chosen.defaults.dpi)} {tx("dpi · dichtheid")}{" "}
                   {chosen.defaults.density}.
                 </p>
                 <p className={chosen.designOnly ? "printer-limited" : ""}>
                   {chosen.designOnly
-                    ? "Alleen ontwerpen: direct printen naar dit model is nog niet geïmplementeerd. Je kunt labels ontwerpen en als PNG exporteren."
-                    : "Voor dit model is een BLE-printprotocol aanwezig. De browser controleert de echte apparaatnaam bij verbinden. Fysieke afdrukkwaliteit is nog niet gecertificeerd."}
+                    ? tx(
+                        "Alleen ontwerpen: direct printen naar dit model is nog niet geïmplementeerd. Je kunt labels ontwerpen en als PNG exporteren.",
+                      )
+                    : tx(
+                        "Voor dit model is een BLE-printprotocol aanwezig. De browser controleert de echte apparaatnaam bij verbinden. Fysieke afdrukkwaliteit is nog niet gecertificeerd.",
+                      )}
                 </p>
                 {getPrinterImage(chosen.id) && (
                   <p className="printer-photo-source">
-                    Afbeelding gekoppeld aan de productbron en modelreferentie.
-                    Uitvoering of kleur kan verschillen.{" "}
+                    {tx(
+                      "Afbeelding gekoppeld aan de productbron en modelreferentie. Uitvoering of kleur kan verschillen.",
+                    )}{" "}
                     <a
                       href={getPrinterImage(chosen.id)!.source}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Bekijk de bron
+                      {tx("Bekijk de bron")}{" "}
                     </a>
                   </p>
                 )}
@@ -378,22 +413,23 @@ export function PrinterModelPicker({
               </>
             ) : (
               <p>
-                De browser laat je een apparaat kiezen. Alleen een herkend en
-                ondersteund BLE-model krijgt printerinstellingen; onbekende
-                printers worden niet geforceerd gekoppeld.
+                {tx(
+                  "De browser laat je een apparaat kiezen. Alleen een herkend en ondersteund BLE-model krijgt printerinstellingen; onbekende printers worden niet geforceerd gekoppeld.",
+                )}{" "}
               </p>
             )}
             <p>
-              Je ontwerp en labelmaat blijven behouden. Het aanbevolen formaat
-              kun je later kiezen bij Instellingen.
+              {tx(
+                "Je ontwerp en labelmaat blijven behouden. Het aanbevolen formaat kun je later kiezen bij Instellingen.",
+              )}{" "}
             </p>
             {applied ? (
               <p className="printer-applied" role="status">
                 <Check size={16} />
-                Printerkeuze bewaard
+                {tx("Printerkeuze bewaard")}{" "}
                 {chosen?.designOnly
-                  ? " · geen directe printroute"
-                  : " · klaar voor de Bluetooth-kiezer"}
+                  ? tx(" · geen directe printroute")
+                  : tx(" · klaar voor de Bluetooth-kiezer")}
               </p>
             ) : (
               <button
@@ -401,24 +437,25 @@ export function PrinterModelPicker({
                 disabled={disabled}
                 onClick={apply}
               >
-                Gebruik dit printerprofiel
+                {tx("Gebruik dit printerprofiel")}{" "}
               </button>
             )}
           </div>
           <div className="printer-actions">
             <button disabled={disabled} onClick={() => setStep(1)}>
-              Terug naar modellen
+              {tx("Terug naar modellen")}{" "}
             </button>
             <button disabled={disabled} onClick={() => setStep(0)}>
-              Andere printer kiezen
+              {tx("Andere printer kiezen")}{" "}
             </button>
           </div>
         </>
       )}
       {disabled && (
         <p className="printer-limited">
-          Rond de printopdracht af en verbreek de verbinding om een ander
-          printerprofiel te kiezen.
+          {tx(
+            "Rond de printopdracht af en verbreek de verbinding om een ander printerprofiel te kiezen.",
+          )}{" "}
         </p>
       )}
     </section>

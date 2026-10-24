@@ -1,8 +1,10 @@
+import { useT } from "../../lib/i18n.ts";
 import { useRef, useState } from "react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 
 /** Editable zoom percentage; commit on Enter/blur and restore on Escape. */
 export function ZoomInput({ compact = false }: { compact?: boolean }) {
+  const tx = useT();
   const zoom = useEditorV2Store((s) => s.zoom);
   const setZoom = useEditorV2Store((s) => s.setZoom);
   const [draft, setDraft] = useState(String(Math.round(zoom * 100)));
@@ -26,8 +28,8 @@ export function ZoomInput({ compact = false }: { compact?: boolean }) {
       className={compact ? "flex items-center px-1" : "flex items-center px-1"}
     >
       <input
-        aria-label="Zoompercentage"
-        title="Typ een zoompercentage en druk op Enter"
+        aria-label={tx("Zoompercentage")}
+        title={tx("Typ een zoompercentage en druk op Enter")}
         type="text"
         inputMode="decimal"
         value={editing ? draft : String(Math.round(zoom * 100))}

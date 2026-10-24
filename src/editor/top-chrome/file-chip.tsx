@@ -1,3 +1,4 @@
+import { useT } from "../../lib/i18n.ts";
 import { useState, useEffect, useRef } from "react";
 import {
   ChevronDown,
@@ -12,6 +13,7 @@ import { useEditorV2Store } from "../../store/editor-store.ts";
 import { downloadLabelAsJson } from "../../lib/library.ts";
 
 export function FileChip() {
+  const tx = useT();
   const currentLabelName = useEditorV2Store((s) => s.currentLabelName);
   const currentLabelDirty = useEditorV2Store(
     (s) => s.currentLabelDirty || s.currentLabelId === null,
@@ -40,7 +42,7 @@ export function FileChip() {
   }, [open]);
 
   const commitRename = () => {
-    const v = name.trim() || "Nieuw label";
+    const v = name.trim() || tx("Nieuw label");
     setRenaming(false);
     renameCurrent(v);
   };
@@ -97,12 +99,12 @@ export function FileChip() {
         ) : (
           <span className="text-ui-base text-ink-100 font-medium flex min-w-0 items-center gap-1">
             <span className="truncate">
-              {currentLabelName || "Nieuw label"}
+              {currentLabelName || tx("Nieuw label")}
             </span>
             {currentLabelDirty && (
               <span
                 className="w-1.5 h-1.5 rounded-full bg-amber-400"
-                title="Unsaved changes"
+                title={tx("Unsaved changes")}
               />
             )}
             <ChevronDown size={10} className="text-ink-400" />
@@ -120,7 +122,7 @@ export function FileChip() {
               setRenaming(true);
             }}
           >
-            Hernoemen
+            {tx("Hernoemen")}{" "}
           </MenuItem>
           <MenuItem
             icon={Save}
@@ -130,7 +132,7 @@ export function FileChip() {
               saveLabel();
             }}
           >
-            Opslaan
+            {tx("Opslaan")}{" "}
           </MenuItem>
           <MenuItem
             icon={Copy}
@@ -138,16 +140,16 @@ export function FileChip() {
             onClick={() => {
               setOpen(false);
               const n = prompt(
-                "Label opslaan als:",
-                `${currentLabelName} copy`,
+                tx("Label opslaan als:"),
+                tx("labelCopy", { name: currentLabelName }),
               );
               if (n) saveLabelAs(n);
             }}
           >
-            Opslaan als...
+            {tx("Opslaan als...")}{" "}
           </MenuItem>
           <MenuItem icon={Download} onClick={handleDownload}>
-            JSON downloaden
+            {tx("JSON downloaden")}{" "}
           </MenuItem>
           <MenuItem
             icon={Download}
@@ -156,7 +158,7 @@ export function FileChip() {
               window.dispatchEvent(new CustomEvent("label-studio:export-png"));
             }}
           >
-            PNG downloaden
+            {tx("PNG downloaden")}{" "}
           </MenuItem>
           <div className="my-1 border-t border-white/5" />
           <MenuItem
@@ -166,7 +168,7 @@ export function FileChip() {
               window.dispatchEvent(new CustomEvent("thermoprint:open-library"));
             }}
           >
-            Open uit sjablonen...
+            {tx("Open uit sjablonen...")}{" "}
           </MenuItem>
           {currentLabelId && (
             <>
@@ -175,13 +177,17 @@ export function FileChip() {
                 icon={Trash2}
                 onClick={() => {
                   setOpen(false);
-                  if (confirm(`Delete "${currentLabelName}"?`)) {
+                  if (
+                    confirm(
+                      tx("deleteLabelConfirm", { name: currentLabelName }),
+                    )
+                  ) {
                     deleteLabel(currentLabelId);
                   }
                 }}
                 danger
               >
-                Label verwijderen
+                {tx("Label verwijderen")}{" "}
               </MenuItem>
             </>
           )}
@@ -192,13 +198,13 @@ export function FileChip() {
                 icon={Trash2}
                 onClick={() => {
                   setOpen(false);
-                  if (confirm("Discard this unsaved label?")) {
+                  if (confirm(tx("Discard this unsaved label?"))) {
                     newLabel();
                   }
                 }}
                 danger
               >
-                Label verwerpen
+                {tx("Label verwerpen")}{" "}
               </MenuItem>
             </>
           )}

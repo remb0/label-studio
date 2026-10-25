@@ -129,7 +129,7 @@ const SPECS: Record<string, PrinterSpecs> = {
     evidence: "project",
     notes: [
       "AiYin D11s; Action-artikel 3212141, standaard 14 × 30 mm. De GitHub-referentie koppelt dit specifieke artikel aan het model.",
-      "BLE- en Classic-hardware gedocumenteerd bij de bron; de AiYin-printroute is niet ingebouwd in Label Studio. USB-C is hier alleen als laden onderbouwd.",
+      "Het hardwaregeverifieerde AiYin-protocol is ingebouwd voor de Bluetoothnamen FICHERO_5836 en D11s_. Fysieke validatie van deze Label Studio-implementatie blijft vereist. USB-C is hier alleen als laden onderbouwd.",
     ],
     sources: [
       FICHERO_SOURCE,

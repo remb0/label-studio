@@ -13,8 +13,9 @@ describe("exact model name boundaries", () => {
       ["M60_TEST", "m60"],
       ["X2_TEST", "m60"],
       ["LuckP_D1S_TEST", "luckp-d1s"],
-      ["FICHERO_5836", "luckp-d1s"],
-      ["FICHERO_5836_BLE", "luckp-d1s"],
+      ["FICHERO_5836", "fichero-d11s"],
+      ["FICHERO_5836_BLE", "fichero-d11s"],
+      ["D11s_TEST", "fichero-d11s"],
     ]) {
       expect(findDeviceByName(name)?.modelId).toBe(id);
     }
@@ -27,7 +28,6 @@ describe("exact model name boundaries", () => {
       "P150_TEST",
       "P120_TEST",
       "X20_TEST",
-      "D11s_TEST",
       "D110_TEST",
       "B21_TEST",
       "D30_TEST",

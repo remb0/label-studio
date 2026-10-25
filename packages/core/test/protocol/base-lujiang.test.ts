@@ -43,7 +43,7 @@ describe("LuckP D1S legacy compatibility", () => {
   test("recognizes the real BLE name and keeps upstream models", () => {
     expect(findDeviceByName("LuckP_D1S_F828_BLE")?.printWidth).toBe(384);
     expect(findDeviceByName("Fichero D1S")?.protocolId).toBe("base-lujiang");
-    expect(findDeviceByName("FICHERO_5836")?.protocolId).toBe("base-lujiang");
+    expect(findDeviceByName("FICHERO_5836")?.protocolId).toBe("aiyin-d11s");
     expect(findDeviceByName("Fichero D11s")).toBeNull();
     expect(findDeviceByName("Fichero 3561")).toBeNull();
     expect(findDeviceByName("P12_123")?.protocolId).toBe("l11");

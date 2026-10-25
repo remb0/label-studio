@@ -12,7 +12,7 @@ export const BRANDS = [
     id: "action",
     name: "Action / Fichero",
     logo: "/brands/action.svg",
-    hint: "D11s, mini pocket en LuckP/Fichero",
+    hint: "D11s / Fichero 5836 en mini pocket",
   },
   {
     id: "dymo",
@@ -30,7 +30,7 @@ export const BRANDS = [
     id: "luckp",
     name: "LuckP",
     logo: null,
-    hint: "D1S / DP D1 / Fichero 3561 / 5836",
+    hint: "D1S / DP D1 / Fichero 3561",
   },
   {
     id: "niimbot",
@@ -98,12 +98,14 @@ export function printerMetadata(id: string) {
   const connections = specs.connections;
   const aliases =
     id === "luckp-d1s"
-      ? "DP D1 Fichero 3561 Fichero 5836 FICHERO_5836 LuckP_D1S"
-      : id === "p12"
-        ? "P11 LP90"
-        : id === "m60"
-          ? "X2"
-          : "";
+      ? "DP D1 Fichero 3561 LuckP_D1S"
+      : id === "fichero-d11s"
+        ? "Fichero 5836 FICHERO_5836 FICHERO_5836_BLE D11s"
+        : id === "p12"
+          ? "P11 LP90"
+          : id === "m60"
+            ? "X2"
+            : "";
   const config = getModelLabelConfig(id)!;
   return {
     ...model,

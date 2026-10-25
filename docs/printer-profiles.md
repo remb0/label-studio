@@ -10,8 +10,9 @@ geen automatische import van externe printerdrivers.
   onderbouwing: productdocumentatie, communitybron, tegenstrijdig of onbekend.
 - Ontwerppresets bepalen canvasmaten en export. Die waarden zijn geen bewijs van
   de fysieke printkop, het papier dat geladen is of browsercompatibiliteit.
-- Alleen de bestaande geregistreerde BLE-drivers kunnen verbinden. De zes nieuwe
-  catalogusmodellen en Fichero D11s blijven alleen ontwerpen / PNG-export.
+- Alleen geregistreerde BLE-drivers kunnen verbinden. De zes nieuwe
+  catalogusmodellen blijven alleen ontwerpen / PNG-export. Fichero D11s heeft
+  nu een afzonderlijk AiYin-profiel voor `FICHERO_5836` en `D11s_`.
 - Studio-certificering blijft leeg: geen van deze wijzigingen is een eigen
   fysieke proefafdruk. Externe claims blijven externe claims.
 
@@ -37,6 +38,9 @@ bewust 0: er is geen uitvoerbare driver aan gekoppeld.
    203 dpi, BLE en Classic SPP. De bron verwijst expliciet naar Action-artikel
    3212141; daarmee is de bijbehorende verpakking-/apparaatfoto nu onderbouwd.
    Het is niet de 384-dot LuckP D1S. USB-C-laden bewijst geen USB-printverbinding.
+   De driver gebruikt daarom 12 rasterbytes per rij en de AiYin-specifieke
+   enable/stopcommando's `10 FF FE 01` en `10 FF FE 45`; de Lujiang-commando's
+   accepteert dit apparaat zonder afdruk.
 2. DYMO 550 Turbo en 5XL hebben USB/Ethernet. Ethernet/LAN en wifi zijn nu aparte
    filters; LAN wordt niet langer als wifi gepresenteerd. DYMO Duo's tweede
    D1-tapemechanisme is niet hetzelfde als het LW-rolprofiel.
@@ -79,3 +83,7 @@ gescheiden raster-/framingtests, veilige detectie, browsertoestemmingen en een
 fysieke proefafdruk op het exacte model/firmware. Geen aliassen blind kopiëren.
 Bluetooth Classic en wifi blijven aparte nog niet ingebouwde transportlagen;
 ESPHome blijft TODO voor later.
+
+Het AiYin-profiel voor Fichero D11s is op de vastgezette MIT-bron gebaseerd en
+automatisch getest. Een echte proefafdruk met `FICHERO_5836_BLE` blijft de
+acceptatiecheck voor deze TypeScript/Web Bluetooth-implementatie.

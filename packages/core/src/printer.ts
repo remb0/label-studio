@@ -320,7 +320,7 @@ export class Printer {
         throw new Error("Bluetooth connection is disconnected");
       const chunk = data.slice(offset, offset + packetSize);
       try {
-        await this.tx.write(chunk, false);
+        await this.tx.write(chunk, this.profile.writeWithoutResponse ?? false);
       } catch (error) {
         if (packetSize <= 20) throw error;
         packetSize = 20;
@@ -328,6 +328,9 @@ export class Printer {
       }
       offset += chunk.length;
       onProgress?.(offset);
+      const delayMs = this.profile.flowControl.packetDelayMs ?? 0;
+      if (delayMs > 0 && offset < data.length)
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
 

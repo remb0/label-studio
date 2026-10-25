@@ -2,6 +2,7 @@ import type { PrinterProtocol } from "./types.js";
 import { L11Protocol } from "./l11/protocol.js";
 import { X2Protocol } from "./x2/protocol.js";
 import { BaseLujiangProtocol } from "./base-lujiang/protocol.js";
+import { AiYinD11sProtocol } from "./aiyin-d11s/protocol.js";
 import { ThermoprintError, ErrorCode } from "../errors.js";
 
 type ProtocolFactory = () => PrinterProtocol;
@@ -31,3 +32,4 @@ export function getRegisteredProtocolIds(): string[] {
 registerProtocol("l11", () => new L11Protocol());
 registerProtocol("x2", () => new X2Protocol());
 registerProtocol("base-lujiang", () => new BaseLujiangProtocol());
+registerProtocol("aiyin-d11s", () => new AiYinD11sProtocol());

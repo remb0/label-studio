@@ -16,6 +16,7 @@ describe("visual printer choices", () => {
   });
   test("offers only registered models with supported defaults", () => {
     expect(PRINTER_MODELS.map((model) => model.id)).toEqual([
+      "fichero-d11s",
       "luckp-d1s",
       "p12",
       "p15",
@@ -29,6 +30,7 @@ describe("visual printer choices", () => {
       expect(config.density).toBe(2);
     }
     expect(getPrinterModelDefaults("luckp-d1s")?.printWidth).toBe(384);
+    expect(getPrinterModelDefaults("fichero-d11s")?.printWidth).toBe(96);
     expect(getPrinterModelDefaults("p15")?.supportedPaperTypes).toEqual([
       "gap",
     ]);
@@ -46,7 +48,7 @@ describe("visual printer choices", () => {
         { name: "FICHERO_5836", id: "device-5836", rssi: 0 },
         null,
       ).modelId,
-    ).toBe("luckp-d1s");
+    ).toBe("fichero-d11s");
     expect(
       validatePrinterModel({ name: "M60_123", id: "device", rssi: 0 }, "m60")
         .modelId,

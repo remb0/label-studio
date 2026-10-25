@@ -42,6 +42,12 @@ describe("visual printer choices", () => {
       ).modelId,
     ).toBe("luckp-d1s");
     expect(
+      validatePrinterModel(
+        { name: "FICHERO_5836", id: "device-5836", rssi: 0 },
+        null,
+      ).modelId,
+    ).toBe("luckp-d1s");
+    expect(
       validatePrinterModel({ name: "M60_123", id: "device", rssi: 0 }, "m60")
         .modelId,
     ).toBe("m60");

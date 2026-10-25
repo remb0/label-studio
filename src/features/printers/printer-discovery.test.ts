@@ -18,6 +18,11 @@ describe("printer discovery", () => {
       filterPrinters({ ...EMPTY_FILTERS, query: "LuckP_D1S" }).map((m) => m.id),
     ).toEqual(["luckp-d1s"]);
     expect(
+      filterPrinters({ ...EMPTY_FILTERS, query: "FICHERO_5836" }).map(
+        (m) => m.id,
+      ),
+    ).toEqual(["luckp-d1s"]);
+    expect(
       filterPrinters({ ...EMPTY_FILTERS, query: "450 Turbo" }).map((m) => m.id),
     ).toEqual(["dymo-450-turbo", "dymo-450-twin"]);
   });

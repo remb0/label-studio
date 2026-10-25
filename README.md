@@ -22,7 +22,7 @@ Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**, bereikbaar via d
 - Visuele formaatkaarten met later aanpasbare mm/px-maten, acht kant-en-klare startsjablonen en geïllustreerde printerkeuze met passende standaardinstellingen.
 - Automatische lokale concepten, expliciet conceptherstel, favorieten en tekst die optioneel in het tekstvak past.
 - Kalibratiewizard met testlabel, dichtheidskeuze en veilige uitlijncorrectie per fysieke printer.
-- Web Bluetooth en printerherkenning voor LuckP D1S, plus behouden Thermoprint-profielen.
+- Web Bluetooth en printerherkenning voor LuckP D1S en de exacte Bluetoothnaam `FICHERO_5836`, plus behouden Thermoprint-profielen.
 - Uitgebreide labelinstellingen, vormmaskers, geprinte scheidingslijnen en lichte/donkere thema's. Een scheidingslijn verdeelt het ontwerp visueel; hij start geen afzonderlijke printjobs.
 - Lokaal of in Docker draaien; geen database nodig.
 
@@ -73,11 +73,11 @@ Wifi/LAN kan vanuit een browser met een geschikte HTTP(S)- of WebSocket-printer-
 
 Klik op **Verbinden** en selecteer de printer in de browserkiezer. De Bluetooth-adapter van je laptop of telefoon maakt verbinding; de Dockerhost heeft daarvoor geen Bluetooth nodig.
 
-| Printerfamilie                             | Printkop                                                 | Status                                                                      |
-| ------------------------------------------ | -------------------------------------------------------- | --------------------------------------------------------------------------- |
-| LuckP D1S / DP D1 / Fichero 3561           | 384 dots, 203 dpi, circa 48 mm printbaar op 52 mm papier | Legacyprotocol overgenomen en automatisch getest; fysieke validatie vereist |
-| Marklife/Pristar-profielen uit Thermoprint | Profielafhankelijk                                       | Upstreamondersteuning behouden; niet op eigen hardware geverifieerd         |
-| Fichero D11s met 96-dot-printkop           | Ander protocol/profiel                                   | Niet als 384-dot LuckP behandelen; geen gevalideerde ondersteuning claimen  |
+| Printerfamilie                                    | Printkop                                                 | Status                                                                                                                                 |
+| ------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| LuckP D1S / DP D1 / Fichero 3561 / `FICHERO_5836` | 384 dots, 203 dpi, circa 48 mm printbaar op 52 mm papier | Legacyprotocol overgenomen en automatisch getest; `FICHERO_5836` wordt nu in de Bluetooth-kiezer toegelaten, fysieke validatie vereist |
+| Marklife/Pristar-profielen uit Thermoprint        | Profielafhankelijk                                       | Upstreamondersteuning behouden; niet op eigen hardware geverifieerd                                                                    |
+| Fichero D11s met 96-dot-printkop                  | Ander protocol/profiel                                   | Niet als 384-dot LuckP behandelen; geen gevalideerde ondersteuning claimen                                                             |
 
 De app bewaart printervoorkeuren per eerder toegestaan browserapparaat. De browser blijft beslissen over toestemming en opnieuw verbinden. Onbekende modellen worden niet met een willekeurig profiel aangestuurd.
 

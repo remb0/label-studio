@@ -30,7 +30,7 @@ export const BRANDS = [
     id: "luckp",
     name: "LuckP",
     logo: null,
-    hint: "D1S / DP D1 / Fichero 3561",
+    hint: "D1S / DP D1 / Fichero 3561 / 5836",
   },
   {
     id: "niimbot",
@@ -98,7 +98,7 @@ export function printerMetadata(id: string) {
   const connections = specs.connections;
   const aliases =
     id === "luckp-d1s"
-      ? "DP D1 Fichero 3561 LuckP_D1S"
+      ? "DP D1 Fichero 3561 Fichero 5836 FICHERO_5836 LuckP_D1S"
       : id === "p12"
         ? "P11 LP90"
         : id === "m60"

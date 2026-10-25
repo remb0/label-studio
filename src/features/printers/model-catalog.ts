@@ -9,8 +9,8 @@ import { RESEARCHED_MODELS } from "./researched-models.ts";
 export const PRINTER_MODELS = [
   {
     id: "luckp-d1s",
-    name: "LuckP D1S",
-    subtitle: "Fichero / LuckP · brede labels",
+    name: "LuckP D1S / Fichero 5836",
+    subtitle: "Fichero 3561 / 5836 / LuckP · brede labels",
     silhouette: "wide",
   },
   {

@@ -18,7 +18,7 @@ describe("model-specific format choices", () => {
     const fichero = getFormatPresets("fichero-d11s");
     expect(fichero).toHaveLength(1);
     expect(fichero[0]).toMatchObject({
-      widthMm: 14,
+      widthMm: 12,
       heightMm: 30,
       paperType: "gap",
     });

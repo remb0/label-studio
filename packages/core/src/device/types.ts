@@ -26,6 +26,8 @@ export interface DeviceProfile {
   dpi?: number;
   /** Some protocols cannot acknowledge physical completion. */
   completionMode?: "acknowledged" | "transmitted";
+  /** Use unacknowledged GATT writes for paced legacy UART transfers. */
+  writeWithoutResponse?: boolean;
   characteristics: { tx: string; rx: string; cx?: string };
   packetSize?: number;
   flowControl: Partial<FlowControlOptions>;

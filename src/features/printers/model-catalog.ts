@@ -8,9 +8,15 @@ import { RESEARCHED_MODELS } from "./researched-models.ts";
 
 export const PRINTER_MODELS = [
   {
+    id: "fichero-d11s",
+    name: "Fichero D11s / 5836",
+    subtitle: "14 × 30 mm papier · 12 mm printbaar",
+    silhouette: "slim",
+  },
+  {
     id: "luckp-d1s",
-    name: "LuckP D1S / Fichero 5836",
-    subtitle: "Fichero 3561 / 5836 / LuckP · brede labels",
+    name: "LuckP D1S",
+    subtitle: "Fichero 3561 / LuckP · brede labels",
     silhouette: "wide",
   },
   {
@@ -84,12 +90,6 @@ export const DESIGN_ONLY_MODELS = [
     silhouette: "wide",
   },
   {
-    id: "fichero-d11s",
-    name: "Fichero D11s (Action)",
-    subtitle: "14 × 30 mm · alleen ontwerpen",
-    silhouette: "slim",
-  },
-  {
     id: "action-pocket-300",
     name: "Action pocket printer (model onbekend)",
     subtitle: "300-dpi ontwerppreset · exact apparaat niet bevestigd",
@@ -122,16 +122,6 @@ export function getDesignModelConfig(id: string) {
       defaultSize: researched.sizes[0],
       printWidth: 0,
       dpi: researched.dpi,
-    };
-  if (id === "fichero-d11s")
-    return {
-      supportedPaperTypes: ["gap"] as ("gap" | "continuous")[],
-      defaultPaperType: "gap" as const,
-      gapSizes: [{ widthMm: 14, heightMm: 30 }],
-      continuousSizes: [],
-      defaultSize: { widthMm: 14, heightMm: 30 },
-      printWidth: 96,
-      dpi: 203,
     };
   if (id === "action-pocket-300")
     return {

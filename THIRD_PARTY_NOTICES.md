@@ -47,12 +47,14 @@ the repository's MIT license does not relicense those assets. Exact original
 URLs and model-identity evidence are recorded alongside each image in
 `src/features/printers/printer-images.ts` and `docs/printer-images.md`.
 
-The new hardware metadata uses factual references from NiimBlue (MIT), OpenTLP
-(MIT), fichero-printer (MIT), and the cited manufacturer/product pages. Pinned
-revisions and uncertainties are listed in `docs/printer-profiles.md` and
-`src/features/printers/printer-specs.ts`. No new external driver implementation
-was copied or enabled. Artwork licenses of those projects were not assumed to
-cover photographs from elsewhere.
+The hardware metadata uses factual references from NiimBlue (MIT), OpenTLP
+(MIT), fichero-printer (MIT), and the cited manufacturer/product pages. The
+Fichero D11s AiYin implementation is derived from fichero-printer revision
+`f945a87c43240c0c8689d1cce53772f8a20073a3`; its MIT notice is acknowledged
+above. Pinned revisions and uncertainties are listed in
+`docs/printer-profiles.md` and `src/features/printers/printer-specs.ts`.
+Artwork licenses of those projects were not assumed to cover photographs from
+elsewhere.
 
 - `dymo-550.jpg`, `dymo-550-turbo.jpg`, `dymo-5xl.jpg`, `dymo-450-twin.jpg`,
   `dymo-450-duo.jpg`: the respective model columns on [DYMO's official comparison](https://www.dymo.com/labelwriter.html), served by Newell Brands' image CDN at 320px with JPEG formatting. No model substitutions.

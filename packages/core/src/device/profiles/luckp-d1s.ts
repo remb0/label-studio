@@ -21,10 +21,8 @@ export const luckpD1sProfile: DeviceProfile = {
     "DP-D1",
     "Fichero D1",
     "Fichero_D1",
-    "FICHERO_5836",
   ],
-  namePattern:
-    "^(?:(?:luckp|dp)[_-]d1s?|fichero[ _-]d1s?|fichero_5836)(?:[_ -]|$)",
+  namePattern: "^(?:(?:luckp|dp)[_-]d1s?|fichero[ _-]d1s?)(?:[_ -]|$)",
   labelConfig: {
     supportedPaperTypes: ["gap", "continuous"],
     defaultPaperType: "gap",

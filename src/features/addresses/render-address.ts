@@ -1,5 +1,32 @@
 import { addressLines, type Address } from "./address-model";
 import { processImage, type ImageBitmap1bpp } from "@thermoprint/core";
+
+/** Trim along the roll after rotation and calibration, keeping all printed dots. */
+export function compactAddressBitmap(
+  bitmap: ImageBitmap1bpp,
+  cutLine: boolean,
+): ImageBitmap1bpp {
+  const { bytesPerRow, data } = bitmap;
+  const first = data.findIndex((byte) => byte !== 0);
+  if (first === -1) return bitmap;
+  const top = Math.floor(first / bytesPerRow);
+  const bottom = Math.floor(
+    data.findLastIndex((byte) => byte !== 0) / bytesPerRow,
+  );
+  const contentHeight = bottom - top + 1;
+  const margin = 16; // 2 mm at 203 dpi
+  const height = contentHeight + 2 * margin + (cutLine ? 1 : 0);
+  const compact = new Uint8Array(height * bytesPerRow);
+  compact.set(
+    data.subarray(top * bytesPerRow, (bottom + 1) * bytesPerRow),
+    margin * bytesPerRow,
+  );
+  if (cutLine) {
+    const lineStart = (margin + contentHeight + margin) * bytesPerRow;
+    compact.fill(0xf0, lineStart, lineStart + bytesPerRow);
+  }
+  return { ...bitmap, height, data: compact };
+}
 const logoCache = new WeakMap<
   HTMLImageElement,
   Map<number, HTMLCanvasElement>

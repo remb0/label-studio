@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { emptyAddress } from "./address-model";
 import {
+  compactAddressBitmap,
   defaultDesign,
   previewPosition,
   renderAddress,
@@ -91,5 +92,28 @@ describe("shared address render", () => {
     expect(Array.from(rgba)).toEqual([
       0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255,
     ]);
+  });
+});
+
+describe("compact continuous address labels", () => {
+  it("removes outer blank rows and keeps the print and its internal spacing", () => {
+    const data = new Uint8Array(48 * 448);
+    data[48 * 180] = 0x80;
+    data[48 * 182 + 47] = 0x01;
+    const image = { width: 384, height: 448, bytesPerRow: 48, data };
+
+    const compact = compactAddressBitmap(image, true);
+    expect(compact.height).toBe(36);
+    expect(compact.data.slice(16 * 48, 19 * 48)).toEqual(
+      data.slice(180 * 48, 183 * 48),
+    );
+    expect(compact.data.slice(0, 16 * 48)).toEqual(new Uint8Array(16 * 48));
+    expect(compact.data.slice(19 * 48, 35 * 48)).toEqual(
+      new Uint8Array(16 * 48),
+    );
+    expect(compact.data.slice(-48)).toEqual(new Uint8Array(48).fill(0xf0));
+    expect(compactAddressBitmap(image, false).data).toEqual(
+      compact.data.slice(0, -48),
+    );
   });
 });

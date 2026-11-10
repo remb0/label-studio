@@ -5,6 +5,7 @@ export interface MockBluetoothState {
   calls: { options: unknown; active: boolean }[];
   connects: number;
   writes: number;
+  packets: number[][];
 }
 
 /** Browser API test double only. Never opens a real chooser or sends printer data. */
@@ -18,17 +19,20 @@ export async function mockBluetooth(
       calls: [],
       connects: 0,
       writes: 0,
+      packets: [],
     };
     Object.assign(window, { __mockBluetooth: state });
     const characteristic = Object.assign(new EventTarget(), {
       properties: { write: true, writeWithoutResponse: true },
       startNotifications: async () => characteristic,
       stopNotifications: async () => characteristic,
-      writeValueWithResponse: async () => {
+      writeValueWithResponse: async (data: ArrayBuffer) => {
         state.writes++;
+        state.packets.push(Array.from(new Uint8Array(data)));
       },
-      writeValueWithoutResponse: async () => {
+      writeValueWithoutResponse: async (data: ArrayBuffer) => {
         state.writes++;
+        state.packets.push(Array.from(new Uint8Array(data)));
       },
     });
     const service = { getCharacteristic: async () => characteristic };

@@ -7,6 +7,7 @@ import {
   asMessage,
   messageList,
 } from "../../lib/i18n.ts";
+import { processImage } from "@thermoprint/core";
 
 import {
   useEffect,
@@ -16,6 +17,7 @@ import {
   type SetStateAction,
 } from "react";
 import { getPrinter } from "../../hooks/use-web-bluetooth";
+import { usePrinterStore } from "../../store/printer-store";
 import { calibratePrinterImage } from "../calibration/print-calibration.ts";
 import {
   acquirePrintSession,
@@ -37,6 +39,7 @@ import {
   type MappingProfile,
 } from "./address-model";
 import {
+  compactAddressBitmap,
   defaultDesign,
   previewPosition,
   renderAddress,
@@ -137,6 +140,7 @@ function Preview({
 export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
   const number = useNumberFormatter();
   const tx = useT();
+  const modelId = usePrinterStore((state) => state.modelId);
   const [single, setSingle] = useState<Address>(() => emptyAddress());
   const [step, setStep] = useState(0),
     [raw, setRaw] = useState(""),
@@ -156,6 +160,10 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
     [queue, setQueue] = useState<QueueItem[]>([]),
     [busy, setBusy] = useState(false),
     [paused, setPaused] = useState(false);
+  const compactRoll =
+    mode === "bulk" &&
+    design.format === "continuous" &&
+    modelId === "luckp-d1s";
   const [profiles, setProfiles] = useState<MappingProfile[]>(() => {
     try {
       return JSON.parse(
@@ -389,20 +397,30 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
         update(i, { status: "Bezig" });
         renderAddress(canvas, jobs[i].address, design, logo);
         try {
-          await printer.print(
-            calibratePrinterImage(
-              canvas
-                .getContext("2d")!
-                .getImageData(0, 0, canvas.width, canvas.height),
-            ),
-            {
-              copies: 1,
-              density: design.density,
-              paperType: design.format,
-              dither: "threshold",
-              threshold: 150,
-            },
+          const image = calibratePrinterImage(
+            canvas
+              .getContext("2d")!
+              .getImageData(0, 0, canvas.width, canvas.height),
           );
+          const options = {
+            density: design.density,
+            paperType: design.format,
+            dither: "threshold",
+            threshold: 150,
+          } as const;
+          if (compactRoll) {
+            const betweenLabels = i < jobs.length - 1;
+            const bitmap = compactAddressBitmap(
+              processImage(image, options),
+              betweenLabels || test,
+            );
+            await printer.printBitmap(bitmap, {
+              ...options,
+              skipEndFeed: betweenLabels,
+            });
+          } else {
+            await printer.print(image, options);
+          }
           update(i, { status: "Verzonden" });
         } catch (e) {
           update(i, { status: "Onzeker", error: errorMessage(e) });
@@ -598,6 +616,13 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
         {number(selected.length)} {tx("geselecteerde adressen ·")}{" "}
         {number(selected.length * design.copies)} {tx("etiketten")}{" "}
       </p>
+      {compactRoll && (
+        <p className="address-muted">
+          {tx(
+            "Compacte rol: witruimte wordt ingekort en tussen etiketten komt een gestippelde kniplijn.",
+          )}
+        </p>
+      )}
       <label>
         {tx("Kopieën per adres")}{" "}
         <input

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { bluetoothState, mockBluetooth } from "./helpers/mock-bluetooth";
 
 test("BoxCare CSV wizard maps, validates, corrects and prepares private local labels", async ({
   page,
@@ -148,4 +149,64 @@ test("single address renders and warns when its text overflows", async ({
       "Tekst valt buiten het etiket. Verklein of verplaats het tekstblok.",
     ),
   ).toBeVisible();
+});
+
+test("D1S prints a compact CSV batch with a cut line and a single final feed", async ({
+  page,
+}) => {
+  await mockBluetooth(page, "success");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Printer", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Printer zoeken", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Jouw printer", exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Bulklabels", exact: true }).click();
+  await page
+    .locator("input[type=file]")
+    .first()
+    .setInputFiles({
+      name: "adressen.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        "Naam;Straat;Postcode;Stad\nJan Jansen;Dorpsstraat 12;1234AB;Utrecht\nPiet Peters;Markt 4;5555AB;Rotterdam",
+      ),
+    });
+  await page.getByRole("button", { name: "Kolommen koppelen →" }).click();
+  await page.getByRole("button", { name: "Filters instellen →" }).click();
+  await page.getByRole("button", { name: "Adressen controleren →" }).click();
+  await page.getByRole("button", { name: "Ontwerp bekijken →" }).click();
+  await page
+    .getByRole("combobox", { name: "Papier", exact: true })
+    .selectOption("continuous");
+  await page.getByRole("button", { name: "Naar printopdracht →" }).click();
+  await expect(page.getByText(/Compacte rol:/)).toBeVisible();
+  await page.getByRole("button", { name: "Afdrukken 2 etiketten" }).click();
+  await expect(page.getByText("Verzonden", { exact: true })).toHaveCount(2, {
+    timeout: 15_000,
+  });
+
+  const { packets } = await bluetoothState(page);
+  const rasterStarts = packets.flatMap((bytes, index) =>
+    bytes[0] === 0x1d && bytes[1] === 0x76 && bytes[2] === 0x30 ? [index] : [],
+  );
+  expect(rasterStarts).toHaveLength(2);
+  const lastRasterRows = rasterStarts.map((start) => {
+    const header = packets[start];
+    const height = header[6] + 256 * header[7];
+    expect(height).toBeLessThan(448);
+    const rasterLength = 8 + height * 48;
+    const raster = packets
+      .slice(start, start + Math.ceil(rasterLength / 100))
+      .flat();
+    expect(raster).toHaveLength(rasterLength);
+    return raster.slice(-48);
+  });
+  expect(lastRasterRows).toEqual([Array(48).fill(0xf0), Array(48).fill(0)]);
+  const feeds = packets.filter((bytes) => bytes.join(",") === "27,74,80");
+  expect(feeds).toHaveLength(1);
+  expect(packets.indexOf(feeds[0])).toBeGreaterThan(rasterStarts[1]);
 });

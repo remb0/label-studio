@@ -179,6 +179,7 @@ export class Printer {
       density: options.density ?? this.profile.defaults.density,
       densityCommand: this.profile.densityCommand,
       paperType: options.paperType ?? this.profile.defaults.paperType,
+      skipEndFeed: options.skipEndFeed,
     };
 
     const commands = this.protocol.buildPrintSequence(image, mergedOptions);

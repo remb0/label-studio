@@ -12,7 +12,8 @@ export const luckpD1sProfile: DeviceProfile = {
   dpi: 203,
   completionMode: "transmitted",
   packetSize: 100,
-  flowControl: { packetDelayMs: 50 },
+  // Web Bluetooth already paces the fallback to writes without response.
+  flowControl: {},
   defaults: { density: 2, paperType: "gap" },
   namePrefixes: [
     "LuckP_D1",

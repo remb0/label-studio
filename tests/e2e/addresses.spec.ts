@@ -187,7 +187,9 @@ test("D1S prints a compact CSV batch with a cut line and a single final feed", a
       name: "adressen.csv",
       mimeType: "text/csv",
       buffer: Buffer.from(
-        "Naam;Straat;Postcode;Stad\nJan Jansen;Dorpsstraat 12;1234AB;Utrecht\nPiet Peters;Markt 4;5555AB;Rotterdam",
+        "Naam;Straat;Postcode;Stad;Extra\nJan Jansen;Dorpsstraat 12;1234AB;Utrecht;\n" +
+          "Piet Peters;Markt 4;5555AB;Rotterdam;" +
+          "Bezorgen bij de receptie ".repeat(35),
       ),
     });
   await page.getByRole("button", { name: "Kolommen koppelen →" }).click();
@@ -209,18 +211,22 @@ test("D1S prints a compact CSV batch with a cut line and a single final feed", a
     bytes[0] === 0x1d && bytes[1] === 0x76 && bytes[2] === 0x30 ? [index] : [],
   );
   expect(rasterStarts).toHaveLength(2);
-  const lastRasterRows = rasterStarts.map((start) => {
+  const rasters = rasterStarts.map((start) => {
     const header = packets[start];
     const height = header[6] + 256 * header[7];
-    expect(height).toBeLessThan(448);
     const rasterLength = 8 + height * 48;
     const raster = packets
       .slice(start, start + Math.ceil(rasterLength / 100))
       .flat();
     expect(raster).toHaveLength(rasterLength);
-    return raster.slice(-48);
+    return { height, data: raster.slice(8) };
   });
-  expect(lastRasterRows).toEqual([Array(48).fill(0xf0), Array(48).fill(0)]);
+  expect(rasters[0].height).toBeLessThan(448);
+  expect(rasters[1].height).toBeGreaterThan(448);
+  expect(rasters[0].data.slice(0, 16 * 48)).toEqual(Array(16 * 48).fill(0));
+  expect(rasters[1].data.slice(4 * 48, 8 * 48)).toEqual(
+    Array.from({ length: 64 }, () => [0xff, 0xf0, 0]).flat(),
+  );
   const feeds = packets.filter((bytes) => bytes.join(",") === "27,74,80");
   expect(feeds).toHaveLength(1);
   expect(packets.indexOf(feeds[0])).toBeGreaterThan(rasterStarts[1]);

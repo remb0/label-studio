@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { Printer } from "@thermoprint/core";
 import { WebBluetoothTransport } from "./web-bluetooth.ts";
 
 describe("Web Bluetooth printer selection", () => {
@@ -30,4 +31,65 @@ describe("Web Bluetooth printer selection", () => {
     });
     expect(discovered).toEqual(["FICHERO_5836"]);
   });
+});
+
+describe("LuckP D1S raster transfer", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    { withResponse: true, packetIntervalMs: 0 },
+    { withResponse: false, packetIntervalMs: 50 },
+  ])(
+    "paces writes withResponse=$withResponse by $packetIntervalMs ms",
+    async ({ withResponse, packetIntervalMs }) => {
+      vi.useFakeTimers();
+      const rasterWrites: number[] = [];
+      const write = async (data: ArrayBuffer) => {
+        if (data.byteLength >= 48) rasterWrites.push(Date.now());
+      };
+      const writeValueWithResponse = vi.fn(write);
+      const writeValueWithoutResponse = vi.fn(write);
+      const device = {
+        id: `luckp-timing-${withResponse}`,
+        name: "LuckP_D1S_F828_BLE",
+        addEventListener: vi.fn(),
+        gatt: {
+          connect: vi.fn(async () => {}),
+          getPrimaryService: async () => ({
+            getCharacteristic: async () => ({
+              properties: { write: withResponse, writeWithoutResponse: true },
+              writeValueWithResponse,
+              writeValueWithoutResponse,
+            }),
+          }),
+        },
+      };
+      vi.stubGlobal("navigator", {
+        bluetooth: { getDevices: async () => [device] },
+      });
+      const printer = await Printer.connect(new WebBluetoothTransport(), {
+        id: device.id,
+        name: device.name,
+        rssi: 0,
+      });
+
+      const printing = printer.printBitmap({
+        width: 384,
+        height: 3,
+        bytesPerRow: 48,
+        data: new Uint8Array(144).fill(0xff),
+      });
+      await vi.runAllTimersAsync();
+      await printing;
+
+      expect(rasterWrites).toHaveLength(2);
+      expect(rasterWrites[1] - rasterWrites[0]).toBe(packetIntervalMs);
+      expect(
+        withResponse ? writeValueWithoutResponse : writeValueWithResponse,
+      ).not.toHaveBeenCalled();
+    },
+  );
 });

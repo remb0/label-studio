@@ -39,6 +39,7 @@ import {
   type MappingProfile,
 } from "./address-model";
 import {
+  addressDesignLength,
   compactAddressBitmap,
   defaultDesign,
   previewPosition,
@@ -69,12 +70,14 @@ function Preview({
   address,
   design,
   logo,
+  flexibleLength = false,
   onOverflow,
   drag,
 }: {
   address: Address;
   design: AddressDesign;
   logo: HTMLImageElement | null;
+  flexibleLength?: boolean;
   onOverflow?: (value: boolean) => void;
   drag?: {
     target: "text" | "logo";
@@ -83,27 +86,39 @@ function Preview({
 }) {
   const tx = useT();
   const ref = useRef<HTMLCanvasElement>(null);
-  const start = useRef<{ x: number; y: number; cx: number; cy: number } | null>(
-    null,
-  );
+  const start = useRef<{
+    x: number;
+    y: number;
+    cx: number;
+    cy: number;
+    bounds: DOMRect;
+    height: number;
+  } | null>(null);
   const point = (event: PointerEvent<HTMLCanvasElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
+    const bounds =
+      start.current?.bounds ?? event.currentTarget.getBoundingClientRect();
+    const height = start.current?.height ?? event.currentTarget.height;
     return previewPosition(
       ((event.clientX - bounds.left) * event.currentTarget.width) /
         bounds.width,
-      ((event.clientY - bounds.top) * event.currentTarget.height) /
-        bounds.height,
+      ((event.clientY - bounds.top) * height) / bounds.height,
       design.portrait,
       event.currentTarget.width,
-      event.currentTarget.height,
+      addressDesignLength(design.format),
     );
   };
   useEffect(() => {
     if (ref.current) {
-      const result = renderAddress(ref.current, address, design, logo);
+      const result = renderAddress(
+        ref.current,
+        address,
+        design,
+        logo,
+        flexibleLength,
+      );
       onOverflow?.(result.overflow);
     }
-  }, [address, design, logo, onOverflow]);
+  }, [address, design, logo, flexibleLength, onOverflow]);
   return (
     <canvas
       ref={ref}
@@ -116,6 +131,8 @@ function Preview({
           ...p,
           cx: drag.target === "text" ? design.textX : design.logoX,
           cy: drag.target === "text" ? design.textY : design.logoY,
+          bounds: event.currentTarget.getBoundingClientRect(),
+          height: event.currentTarget.height,
         };
         event.currentTarget.setPointerCapture(event.pointerId);
         event.preventDefault();
@@ -160,10 +177,8 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
     [queue, setQueue] = useState<QueueItem[]>([]),
     [busy, setBusy] = useState(false),
     [paused, setPaused] = useState(false);
-  const compactRoll =
-    mode === "bulk" &&
-    design.format === "continuous" &&
-    modelId === "luckp-d1s";
+  const flexibleLength = mode === "bulk" && design.format === "continuous";
+  const compactRoll = flexibleLength && modelId === "luckp-d1s";
   const [profiles, setProfiles] = useState<MappingProfile[]>(() => {
     try {
       return JSON.parse(
@@ -350,7 +365,10 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
         );
         return;
       }
-      if (renderAddress(canvas, job.address, design, logo).overflow) {
+      if (
+        renderAddress(canvas, job.address, design, logo, flexibleLength)
+          .overflow
+      ) {
         setError(message("rowOverflow", { row: job.address.sourceRow }));
         return;
       }
@@ -385,6 +403,11 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
       jobs = jobs.map((j, index) => (index === i ? { ...j, ...change } : j));
       setQueue([...jobs]);
     };
+    const resumesPrintedRoll =
+      retry &&
+      queue.some((job) =>
+        ["Verzonden", "Gecontroleerd", "Onzeker"].includes(job.status),
+      );
     try {
       for (let i = 0; i < jobs.length; i++) {
         if (!(await mayPrintNextLabel(control.current))) {
@@ -395,8 +418,8 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
           break;
         }
         update(i, { status: "Bezig" });
-        renderAddress(canvas, jobs[i].address, design, logo);
         try {
+          renderAddress(canvas, jobs[i].address, design, logo, flexibleLength);
           const image = calibratePrinterImage(
             canvas
               .getContext("2d")!
@@ -409,14 +432,13 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
             threshold: 150,
           } as const;
           if (compactRoll) {
-            const betweenLabels = i < jobs.length - 1;
             const bitmap = compactAddressBitmap(
               processImage(image, options),
-              betweenLabels || test,
+              i > 0 || test || resumesPrintedRoll,
             );
             await printer.printBitmap(bitmap, {
               ...options,
-              skipEndFeed: betweenLabels,
+              skipEndFeed: i < jobs.length - 1,
             });
           } else {
             await printer.print(image, options);
@@ -466,7 +488,9 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
           >
             <option value="gap">{tx("52 × 30 mm · gap-label")}</option>
             <option value="continuous">
-              {tx("52 mm rol · 56 mm ontwerp")}
+              {mode === "bulk"
+                ? tx("52 mm rol · variabele lengte")
+                : tx("52 mm rol · 56 mm ontwerp")}
             </option>
           </select>
         </label>
@@ -1293,6 +1317,7 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
                         address={a}
                         design={design}
                         logo={logo}
+                        flexibleLength={flexibleLength}
                         drag={busy ? undefined : drag}
                       />
                       <span>

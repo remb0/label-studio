@@ -157,12 +157,27 @@ test("D1S prints a compact CSV batch with a cut line and a single final feed", a
   await mockBluetooth(page, "success");
   await page.goto("/");
   await page.getByRole("button", { name: "Printer", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Printer zoeken", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Jouw printer", exact: true }),
-  ).toBeVisible();
+  const scan = page.getByRole("button", {
+    name: "Printer zoeken",
+    exact: true,
+  });
+  const openDialog = page.getByRole("button", {
+    name: "Printer verbinden",
+    exact: true,
+  });
+  await expect(scan.or(openDialog).first()).toBeVisible();
+  if (await scan.isVisible()) {
+    await scan.click();
+    await expect(
+      page.getByText("LuckP_D1S_TEST", { exact: true }).first(),
+    ).toBeVisible();
+  } else {
+    await openDialog.click();
+    await scan.click();
+    await expect(
+      page.getByRole("button", { name: "Verbonden", exact: true }),
+    ).toBeVisible();
+  }
 
   await page.getByRole("button", { name: "Bulklabels", exact: true }).click();
   await page

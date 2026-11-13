@@ -6,6 +6,8 @@ import {
   getFormatPresets,
   type FormatPreset,
   exceedsPrintWidth,
+  presetRollWidth,
+  rollAxes,
 } from "../label/format-presets.ts";
 import type { LabelSize } from "../store/editor-store.ts";
 import { favoritesFirst, useFavorites } from "../lib/favorites.ts";
@@ -16,6 +18,7 @@ interface Props {
   paperType: "gap" | "continuous";
   modelId: string | null;
   maxPixels?: number;
+  rollDirection?: "horizontal" | "vertical";
   onSelect: (preset: FormatPreset) => void;
 }
 
@@ -24,6 +27,7 @@ export function FormatPicker({
   paperType,
   modelId,
   maxPixels,
+  rollDirection = "vertical",
   onSelect,
 }: Props) {
   const number = useNumberFormatter();
@@ -37,11 +41,19 @@ export function FormatPicker({
       >
         {favoritesFirst(getFormatPresets(modelId), "format", favorites).map(
           (preset) => {
-            const active =
-              label.widthMm === preset.widthMm &&
-              label.heightMm === preset.heightMm &&
-              (label.shape ?? "rectangle") === preset.shape &&
-              paperType === preset.paperType;
+            const continuous = preset.paperType === "continuous";
+            const rollWidth = presetRollWidth(preset);
+            // A continuous roll only has a width; its length is free.
+            const active = continuous
+              ? paperType === "continuous" &&
+                rollAxes(label, rollDirection).acrossMm === rollWidth
+              : label.widthMm === preset.widthMm &&
+                label.heightMm === preset.heightMm &&
+                (label.shape ?? "rectangle") === preset.shape &&
+                paperType === preset.paperType;
+            const sizeText = continuous
+              ? tx("rollWidthFree", { width: number(rollWidth) })
+              : `${number(preset.widthMm)} × ${number(preset.heightMm)} mm`;
             const scale = Math.min(
               1.5,
               78 / preset.widthMm,
@@ -59,7 +71,7 @@ export function FormatPicker({
               >
                 <button
                   type="button"
-                  aria-label={`${tx(preset.name)}, ${number(preset.widthMm)} × ${number(preset.heightMm)} mm, ${preset.paperType === "gap" ? tx("los label") : tx("doorlopend")}`}
+                  aria-label={`${tx(preset.name)}, ${sizeText}, ${preset.paperType === "gap" ? tx("los label") : tx("doorlopend")}`}
                   aria-pressed={active}
                   onClick={() => {
                     if (!tooWide) onSelect(preset);
@@ -99,7 +111,7 @@ export function FormatPicker({
                     {tx(preset.name)}
                   </span>
                   <span className="block text-ui-2xs font-mono mt-0.5">
-                    {number(preset.widthMm)} × {number(preset.heightMm)} mm
+                    {sizeText}
                   </span>
                   <span className="block text-ui-2xs text-ink-400 mt-1">
                     {tooWide

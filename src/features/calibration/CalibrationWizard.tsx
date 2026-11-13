@@ -2,8 +2,10 @@ import {
   useNumberFormatter,
   type UiMessage,
   errorMessage,
+  formatDate,
   message,
   asMessage,
+  useLanguage,
   useT,
 } from "../../lib/i18n.ts";
 
@@ -17,14 +19,29 @@ import {
   usePrintSession,
 } from "../../lib/print-session.ts";
 import { toPixels } from "../../label/document.ts";
+import { rollAxes } from "../../label/format-presets.ts";
 import {
   applyCalibration,
   loadCalibrationStart,
   saveCalibration,
   type Calibration,
 } from "./calibration.ts";
+import {
+  forgetPrinterVerification,
+  loadPrinterVerification,
+  recordPrinterVerification,
+  rulerTicks,
+} from "./verification.ts";
+import { submitCompatibilityReport } from "../../lib/community-printers.ts";
 import "./calibration.css";
 
+const mmToPx = (mm: number, dpi: number) => (mm * dpi) / 25.4;
+
+/**
+ * Ruler test label in printer axes: x runs across the head, y along the feed.
+ * Ticks every millimetre from the image edge, numbered every 10 mm, so both
+ * dimensions can be checked with a real ruler. A centred frame shows alignment.
+ */
 function pattern(
   widthMm: number,
   heightMm: number,
@@ -36,12 +53,50 @@ function pattern(
   const ctx = canvas.getContext("2d")!;
   const w = canvas.width,
     h = canvas.height;
-  const mx = Math.min(toPixels(6, dpi), w * 0.25),
-    my = Math.min(toPixels(6, dpi), h * 0.25);
+  const dot = Math.max(1, Math.round(dpi / 203));
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "black";
+  const tickLength = { minor: 1.5, half: 2.5, major: 4 } as const;
+  const fontPx = Math.round(mmToPx(2.6, dpi));
+  ctx.font = `700 ${fontPx}px Arial, sans-serif`;
+  // Across the head, along the top edge.
+  for (const tick of rulerTicks(widthMm)) {
+    const x = Math.min(w - dot, Math.round(mmToPx(tick.mm, dpi)));
+    const thick = tick.kind === "major" ? dot * 2 : dot;
+    ctx.fillRect(
+      Math.max(0, x - (thick > dot ? dot : 0)),
+      0,
+      thick,
+      mmToPx(tickLength[tick.kind], dpi),
+    );
+    if (tick.kind === "major" && tick.mm > 0 && x < w - fontPx) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(String(tick.mm), x, mmToPx(4.4, dpi));
+    }
+  }
+  // Along the feed, down the left edge.
+  for (const tick of rulerTicks(heightMm)) {
+    const y = Math.min(h - dot, Math.round(mmToPx(tick.mm, dpi)));
+    const thick = tick.kind === "major" ? dot * 2 : dot;
+    ctx.fillRect(
+      0,
+      Math.max(0, y - (thick > dot ? dot : 0)),
+      mmToPx(tickLength[tick.kind], dpi),
+      thick,
+    );
+    if (tick.kind === "major" && tick.mm > 0 && y < h - fontPx / 2) {
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(tick.mm), mmToPx(4.4, dpi), y);
+    }
+  }
+  // Alignment frame and crosshair, inset from both rulers.
+  const mx = Math.min(mmToPx(9, dpi), w * 0.3),
+    my = Math.min(mmToPx(9, dpi), h * 0.3);
   ctx.strokeStyle = "black";
-  ctx.lineWidth = Math.max(1, Math.round(dpi / 203));
+  ctx.lineWidth = dot;
   ctx.strokeRect(mx, my, w - mx * 2, h - my * 2);
   ctx.beginPath();
   ctx.moveTo(w / 2, my);
@@ -49,7 +104,7 @@ function pattern(
   ctx.moveTo(mx, h / 2);
   ctx.lineTo(w - mx, h / 2);
   ctx.stroke();
-  const size = Math.min(w - mx * 2, h - my * 2) * 0.18;
+  const size = Math.min(w - mx * 2, h - my * 2) * 0.16;
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = ["#aaa", "#555", "#000"][i];
     ctx.fillRect(mx + 3 + i * (size + 3), my + 3, size, size);
@@ -57,9 +112,13 @@ function pattern(
   return canvas;
 }
 
+declare const __APP_VERSION__: string;
+declare const __COMMIT_SHA__: string;
+
 export function CalibrationWizard() {
   const number = useNumberFormatter();
   const tx = useT();
+  const language = useLanguage((value) => value.language);
   const state = usePrinterStore();
   const busy = usePrintSession();
   const [open, setOpen] = useState(false);
@@ -72,15 +131,36 @@ export function CalibrationWizard() {
   });
   const [density, setDensity] = useState<1 | 2 | 3>(2);
   const [sending, setSending] = useState(false);
+  const [printed, setPrinted] = useState(false);
+  const [checks, setChecks] = useState<Record<CheckKey, boolean>>(NO_CHECKS);
+  const [result, setResult] = useState<"works" | "fails" | null>(null);
+  const [shareChecks, setShareChecks] = useState({
+    qrScanned: false,
+    reconnectChecked: false,
+  });
+  const [notes, setNotes] = useState("");
+  const [shared, setShared] = useState(false);
   const [notice, setMessage] = useState<UiMessage>("");
   const [error, setError] = useState<UiMessage>("");
+  // Bumped after a confirmation changes, so the stored status is re-read.
+  const [verifiedRevision, setVerifiedRevision] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [target, setTarget] = useState("");
   const dialogRef = useRef<HTMLElement>(null);
   const profile = state.modelId ? getDevice(state.modelId) : null;
   const dpi = profile?.dpi ?? 203;
+  const continuous = state.settings.paperType === "continuous";
   const targetId = JSON.stringify([state.peripheral?.id, state.modelId]);
   const changedDevice = open && target !== targetId;
+  const verifiedAt = useMemo(
+    () =>
+      state.modelId
+        ? (loadPrinterVerification(state.modelId)?.at ?? null)
+        : null,
+    // verifiedRevision: re-read storage after this wizard changed it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.modelId, verifiedRevision],
+  );
   useEffect(() => {
     if (open) dialogRef.current?.focus();
   }, [open, step]);
@@ -143,9 +223,10 @@ export function CalibrationWizard() {
   function start() {
     if (busy) return;
     const editor = useEditorV2Store.getState();
-    const horizontal = editor.rollDirection === "horizontal";
-    setWidth(horizontal ? editor.label.heightMm : editor.label.widthMm);
-    setHeight(horizontal ? editor.label.widthMm : editor.label.heightMm);
+    const { acrossMm, alongMm } = rollAxes(editor.label, editor.rollDirection);
+    setWidth(acrossMm);
+    // A continuous roll has no fixed length; 40 mm fits a full 10 mm scale.
+    setHeight(continuous ? Math.max(40, Math.min(alongMm, 80)) : alongMm);
     const startValue =
       state.peripheral && state.modelId
         ? loadCalibrationStart(state.peripheral.id, state.modelId)
@@ -154,6 +235,12 @@ export function CalibrationWizard() {
     setDensity(state.settings.density);
     setTarget(targetId);
     setStep(0);
+    setPrinted(false);
+    setChecks(NO_CHECKS);
+    setResult(null);
+    setShareChecks({ qrScanned: false, reconnectChecked: false });
+    setNotes("");
+    setShared(false);
     // A correction from another printer of this model is only a suggestion.
     setMessage(
       startValue.fromModel
@@ -197,8 +284,10 @@ export function CalibrationWizard() {
         copies: 1,
         density,
         paperType: state.settings.paperType,
+        // Pure black ticks stay crisp; the grey swatches show the dot pattern.
         dither: "floyd-steinberg",
       });
+      setPrinted(true);
       setMessage(
         "Testlabel verzonden. Controleer de fysieke afdruk; verzonden is geen bevestiging van een geslaagde afdruk.",
       );
@@ -212,29 +301,37 @@ export function CalibrationWizard() {
     }
   }
 
-  function save() {
-    if (
-      busy ||
-      changedDevice ||
-      !state.isConnected ||
-      !state.peripheral ||
-      !state.modelId ||
-      !validCorrection ||
-      preview.error
-    )
-      return;
+  const canConfirm =
+    !busy &&
+    !changedDevice &&
+    state.isConnected &&
+    !!state.peripheral &&
+    !!state.modelId &&
+    validCorrection &&
+    !preview.error &&
+    printed;
+
+  function confirmWorks() {
+    if (!canConfirm || !CHECKS.every(([key]) => checks[key])) return;
     try {
-      saveCalibration(state.peripheral.id, state.modelId, correction);
+      saveCalibration(state.peripheral!.id, state.modelId!, correction);
       state.updateSettings({ density });
       useEditorV2Store.setState((s) => ({
         printSettings: { ...s.printSettings, density },
         currentLabelDirty: true,
       }));
+      recordPrinterVerification(state.modelId!, {
+        paperType: state.settings.paperType,
+        widthMm: width,
+        lengthMm: height,
+      });
+      setVerifiedRevision((value) => value + 1);
+      setResult("works");
       setMessage(
-        "Kalibratie lokaal opgeslagen voor deze printer. Uitlijning geldt voor ontwerpen én adres-/bulklabels. Dichtheid is de nieuwe editorbasis; adreslabels houden hun eigen dichtheidskeuze.",
+        "Bevestigd: deze printer werkt. Kalibratie en dichtheid zijn opgeslagen.",
       );
       setError("");
-      setStep(2);
+      setStep(3);
     } catch {
       setError(
         "Opslaan mislukt. Browseropslag is mogelijk vol of geblokkeerd. De correctie is niet opgeslagen.",
@@ -242,17 +339,71 @@ export function CalibrationWizard() {
     }
   }
 
+  function confirmFails() {
+    if (!state.modelId) return;
+    forgetPrinterVerification(state.modelId);
+    setVerifiedRevision((value) => value + 1);
+    setResult("fails");
+    setMessage(
+      "Genoteerd dat de afdruk niet klopt. Er is niets opgeslagen. Deel je ervaring hieronder zodat we het profiel kunnen verbeteren.",
+    );
+    setError("");
+    setStep(3);
+  }
+
+  async function share() {
+    if (!result || !state.modelId || sending) return;
+    setSending(true);
+    setError("");
+    try {
+      await submitCompatibilityReport({
+        modelId: state.modelId,
+        result,
+        connected: state.isConnected,
+        testLabelPrinted: printed,
+        sizeAlignmentChecked: CHECKS.every(([key]) => checks[key]),
+        qrScanned: shareChecks.qrScanned,
+        reconnectChecked: shareChecks.reconnectChecked,
+        firmware: state.deviceInfo.firmware || undefined,
+        notes,
+        appVersion: `${__APP_VERSION__} (${__COMMIT_SHA__.slice(0, 12)})`,
+      });
+      setShared(true);
+      setMessage(
+        "Bedankt. Je rapport is opgeslagen en wordt eerst beoordeeld voordat het publiek meetelt.",
+      );
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const steps = [
+    "Papier controleren",
+    "Liniaal printen",
+    "Afdruk bevestigen",
+    "Delen",
+  ] as const;
+
   return (
     <>
       <article className="studio-card calibration-card">
-        <h2>{tx("Kalibratie & testlabel")}</h2>
+        <h2>{tx("Printertest & kalibratie")}</h2>
         <p>
           {tx(
-            "Controleer uitlijning en donkerte. Bewaar een correctie per fysieke printer, zonder je ontwerp te verplaatsen.",
-          )}{" "}
+            "Print een liniaal, meet breedte en lengte na met een echte liniaal en bevestig dat je printer werkt. Daarna kun je de uitkomst delen met de community.",
+          )}
         </p>
+        {verifiedAt !== null && (
+          <p role="status">
+            {tx("verifiedOn", {
+              date: formatDate(language, verifiedAt, { dateStyle: "medium" }),
+            })}
+          </p>
+        )}
         <button className="studio-secondary" disabled={busy} onClick={start}>
-          {tx("Kalibratie starten")}{" "}
+          {tx("Printertest starten")}
         </button>
       </article>
       {open && (
@@ -263,7 +414,7 @@ export function CalibrationWizard() {
             className="calibration-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label={tx("Printer kalibreren")}
+            aria-label={tx("Printertest")}
             onKeyDown={(event) => {
               event.stopPropagation();
               if (event.key === "Escape" && !busy && !sending) {
@@ -273,7 +424,7 @@ export function CalibrationWizard() {
               if (event.key !== "Tab") return;
               const controls =
                 event.currentTarget.querySelectorAll<HTMLElement>(
-                  "button:not(:disabled), input:not(:disabled), select:not(:disabled)",
+                  "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)",
                 );
               const first = controls[0],
                 last = controls[controls.length - 1];
@@ -295,9 +446,9 @@ export function CalibrationWizard() {
             }}
           >
             <header>
-              <h2>{tx("Printer kalibreren")}</h2>
+              <h2>{tx("Printertest")}</h2>
               <button
-                aria-label={tx("Kalibratie sluiten")}
+                aria-label={tx("Printertest sluiten")}
                 disabled={sending || busy}
                 onClick={() => setOpen(false)}
               >
@@ -305,12 +456,11 @@ export function CalibrationWizard() {
               </button>
             </header>
             <p>
-              {tx("Stap")} {number(step + 1)} {tx("van 3 ·")}{" "}
-              {step === 0
-                ? tx("Papier controleren")
-                : step === 1
-                  ? tx("Testen & corrigeren")
-                  : tx("Opgeslagen")}
+              {tx("stepOf", {
+                step: number(step + 1),
+                total: number(steps.length),
+                title: tx(steps[step]),
+              })}
             </p>
             {changedDevice && (
               <p role="alert">
@@ -322,13 +472,19 @@ export function CalibrationWizard() {
             {step === 0 && (
               <>
                 <p>
-                  {tx(
-                    "Meet het label in de doorvoerrichting: breedte dwars over de printkop, lengte langs de rol. Dit verandert je ontwerpformaat niet.",
-                  )}{" "}
+                  {continuous
+                    ? tx(
+                        "Doorlopende rol: vul de rolbreedte in. De lengte van de testprint kies je zelf; 40 mm of meer laat een volledige schaal zien.",
+                      )
+                    : tx(
+                        "Meet het label in de doorvoerrichting: breedte dwars over de printkop, lengte langs de rol. Dit verandert je ontwerpformaat niet.",
+                      )}
                 </p>
                 <div className="calibration-fields">
                   <label>
-                    {tx("Testlabel breedte (mm)")}{" "}
+                    {continuous
+                      ? tx("Rolbreedte (mm)")
+                      : tx("Testlabel breedte (mm)")}
                     <input
                       type="number"
                       min="2"
@@ -352,7 +508,7 @@ export function CalibrationWizard() {
                 </div>
                 <p>
                   {state.isConnected
-                    ? `${tx("Printer")}: ${state.peripheral?.name} · ${number(dpi)} dpi · ${state.settings.paperType === "gap" ? tx("losse labels") : tx("doorlopende rol")}`
+                    ? `${tx("Printer")}: ${state.peripheral?.name} · ${number(dpi)} dpi · ${continuous ? tx("doorlopende rol") : tx("losse labels")}`
                     : tx(
                         "Nog niet verbonden. Je kunt de wizard bekijken; verbind eerst om te printen of op te slaan.",
                       )}
@@ -377,8 +533,8 @@ export function CalibrationWizard() {
               <>
                 <p>
                   {tx(
-                    "Het kader hoort gecentreerd te staan. Positief X verschuift rechts; positief Y schuift naar het einde van de rol. Beoordeel dit in de richting waarin het label uit de printer komt.",
-                  )}{" "}
+                    "De liniaal begint bij de rand van de afdruk en heeft een streepje per millimeter, met een getal om de 10 mm. Leg er een echte liniaal naast: 10 mm op de afdruk hoort precies 10 mm te zijn. Het kader hoort gecentreerd te staan.",
+                  )}
                 </p>
                 <div className="calibration-preview">
                   <canvas
@@ -443,7 +599,7 @@ export function CalibrationWizard() {
                 </div>
                 <p>
                   {tx(
-                    "Correctie geldt na rotatie voor alle Bluetooth-afdrukken. PNG-export blijft je ongewijzigde ontwerp. Inhoud die door correctie zou worden afgesneden wordt geblokkeerd.",
+                    "Het kader hoort gecentreerd te staan. Positief X verschuift rechts; positief Y schuift naar het einde van de rol. Beoordeel dit in de richting waarin het label uit de printer komt.",
                   )}{" "}
                 </p>
                 <div className="calibration-actions">
@@ -465,20 +621,138 @@ export function CalibrationWizard() {
                     }
                     onClick={() => void testPrint()}
                   >
-                    {sending ? tx("Verzenden…") : tx("Eén testlabel printen")}
+                    {sending ? tx("Verzenden…") : tx("Liniaal printen")}
+                  </button>
+                  <button
+                    className="studio-primary"
+                    disabled={!printed || busy || changedDevice}
+                    onClick={() => {
+                      setMessage("");
+                      setStep(2);
+                    }}
+                  >
+                    {tx("Afdruk beoordelen")}
+                  </button>
+                </div>
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <p>
+                  {tx(
+                    "Meet de afdruk na en vink alleen aan wat klopt. Klopt iets niet, ga dan terug en pas de correctie aan, of meld dat de printer niet goed werkt.",
+                  )}
+                </p>
+                <fieldset className="space-y-2">
+                  <legend className="sr-only">
+                    {tx("Bevestig wat je daadwerkelijk hebt gecontroleerd")}
+                  </legend>
+                  {CHECKS.map(([key, label]) => (
+                    <label key={key} className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        checked={checks[key]}
+                        onChange={(event) =>
+                          setChecks((value) => ({
+                            ...value,
+                            [key]: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>
+                        {tx(label, {
+                          width: number(width),
+                          length: number(height),
+                        })}
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+                <div className="calibration-actions mt-4">
+                  <button
+                    className="studio-secondary"
+                    disabled={busy}
+                    onClick={() => setStep(1)}
+                  >
+                    {tx("Terug")}
+                  </button>
+                  <button
+                    className="studio-secondary"
+                    disabled={!state.modelId || busy}
+                    onClick={confirmFails}
+                  >
+                    {tx("Werkt niet")}
                   </button>
                   <button
                     className="studio-primary"
                     disabled={
-                      busy ||
-                      !state.isConnected ||
-                      !validCorrection ||
-                      changedDevice ||
-                      !!preview.error
+                      !canConfirm || !CHECKS.every(([key]) => checks[key])
                     }
-                    onClick={save}
+                    onClick={confirmWorks}
                   >
-                    {tx("Kalibratie opslaan")}{" "}
+                    {tx("Printer werkt, opslaan")}
+                  </button>
+                </div>
+              </>
+            )}
+            {step === 3 && (
+              <>
+                <h3 className="font-semibold">
+                  {tx("Deel je test met de community")}
+                </h3>
+                <p>
+                  {tx(
+                    "Optioneel. Je rapport wordt eerst beoordeeld en telt daarna mee in het compatibiliteitsoverzicht. Hiervoor moet je ingelogd zijn.",
+                  )}
+                </p>
+                <fieldset className="space-y-2">
+                  {(
+                    [
+                      ["qrScanned", "QR-code of barcode is scanbaar"],
+                      ["reconnectChecked", "Opnieuw verbinden werkt"],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <label key={key} className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        disabled={shared}
+                        checked={shareChecks[key]}
+                        onChange={(event) =>
+                          setShareChecks((value) => ({
+                            ...value,
+                            [key]: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>{tx(label)}</span>
+                    </label>
+                  ))}
+                </fieldset>
+                <label className="block mt-3 text-ui-sm">
+                  {tx(
+                    "Opmerkingen zonder serienummer, MAC-adres of persoonsgegevens",
+                  )}
+                  <textarea
+                    className="studio-field min-h-20"
+                    maxLength={1000}
+                    disabled={shared}
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                  />
+                </label>
+                <div className="calibration-actions mt-3">
+                  <button
+                    className="studio-secondary"
+                    disabled={shared || sending || !result}
+                    onClick={() => void share()}
+                  >
+                    {sending ? tx("Opslaan…") : tx("Delen met de community")}
+                  </button>
+                  <button
+                    className="studio-primary"
+                    onClick={() => setOpen(false)}
+                  >
+                    {tx("Klaar")}
                   </button>
                 </div>
               </>
@@ -489,14 +763,21 @@ export function CalibrationWizard() {
               </p>
             )}
             {notice && <p role="status">{tx(notice)}</p>}
-            {step === 2 && (
-              <button className="studio-primary" onClick={() => setOpen(false)}>
-                {tx("Klaar")}{" "}
-              </button>
-            )}
           </section>
         </div>
       )}
     </>
   );
 }
+
+type CheckKey = "widthOk" | "lengthOk" | "centered";
+const CHECKS: readonly (readonly [CheckKey, string])[] = [
+  ["widthOk", "rulerWidthOk"],
+  ["lengthOk", "rulerLengthOk"],
+  ["centered", "Het kader staat gecentreerd (eventueel na correctie)"],
+];
+const NO_CHECKS: Record<CheckKey, boolean> = {
+  widthOk: false,
+  lengthOk: false,
+  centered: false,
+};

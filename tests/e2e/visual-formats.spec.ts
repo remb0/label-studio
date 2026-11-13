@@ -62,7 +62,7 @@ test("canvas format chooser applies continuous roll size with correct feed direc
   const dialog = page.getByRole("dialog", { name: "Labelformaat kiezen" });
   await dialog
     .getByRole("button", {
-      name: "Doorlopende rol, 48 × 56 mm, doorlopend",
+      name: "Doorlopende rol, 48 mm rol · vrije lengte, doorlopend",
       exact: true,
     })
     .click();
@@ -85,4 +85,43 @@ test("canvas format chooser applies continuous roll size with correct feed direc
     paperType: "continuous",
     rollDirection: "vertical",
   });
+});
+
+test("a continuous roll keeps its width when the design is tilted", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /^40 × 12 mm/ }).click();
+  await page
+    .getByRole("dialog", { name: "Labelformaat kiezen" })
+    .getByRole("button", {
+      name: "Doorlopende rol, 48 mm rol · vrije lengte, doorlopend",
+      exact: true,
+    })
+    .click();
+  // A tall roll label pushes this button under the dock, so use the keyboard.
+  await page.getByRole("button", { name: "Label kantelen" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: /^56 × 48 mm/ })).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Instellingen", exact: true })
+    .first()
+    .click();
+  const settings = page.getByRole("region", {
+    name: "Label- en printinstellingen",
+  });
+  await settings.getByText("Formaat aanpassen", { exact: true }).click();
+  // Only the length is free; the roll width stays across the print head.
+  await expect(settings.getByLabel("Rolbreedte (mm)")).toHaveValue("48");
+  await settings.getByLabel("Lengte (vrij) (mm)").fill("120");
+  await expect(
+    settings.getByText("120 × 48 mm", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    settings.getByText(/Drempel maakt elke pixel hard zwart of wit/),
+  ).toBeVisible();
+  await expect(settings.getByLabel("Drempel", { exact: true })).toBeDisabled();
+  await settings.getByRole("button", { name: "Drempel (tekst)" }).click();
+  await expect(settings.getByLabel("Drempel", { exact: true })).toBeEnabled();
 });

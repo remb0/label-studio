@@ -108,10 +108,10 @@ for (const [language, welcome, size] of languages) {
       .getByRole("button", { name: t(language, "printer"), exact: true })
       .click();
     await page
-      .getByRole("button", { name: t(language, "Kalibratie starten") })
+      .getByRole("button", { name: t(language, "Printertest starten") })
       .click();
     const calibration = page.getByRole("dialog", {
-      name: t(language, "Printer kalibreren"),
+      name: t(language, "Printertest"),
     });
     await expect(
       calibration.getByLabel(t(language, "Testlabel breedte (mm)")),
@@ -121,11 +121,11 @@ for (const [language, welcome, size] of languages) {
       .click();
     await expect(
       calibration.getByRole("button", {
-        name: t(language, "Eén testlabel printen"),
+        name: t(language, "Liniaal printen"),
       }),
     ).toBeDisabled();
     await calibration
-      .getByRole("button", { name: t(language, "Kalibratie sluiten") })
+      .getByRole("button", { name: t(language, "Printertest sluiten") })
       .click();
     const connection = page.getByRole("region", {
       name: t(language, "Printer verbinden"),
@@ -254,17 +254,17 @@ test("translated navigation and calibration stay usable on a phone in all five l
       ),
     ).toBe(true);
     await page
-      .getByRole("button", { name: t(language, "Kalibratie starten") })
+      .getByRole("button", { name: t(language, "Printertest starten") })
       .click();
     const calibration = page.getByRole("dialog", {
-      name: t(language, "Printer kalibreren"),
+      name: t(language, "Printertest"),
     });
     const bounds = await calibration.boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
     await calibration
-      .getByRole("button", { name: t(language, "Kalibratie sluiten") })
+      .getByRole("button", { name: t(language, "Printertest sluiten") })
       .click();
   }
 });

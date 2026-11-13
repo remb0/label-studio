@@ -1,4 +1,9 @@
-import { useNumberFormatter, useT } from "../../../lib/i18n.ts";
+import {
+  formatDate,
+  useLanguage,
+  useNumberFormatter,
+  useT,
+} from "../../../lib/i18n.ts";
 
 import { Settings, X } from "lucide-react";
 import { useState } from "react";
@@ -8,9 +13,11 @@ import { getDevice, type LabelSizePreset } from "@thermoprint/core";
 import { resizeLabel, labelDpi } from "../../../label/document.ts";
 import { FormatPicker } from "../../../components/FormatPicker.tsx";
 import {
-  applyFormat,
   exceedsPrintWidth,
+  selectFormat,
+  tiltLabel,
 } from "../../../label/format-presets.ts";
+import { loadPrinterVerification } from "../../../features/calibration/verification.ts";
 
 // Fallback sizes when no printer is connected
 const FALLBACK_GAP_SIZES: LabelSizePreset[] = [
@@ -67,6 +74,7 @@ export function PrintSettingsFlyout({
 }: Props) {
   const number = useNumberFormatter();
   const tx = useT();
+  const language = useLanguage((state) => state.language);
   const [units, setUnits] = useState<"mm" | "px">("mm");
   const [sizeError, setSizeError] = useState("");
   const rollDirection = useEditorV2Store((s) => s.rollDirection);
@@ -95,6 +103,27 @@ export function PrintSettingsFlyout({
     useLabelConfig();
   const availableSizes = sizesForPaperType(paperType);
   const printerWidth = modelId ? getDevice(modelId)?.printWidth : undefined;
+
+  // On a continuous roll the axis across the head is the roll width and the
+  // other axis is the freely chosen length.
+  const acrossAxis = rollDirection === "vertical" ? "width" : "height";
+  const axisOrder =
+    paperType === "continuous"
+      ? ([acrossAxis, acrossAxis === "width" ? "height" : "width"] as const)
+      : (["width", "height"] as const);
+  const axisName = (axis: "width" | "height") =>
+    paperType === "continuous"
+      ? axis === acrossAxis
+        ? tx("Rolbreedte")
+        : tx("Lengte (vrij)")
+      : axis === "width"
+        ? tx("Breedte")
+        : tx("Hoogte");
+  const verification = modelId ? loadPrinterVerification(modelId) : null;
+  const ditherMode =
+    printSettings.ditherMode === "none"
+      ? "threshold"
+      : printSettings.ditherMode;
 
   const updateSettings = (patch: Partial<typeof printSettings>) => {
     useEditorV2Store.setState((s) => ({
@@ -169,18 +198,18 @@ export function PrintSettingsFlyout({
           <FormatPicker
             label={label}
             paperType={paperType}
+            rollDirection={rollDirection}
             modelId={modelId}
             maxPixels={printerWidth}
             onSelect={(preset) => {
-              useEditorV2Store.setState({
-                label: applyFormat(label, preset),
-                paperType: preset.paperType,
-                rollDirection: preset.rollDirection,
-                currentLabelDirty: true,
-              });
+              const next = selectFormat(
+                { label, paperType, rollDirection },
+                preset,
+              );
+              useEditorV2Store.setState({ ...next, currentLabelDirty: true });
               usePrinterStore
                 .getState()
-                .updateSettings({ paperType: preset.paperType });
+                .updateSettings({ paperType: next.paperType });
               setSizeError("");
             }}
           />
@@ -209,12 +238,19 @@ export function PrintSettingsFlyout({
               </button>
             ))}
           </div>
+          {paperType === "continuous" && (
+            <p className="text-ui-sm text-ink-400">
+              {tx(
+                "Doorlopende rol: de rolbreedte ligt vast, de lengte kies je zelf.",
+              )}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-3">
-            {(["width", "height"] as const).map((axis) => (
+            {axisOrder.map((axis) => (
               <label key={axis} className="text-ui-sm text-ink-300">
-                {axis === "width" ? tx("Breedte") : tx("Hoogte")} ({units})
+                {axisName(axis)} ({units})
                 <input
-                  aria-label={`${axis === "width" ? tx("Breedte") : tx("Hoogte")} (${units})`}
+                  aria-label={`${axisName(axis)} (${units})`}
                   type="number"
                   min={1}
                   step={units === "px" ? 1 : 0.1}
@@ -331,12 +367,18 @@ export function PrintSettingsFlyout({
               aria-label={tx("Doorvoerrichting")}
               className="w-full mt-1 h-9 px-2 bg-ink-800 border border-white/10 rounded-md"
               value={rollDirection}
-              onChange={(e) =>
-                useEditorV2Store.setState({
-                  rollDirection: e.target.value as "horizontal" | "vertical",
-                  currentLabelDirty: true,
-                })
-              }
+              onChange={(e) => {
+                const direction = e.target.value as "horizontal" | "vertical";
+                if (direction === rollDirection) return;
+                useEditorV2Store.setState(
+                  paperType === "continuous"
+                    ? {
+                        ...tiltLabel(label, rollDirection),
+                        currentLabelDirty: true,
+                      }
+                    : { rollDirection: direction, currentLabelDirty: true },
+                );
+              }}
             >
               <option value="horizontal">
                 {tx("Horizontaal (ontwerp 90° draaien)")}{" "}
@@ -524,6 +566,11 @@ export function PrintSettingsFlyout({
               </button>
             ))}
           </div>
+          <p className="text-ui-xs text-ink-400 mt-1.5 leading-relaxed">
+            {tx(
+              "Hoe heet de printkop wordt. Donker geeft dieper zwart maar kan uitlopen en kost meer batterij; licht is fijner maar kan vaag worden. Begin met Normaal.",
+            )}
+          </p>
         </div>
 
         {/* Dither */}
@@ -531,17 +578,17 @@ export function PrintSettingsFlyout({
           <div className="text-ui-xs font-mono uppercase tracking-wider text-ink-400 mb-1.5">
             {tx("Dither")}{" "}
           </div>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-2 gap-1">
             {[
-              { v: "floyd-steinberg", l: "Floyd-S" },
-              { v: "threshold", l: tx("Drempel") },
-              { v: "none", l: tx("Geen") },
+              { v: "floyd-steinberg", l: "Puntjes (foto's)" },
+              { v: "threshold", l: "Drempel (tekst)" },
             ].map((o) => (
               <button
                 key={o.v}
+                aria-pressed={ditherMode === o.v}
                 onClick={() => updateSettings({ ditherMode: o.v })}
                 className={`h-7 rounded-md text-ui-xs font-medium border ${
-                  printSettings.ditherMode === o.v
+                  ditherMode === o.v
                     ? "bg-accent/10 text-accent border-accent/30"
                     : "bg-ink-800 text-ink-300 border-white/5"
                 }`}
@@ -550,6 +597,11 @@ export function PrintSettingsFlyout({
               </button>
             ))}
           </div>
+          <p className="text-ui-xs text-ink-400 mt-1.5 leading-relaxed">
+            {tx(
+              "Een thermische printer kent alleen zwart en wit. Dither bepaalt wat er met grijs gebeurt. Puntjes (Floyd-Steinberg) bootst grijs na met een patroon van stipjes: goed voor foto's en logo's met verloop. Drempel maakt elke pixel hard zwart of wit: het scherpst voor tekst, barcodes en QR-codes.",
+            )}
+          </p>
         </div>
 
         {/* Drempel */}
@@ -564,14 +616,21 @@ export function PrintSettingsFlyout({
           </div>
           <input
             type="range"
+            aria-label={tx("Drempel")}
+            disabled={ditherMode !== "threshold"}
             min={0}
             max={255}
             value={printSettings.threshold}
             onChange={(e) =>
               updateSettings({ threshold: Number(e.target.value) })
             }
-            className="w-full accent-accent"
+            className="w-full accent-accent disabled:opacity-40"
           />
+          <p className="text-ui-xs text-ink-400 mt-1 leading-relaxed">
+            {tx(
+              "Alleen bij Drempel: pixels donkerder dan deze waarde worden zwart. Hoger maakt letters dikker en laat lichtgrijs ook zwart worden; lager maakt ze dunner. Standaard 128.",
+            )}
+          </p>
         </div>
 
         {/* Printer info */}
@@ -587,6 +646,18 @@ export function PrintSettingsFlyout({
             <span className="text-ink-100 font-mono">
               {number(label.widthMm)} × {number(label.heightMm)} mm ·{" "}
               {tx(paperType === "gap" ? "Losse labels" : "Doorlopende rol")}
+            </span>
+          </div>
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-ink-400">{tx("Printertest")}</span>
+            <span className="text-ink-100">
+              {verification
+                ? tx("verifiedOn", {
+                    date: formatDate(language, verification.at, {
+                      dateStyle: "medium",
+                    }),
+                  })
+                : tx("Nog niet bevestigd")}
             </span>
           </div>
         </div>

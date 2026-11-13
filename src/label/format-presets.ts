@@ -142,3 +142,70 @@ export function exceedsPrintWidth(
     maxPixels
   );
 }
+
+export type RollDirection = "horizontal" | "vertical";
+
+/**
+ * Label size in printer terms. The axis across the print head is the roll
+ * width; the axis along the feed is the length (free on a continuous roll).
+ */
+export function rollAxes(
+  label: Pick<LabelSize, "widthMm" | "heightMm">,
+  direction: RollDirection,
+): { acrossMm: number; alongMm: number } {
+  return direction === "vertical"
+    ? { acrossMm: label.widthMm, alongMm: label.heightMm }
+    : { acrossMm: label.heightMm, alongMm: label.widthMm };
+}
+
+export function presetRollWidth(preset: FormatPreset): number {
+  return rollAxes(preset, preset.rollDirection).acrossMm;
+}
+
+/** Turns the design a quarter turn on screen while the roll width stays across the head. */
+export function tiltLabel(
+  label: LabelSize,
+  direction: RollDirection,
+): { label: LabelSize; rollDirection: RollDirection } {
+  return {
+    label: resizeLabel(label, label.heightMm, label.widthMm),
+    rollDirection: direction === "vertical" ? "horizontal" : "vertical",
+  };
+}
+
+/**
+ * Applies a format. On a continuous roll only the roll width comes from the
+ * preset: when the current paper is already continuous, its length and
+ * orientation are kept, because the length is whatever the user enters.
+ */
+export function selectFormat(
+  current: {
+    label: LabelSize;
+    paperType: "gap" | "continuous";
+    rollDirection: RollDirection;
+  },
+  preset: FormatPreset,
+): {
+  label: LabelSize;
+  paperType: "gap" | "continuous";
+  rollDirection: RollDirection;
+} {
+  if (preset.paperType === "continuous" && current.paperType === "continuous") {
+    const across = presetRollWidth(preset);
+    const { alongMm } = rollAxes(current.label, current.rollDirection);
+    const label =
+      current.rollDirection === "vertical"
+        ? resizeLabel(current.label, across, alongMm)
+        : resizeLabel(current.label, alongMm, across);
+    return {
+      label: { ...label, shape: preset.shape },
+      paperType: "continuous",
+      rollDirection: current.rollDirection,
+    };
+  }
+  return {
+    label: applyFormat(current.label, preset),
+    paperType: preset.paperType,
+    rollDirection: preset.rollDirection,
+  };
+}

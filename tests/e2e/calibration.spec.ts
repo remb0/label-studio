@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-test("calibration guides paper and offset choices but cannot print or save without hardware", async ({
+test("printer test guides paper and offset choices but cannot print or save without hardware", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Printer", exact: true }).click();
-  await page.getByRole("button", { name: "Kalibratie starten" }).click();
-  const dialog = page.getByRole("dialog", { name: "Printer kalibreren" });
-  await expect(dialog.getByText(/Stap 1 van 3/)).toBeVisible();
+  await page.getByRole("button", { name: "Printertest starten" }).click();
+  const dialog = page.getByRole("dialog", { name: "Printertest" });
+  await expect(dialog.getByText(/Stap 1 van 4/)).toBeVisible();
   await dialog
     .getByLabel("Testlabel breedte (mm)", { exact: true })
     .fill("200");
@@ -20,10 +20,10 @@ test("calibration guides paper and offset choices but cannot print or save witho
   await dialog.getByLabel("Correctie X (mm)", { exact: true }).fill("1.2");
   await dialog.getByLabel("Testdichtheid").selectOption("3");
   await expect(
-    dialog.getByRole("button", { name: "Eén testlabel printen" }),
+    dialog.getByRole("button", { name: "Liniaal printen" }),
   ).toBeDisabled();
   await expect(
-    dialog.getByRole("button", { name: "Kalibratie opslaan" }),
+    dialog.getByRole("button", { name: "Afdruk beoordelen" }),
   ).toBeDisabled();
   await dialog.getByLabel("Correctie X (mm)", { exact: true }).fill("5");
   await dialog.getByLabel("Correctie Y (mm)", { exact: true }).fill("5");
@@ -50,16 +50,16 @@ test("calibration is usable within a phone viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 640 });
   await page.goto("/");
   await page.getByRole("button", { name: "Printer", exact: true }).click();
-  await page.getByRole("button", { name: "Kalibratie starten" }).click();
-  const dialog = page.getByRole("dialog", { name: "Printer kalibreren" });
+  await page.getByRole("button", { name: "Printertest starten" }).click();
+  const dialog = page.getByRole("dialog", { name: "Printertest" });
   const box = await dialog.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   await dialog.getByRole("button", { name: "Verder naar testlabel" }).click();
   await dialog
-    .getByRole("button", { name: "Kalibratie opslaan" })
+    .getByRole("button", { name: "Afdruk beoordelen" })
     .scrollIntoViewIfNeeded();
   await expect(
-    dialog.getByRole("button", { name: "Kalibratie opslaan" }),
+    dialog.getByRole("button", { name: "Afdruk beoordelen" }),
   ).toBeInViewport();
 });

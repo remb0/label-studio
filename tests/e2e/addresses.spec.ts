@@ -231,3 +231,23 @@ test("D1S prints a compact CSV batch with a cut line and a single final feed", a
   expect(feeds).toHaveLength(1);
   expect(packets.indexOf(feeds[0])).toBeGreaterThan(rasterStarts[1]);
 });
+
+test("the address preview can be tilted to its reading direction", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Adreslabels", exact: true }).click();
+  await page
+    .getByLabel("Naam / contactpersoon", { exact: true })
+    .fill("Kantel");
+  const preview = page.getByLabel("Voorbeeld etiket Kantel");
+  const size = () =>
+    preview.evaluate((canvas: HTMLCanvasElement) => [
+      canvas.width,
+      canvas.height,
+    ]);
+  const [width, height] = await size();
+  await page.getByLabel("Voorbeeld kantelen").selectOption("true");
+  // The visible canvas turns; what is printed stays in printer orientation.
+  expect(await size()).toEqual([height, width]);
+});

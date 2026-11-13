@@ -29,6 +29,12 @@ import {
   sanitizeModelCalibrations,
   saveModelCalibrations,
 } from "../features/calibration/calibration.ts";
+import {
+  loadPrinterVerifications,
+  mergePrinterVerifications,
+  sanitizePrinterVerifications,
+  savePrinterVerifications,
+} from "../features/calibration/verification.ts";
 
 const endpoint = (
   import.meta.env.VITE_ACCOUNT_API_URL as string | undefined
@@ -277,6 +283,7 @@ export function buildSettings(): AccountSettings {
       printerSettings: printer.settings,
       printerModelSettings: loadModelPrinterSettings(),
       modelCalibrations: loadModelCalibrations(),
+      printerVerifications: loadPrinterVerifications(),
       copies: readCopies(),
       favorites: useFavorites.getState().ids,
     },
@@ -341,6 +348,11 @@ export function applySettings(data: Partial<AccountSettings>) {
   const calibrations = sanitizeModelCalibrations(p.modelCalibrations);
   if (Object.keys(calibrations).length)
     saveModelCalibrations({ ...loadModelCalibrations(), ...calibrations });
+  const verifications = sanitizePrinterVerifications(p.printerVerifications);
+  if (Object.keys(verifications).length)
+    savePrinterVerifications(
+      mergePrinterVerifications(loadPrinterVerifications(), verifications),
+    );
   if (
     typeof p.copies === "number" &&
     Number.isInteger(p.copies) &&

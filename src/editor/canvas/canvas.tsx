@@ -17,7 +17,11 @@ import {
 } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
 import { FormatPicker } from "../../components/FormatPicker.tsx";
-import { applyFormat, type FormatPreset } from "../../label/format-presets.ts";
+import {
+  selectFormat,
+  tiltLabel,
+  type FormatPreset,
+} from "../../label/format-presets.ts";
 import { ChevronDown } from "lucide-react";
 import { LabelPaper } from "./label-paper.tsx";
 import { TextElement } from "./elements/text-element.tsx";
@@ -59,13 +63,9 @@ function LabelSizeSelector({
   }, [open]);
 
   const setSize = (preset: FormatPreset) => {
-    useEditorV2Store.setState({
-      label: applyFormat(label, preset),
-      paperType: preset.paperType,
-      rollDirection: preset.rollDirection,
-      currentLabelDirty: true,
-    });
-    usePrinterStore.getState().updateSettings({ paperType: preset.paperType });
+    const next = selectFormat({ label, paperType, rollDirection }, preset);
+    useEditorV2Store.setState({ ...next, currentLabelDirty: true });
+    usePrinterStore.getState().updateSettings({ paperType: next.paperType });
     setOpen(false);
   };
 
@@ -93,40 +93,51 @@ function LabelSizeSelector({
           style={{ transition: "transform 150ms ease" }}
         />
       </button>
-      {paperType === "gap" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            useEditorV2Store.setState((s) => ({
-              rollDirection:
-                s.rollDirection === "vertical" ? "horizontal" : "vertical",
-              currentLabelDirty: true,
-            }));
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          useEditorV2Store.setState((s) =>
+            // A continuous roll keeps its width across the head, so the
+            // design turns a quarter on screen; a gap label only changes feed.
+            s.paperType === "continuous"
+              ? {
+                  ...tiltLabel(s.label, s.rollDirection),
+                  currentLabelDirty: true,
+                }
+              : {
+                  rollDirection:
+                    s.rollDirection === "vertical" ? "horizontal" : "vertical",
+                  currentLabelDirty: true,
+                },
+          );
+        }}
+        aria-label={tx(
+          paperType === "continuous"
+            ? "Label kantelen"
+            : "Doorvoerrichting wisselen",
+        )}
+        title={tx("rollDirection", { direction: tx(rollDirection) })}
+        className="ml-1 inline-flex items-center justify-center w-7 h-7 rounded-md bg-ink-850/95 border border-white/8 hover:border-white/15 hover:bg-ink-800 text-ink-300 hover:text-accent hover-fade shadow-panel"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transform: rollDirection === "vertical" ? "none" : "rotate(90deg)",
+            transition: "transform 180ms ease",
           }}
-          title={tx("rollDirection", { direction: tx(rollDirection) })}
-          className="ml-1 inline-flex items-center justify-center w-7 h-7 rounded-md bg-ink-850/95 border border-white/8 hover:border-white/15 hover:bg-ink-800 text-ink-300 hover:text-accent hover-fade shadow-panel"
         >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-              transform:
-                rollDirection === "vertical" ? "none" : "rotate(90deg)",
-              transition: "transform 180ms ease",
-            }}
-          >
-            <rect x="7" y="3" width="10" height="5" rx="1" />
-            <rect x="7" y="10" width="10" height="5" rx="1" opacity="0.55" />
-            <rect x="7" y="17" width="10" height="4" rx="1" opacity="0.3" />
-          </svg>
-        </button>
-      )}
+          <rect x="7" y="3" width="10" height="5" rx="1" />
+          <rect x="7" y="10" width="10" height="5" rx="1" opacity="0.55" />
+          <rect x="7" y="17" width="10" height="4" rx="1" opacity="0.3" />
+        </svg>
+      </button>
       {open && (
         <div
           role="dialog"
@@ -140,6 +151,7 @@ function LabelSizeSelector({
             <FormatPicker
               label={label}
               paperType={paperType}
+              rollDirection={rollDirection}
               modelId={modelId}
               maxPixels={modelId ? getDevice(modelId)?.printWidth : undefined}
               onSelect={setSize}

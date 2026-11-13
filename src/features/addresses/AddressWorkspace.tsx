@@ -71,6 +71,7 @@ function Preview({
   design,
   logo,
   flexibleLength = false,
+  tilted = false,
   onOverflow,
   drag,
 }: {
@@ -78,6 +79,8 @@ function Preview({
   design: AddressDesign;
   logo: HTMLImageElement | null;
   flexibleLength?: boolean;
+  /** Shows the label a quarter turn counter-clockwise, as it is read. */
+  tilted?: boolean;
   onOverflow?: (value: boolean) => void;
   drag?: {
     target: "text" | "logo";
@@ -86,6 +89,8 @@ function Preview({
 }) {
   const tx = useT();
   const ref = useRef<HTMLCanvasElement>(null);
+  // Rendered in printer orientation; the visible canvas may show it turned.
+  const source = useRef<HTMLCanvasElement | null>(null);
   const start = useRef<{
     x: number;
     y: number;
@@ -97,28 +102,47 @@ function Preview({
   const point = (event: PointerEvent<HTMLCanvasElement>) => {
     const bounds =
       start.current?.bounds ?? event.currentTarget.getBoundingClientRect();
-    const height = start.current?.height ?? event.currentTarget.height;
+    const width = source.current?.width ?? event.currentTarget.width;
+    const height = start.current?.height ?? source.current?.height ?? 0;
+    const u = (event.clientX - bounds.left) / bounds.width;
+    const v = (event.clientY - bounds.top) / bounds.height;
+    // Undo the counter-clockwise display turn: screen (u, v) is printer (1 - v, u).
+    const [x, y] = tilted
+      ? [(1 - v) * width, u * height]
+      : [u * width, v * height];
     return previewPosition(
-      ((event.clientX - bounds.left) * event.currentTarget.width) /
-        bounds.width,
-      ((event.clientY - bounds.top) * height) / bounds.height,
+      x,
+      y,
       design.portrait,
-      event.currentTarget.width,
+      width,
       addressDesignLength(design.format),
     );
   };
   useEffect(() => {
-    if (ref.current) {
-      const result = renderAddress(
-        ref.current,
-        address,
-        design,
-        logo,
-        flexibleLength,
-      );
-      onOverflow?.(result.overflow);
+    const visible = ref.current;
+    if (!visible) return;
+    source.current ??= document.createElement("canvas");
+    const rendered = source.current;
+    const result = renderAddress(
+      rendered,
+      address,
+      design,
+      logo,
+      flexibleLength,
+    );
+    onOverflow?.(result.overflow);
+    visible.width = tilted ? rendered.height : rendered.width;
+    visible.height = tilted ? rendered.width : rendered.height;
+    const ctx = visible.getContext("2d");
+    if (!ctx) return;
+    ctx.save();
+    if (tilted) {
+      ctx.translate(0, visible.height);
+      ctx.rotate(-Math.PI / 2);
     }
-  }, [address, design, logo, flexibleLength, onOverflow]);
+    ctx.drawImage(rendered, 0, 0);
+    ctx.restore();
+  }, [address, design, logo, flexibleLength, tilted, onOverflow]);
   return (
     <canvas
       ref={ref}
@@ -132,7 +156,7 @@ function Preview({
           cx: drag.target === "text" ? design.textX : design.logoX,
           cy: drag.target === "text" ? design.textY : design.logoY,
           bounds: event.currentTarget.getBoundingClientRect(),
-          height: event.currentTarget.height,
+          height: source.current?.height ?? event.currentTarget.height,
         };
         event.currentTarget.setPointerCapture(event.pointerId);
         event.preventDefault();
@@ -178,6 +202,7 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
     [busy, setBusy] = useState(false),
     [paused, setPaused] = useState(false);
   const flexibleLength = mode === "bulk" && design.format === "continuous";
+  const [tilted, setTilted] = useState(false);
   const compactRoll = flexibleLength && modelId === "luckp-d1s";
   const [profiles, setProfiles] = useState<MappingProfile[]>(() => {
     try {
@@ -504,6 +529,17 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
           >
             <option value="false">{tx("Liggend")}</option>
             <option value="true">{tx("Staand")}</option>
+          </select>
+        </label>
+        <label>
+          {tx("Voorbeeld")}
+          <select
+            aria-label={tx("Voorbeeld kantelen")}
+            value={String(tilted)}
+            onChange={(e) => setTilted(e.target.value === "true")}
+          >
+            <option value="false">{tx("Zoals het uit de printer komt")}</option>
+            <option value="true">{tx("Gekanteld (leesrichting)")}</option>
           </select>
         </label>
         <label>
@@ -865,6 +901,7 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
                 address={single}
                 design={design}
                 logo={logo}
+                tilted={tilted}
                 drag={busy ? undefined : drag}
                 onOverflow={setOverflow}
               />
@@ -1318,6 +1355,7 @@ export function AddressWorkspace({ mode }: { mode: "single" | "bulk" }) {
                         design={design}
                         logo={logo}
                         flexibleLength={flexibleLength}
+                        tilted={tilted}
                         drag={busy ? undefined : drag}
                       />
                       <span>

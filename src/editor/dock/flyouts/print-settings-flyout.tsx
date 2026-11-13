@@ -57,10 +57,14 @@ function useLabelConfig(): {
 }
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
+  embedded?: boolean;
 }
 
-export function PrintSettingsFlyout({ onClose }: Props) {
+export function PrintSettingsFlyout({
+  onClose = () => {},
+  embedded = false,
+}: Props) {
   const number = useNumberFormatter();
   const tx = useT();
   const [units, setUnits] = useState<"mm" | "px">("mm");
@@ -131,9 +135,9 @@ export function PrintSettingsFlyout({ onClose }: Props) {
 
   return (
     <div
-      role="dialog"
+      role={embedded ? "region" : "dialog"}
       aria-label={tx("Label- en printinstellingen")}
-      className="fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[420px] md:max-h-[calc(100dvh-240px)] flex flex-col overflow-hidden bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel z-40"
+      className={`${embedded ? "w-full" : "fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[420px] md:max-h-[calc(100dvh-240px)] z-40"} flex flex-col overflow-hidden bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-lg shadow-panel`}
     >
       <div className="flex items-center justify-between px-3 h-9 border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -142,13 +146,15 @@ export function PrintSettingsFlyout({ onClose }: Props) {
             {tx("Label- en printinstellingen")}{" "}
           </span>
         </div>
-        <button
-          aria-label={tx("Instellingen sluiten")}
-          onClick={onClose}
-          className="text-ink-400 hover:text-ink-100"
-        >
-          <X size={14} />
-        </button>
+        {!embedded && (
+          <button
+            aria-label={tx("Instellingen sluiten")}
+            onClick={onClose}
+            className="text-ink-400 hover:text-ink-100"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
       <div className="p-4 space-y-5 overflow-y-auto overscroll-contain min-h-0">
         <section className="space-y-3">

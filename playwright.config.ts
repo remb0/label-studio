@@ -16,9 +16,18 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.PRODUCTION_URL
     ? undefined
-    : {
-        command: "npm run dev -- --port 4173",
-        url: "http://127.0.0.1:4173",
-        reuseExistingServer: !process.env.CI,
-      },
+    : [
+        {
+          command: "npm run dev -- --port 4173",
+          url: "http://127.0.0.1:4173",
+          reuseExistingServer: !process.env.CI,
+        },
+        {
+          // Same app with the account API enabled (tests fake the API itself).
+          command: "npm run dev -- --port 4174",
+          url: "http://127.0.0.1:4174",
+          reuseExistingServer: !process.env.CI,
+          env: { VITE_ACCOUNT_API_URL: "/api" },
+        },
+      ],
 });

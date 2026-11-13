@@ -1,8 +1,8 @@
-import { useEditorV2Store } from "../../store/editor-store.ts";
 import { usePrinterStore } from "../../store/printer-store.ts";
+import { useEditorV2Store } from "../../store/editor-store.ts";
 import { isPrintSessionBusy } from "../../lib/print-session.ts";
 
-/** Every entry point opens the same dialog without losing the confirmed choice. */
+/** Every entry point navigates to the single printer workspace. */
 export function openPrinterConnect(): boolean {
   const state = usePrinterStore.getState();
   if (
@@ -14,9 +14,10 @@ export function openPrinterConnect(): boolean {
   )
     return false;
   state.setError(null);
-  useEditorV2Store.setState((s) => ({
-    printFlyoutOpen: false,
-    connectFlow: { ...s.connectFlow, open: true, step: "idle" },
+  useEditorV2Store.setState((editor) => ({
+    connectFlow: { ...editor.connectFlow, open: true, step: "idle" },
   }));
+  if (typeof window !== "undefined")
+    window.dispatchEvent(new CustomEvent("label-studio:open-printer"));
   return true;
 }

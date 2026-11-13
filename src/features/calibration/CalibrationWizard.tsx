@@ -19,7 +19,7 @@ import {
 import { toPixels } from "../../label/document.ts";
 import {
   applyCalibration,
-  loadCalibration,
+  loadCalibrationStart,
   saveCalibration,
   type Calibration,
 } from "./calibration.ts";
@@ -146,15 +146,20 @@ export function CalibrationWizard() {
     const horizontal = editor.rollDirection === "horizontal";
     setWidth(horizontal ? editor.label.heightMm : editor.label.widthMm);
     setHeight(horizontal ? editor.label.widthMm : editor.label.heightMm);
-    setCorrection(
+    const startValue =
       state.peripheral && state.modelId
-        ? loadCalibration(state.peripheral.id, state.modelId)
-        : { offsetXMm: 0, offsetYMm: 0 },
-    );
+        ? loadCalibrationStart(state.peripheral.id, state.modelId)
+        : { calibration: { offsetXMm: 0, offsetYMm: 0 }, fromModel: false };
+    setCorrection(startValue.calibration);
     setDensity(state.settings.density);
     setTarget(targetId);
     setStep(0);
-    setMessage("");
+    // A correction from another printer of this model is only a suggestion.
+    setMessage(
+      startValue.fromModel
+        ? "Startwaarde overgenomen van een andere printer van dit model. Controleer met een proefafdruk."
+        : "",
+    );
     setError("");
     setOpen(true);
   }

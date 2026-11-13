@@ -11,6 +11,18 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      # Disposable database for server/account.integration.test.mjs.
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-password
+          MYSQL_DATABASE: label_studio_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-root-password --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,11 +35,18 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:api
+        env:
+          MYSQL_TEST_HOST: 127.0.0.1
+          MYSQL_TEST_USER: root
+          MYSQL_TEST_PASSWORD: ci-root-password
+          MYSQL_TEST_DATABASE: label_studio_test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - run: docker compose config --quiet
       - run: docker build --build-arg COMMIT_SHA=${{ github.sha }} -t label-studio:ci .
+      - run: docker build -f server/Dockerfile -t label-studio-api:ci .
       - name: Container smoke test
         run: |
           docker run -d --name label-studio-ci -p 18080:8080 --read-only --tmpfs /tmp label-studio:ci

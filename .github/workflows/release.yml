@@ -24,6 +24,7 @@ jobs:
       packages: write
     outputs:
       image: ${{ steps.image.outputs.ref }}
+      api_image: ${{ steps.api_image.outputs.ref }}
       commit: ${{ steps.source.outputs.commit }}
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +48,15 @@ jobs:
           build-args: COMMIT_SHA=${{ steps.source.outputs.commit }}
       - id: image
         run: echo 'ref=ghcr.io/remb0/label-studio@${{ steps.build.outputs.digest }}' >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        id: api-build
+        with:
+          context: .
+          file: server/Dockerfile
+          push: true
+          tags: ghcr.io/remb0/label-studio-api:${{ steps.source.outputs.commit }}
+      - id: api_image
+        run: echo 'ref=ghcr.io/remb0/label-studio-api@${{ steps.api-build.outputs.digest }}' >> "$GITHUB_OUTPUT"
   deploy:
     needs: publish
     # Only the trusted main branch may run Docker commands on the LAN runner.
@@ -81,7 +91,17 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
           LABEL_STUDIO_IMAGE: ${{ needs.publish.outputs.image }}
+          LABEL_STUDIO_API_IMAGE: ${{ needs.publish.outputs.api_image }}
           EXPECTED_COMMIT: ${{ needs.publish.outputs.commit }}
+          MYSQL_PASSWORD: ${{ secrets.LABEL_STUDIO_MYSQL_PASSWORD }}
+          PUBLIC_APP_URL: https://labels.remb0.nl
+          SMTP_HOST: ${{ secrets.LABEL_STUDIO_SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.LABEL_STUDIO_SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.LABEL_STUDIO_SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.LABEL_STUDIO_SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.LABEL_STUDIO_SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.LABEL_STUDIO_SMTP_FROM }}
+          ADMIN_EMAILS: ${{ secrets.LABEL_STUDIO_ADMIN_EMAILS }}
         run: |
           export DOCKER_CONFIG="$(mktemp -d)"
           trap 'rm -rf "$DOCKER_CONFIG"' EXIT

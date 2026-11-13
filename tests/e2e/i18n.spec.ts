@@ -42,13 +42,10 @@ for (const [language, welcome, size] of languages) {
     await nav
       .getByRole("button", { name: t(language, "settings"), exact: true })
       .click();
-    const settings = page.getByRole("dialog", {
+    const settings = page.getByRole("region", {
       name: t(language, "Label- en printinstellingen"),
     });
     await expect(settings).toBeVisible();
-    await settings
-      .getByRole("button", { name: t(language, "Instellingen sluiten") })
-      .click();
     await nav
       .getByRole("button", { name: t(language, "single"), exact: true })
       .click();
@@ -130,22 +127,13 @@ for (const [language, welcome, size] of languages) {
     await calibration
       .getByRole("button", { name: t(language, "Kalibratie sluiten") })
       .click();
-    await page
-      .getByRole("button", {
-        name: t(language, "Printer verbinden"),
-        exact: true,
-      })
-      .click();
-    const connection = page.getByRole("dialog", {
+    const connection = page.getByRole("region", {
       name: t(language, "Printer verbinden"),
       exact: true,
     });
     await expect(
       connection.getByText(t(language, "Voor je begint"), { exact: true }),
     ).toBeVisible();
-    await connection
-      .getByRole("button", { name: t(language, "Verbindingsvenster sluiten") })
-      .click();
     await nav
       .getByRole("button", { name: t(language, "account"), exact: true })
       .click();
@@ -178,19 +166,18 @@ test("live language changes update dialogs, errors and dates while keeping desig
     localStorage.getItem("label-studio.draft.v1"),
   );
   await page.getByRole("combobox", { name: "Taal" }).selectOption("de");
-  await page.getByRole("button", { name: "Verbinden", exact: true }).click();
-  const connection = page.getByRole("dialog", {
+  await page
+    .getByRole("button", { name: t("de", "printer"), exact: true })
+    .click();
+  const connection = page.getByRole("region", {
     name: "Drucker verbinden",
     exact: true,
   });
   await expect(connection).toBeVisible();
   await page.getByRole("combobox", { name: "Sprache" }).selectOption("fr");
   await expect(
-    page.getByRole("dialog", { name: "Connecter l’imprimante", exact: true }),
+    page.getByRole("region", { name: "Connecter l’imprimante", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: t("fr", "Verbindingsvenster sluiten") })
-    .click();
   expect((await bluetoothState(page)).calls).toHaveLength(0);
   expect((await bluetoothState(page)).writes).toBe(0);
   expect(

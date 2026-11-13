@@ -11,7 +11,7 @@ test("custom label settings save and export a clean bitmap without selection or 
     .getByRole("button", { name: "Instellingen", exact: true })
     .first()
     .click();
-  const settings = page.getByRole("dialog", {
+  const settings = page.getByRole("region", {
     name: "Label- en printinstellingen",
   });
   await expect(settings).toBeVisible();
@@ -25,7 +25,7 @@ test("custom label settings save and export a clean bitmap without selection or 
   await page
     .getByLabel("Doorvoerrichting", { exact: true })
     .selectOption("vertical");
-  await page.getByRole("button", { name: "Instellingen sluiten" }).click();
+  await page.getByRole("button", { name: "Ontwerpen", exact: true }).click();
   await page.keyboard.press("ControlOrMeta+s");
   await expect
     .poll(() =>
@@ -57,7 +57,7 @@ test("custom label settings save and export a clean bitmap without selection or 
   await expect(
     page.getByLabel("Documentresolutie", { exact: true }),
   ).toHaveValue("300");
-  await page.getByRole("button", { name: "Instellingen sluiten" }).click();
+  await page.getByRole("button", { name: "Ontwerpen", exact: true }).click();
 
   await page.getByRole("button", { name: /^Nieuw label/ }).click();
   const downloadPromise = page.waitForEvent("download");
@@ -110,7 +110,7 @@ test("editor objects survive save, new document and reopen", async ({
     .getByRole("button", { name: "Sjablonen", exact: true })
     .click();
   await page
-    .getByRole("dialog", { name: "Sjablonen" })
+    .getByRole("region", { name: "Sjablonen" })
     .getByRole("button", { name: "Nieuw label", exact: true })
     .click();
   await expect(page.getByText("0 elementen", { exact: true })).toBeVisible();
@@ -119,7 +119,7 @@ test("editor objects survive save, new document and reopen", async ({
     .getByRole("button", { name: "Sjablonen", exact: true })
     .click();
   await page
-    .getByRole("dialog", { name: "Sjablonen" })
+    .getByRole("region", { name: "Sjablonen" })
     .getByRole("button", { name: "Open sjabloon Nieuw label", exact: true })
     .click();
   await expect(page.getByText("5 elementen", { exact: true })).toBeVisible();

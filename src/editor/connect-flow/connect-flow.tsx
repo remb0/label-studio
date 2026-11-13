@@ -22,12 +22,16 @@ function setFlow(patch: Partial<{ open: boolean; step: Step }>) {
   }));
 }
 
-export function ConnectFlow() {
+interface ConnectFlowProps {
+  inline?: boolean;
+}
+
+export function ConnectFlow({ inline = false }: ConnectFlowProps = {}) {
   const number = useNumberFormatter();
   const tx = useT();
   const open = useEditorV2Store((s) => s.connectFlow.open);
   const step = useConnectFlowStep();
-  const { scan, connect } = useWebBluetooth();
+  const { scan, connect, reconnect } = useWebBluetooth();
   const printSessionBusy = usePrintSession();
 
   // Bridge printer store state into editor store
@@ -111,23 +115,27 @@ export function ConnectFlow() {
     setFlow({ open: false, step: "idle" });
   };
 
-  if (!open) return null;
+  if (!open && !inline) return null;
 
   const printerName = usePrinterStore.getState().peripheral?.name || "Printer";
   const printerBattery = usePrinterStore.getState().battery;
 
   return (
     <div
-      className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-[2px] flex items-center justify-center"
+      className={
+        inline
+          ? "w-full"
+          : "fixed inset-0 z-[80] bg-black/40 backdrop-blur-[2px] flex items-center justify-center"
+      }
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) close();
+        if (!inline && e.target === e.currentTarget) close();
       }}
     >
       <div
-        role="dialog"
-        aria-modal="true"
+        role={inline ? "region" : "dialog"}
+        aria-modal={inline ? undefined : "true"}
         aria-label={tx("Printer verbinden")}
-        className="w-full max-w-[620px] max-h-[calc(100dvh-32px)] overflow-y-auto mx-4 bg-ink-850 border border-white/10 rounded-xl shadow-panel"
+        className={`${inline ? "w-full" : "w-full max-w-[620px] max-h-[calc(100dvh-32px)] overflow-y-auto mx-4"} bg-ink-850 border border-white/10 rounded-xl shadow-panel`}
       >
         {/* Header */}
         <div className="flex items-start justify-between px-5 pt-5 pb-3">
@@ -154,13 +162,15 @@ export function ConnectFlow() {
               </div>
             </div>
           </div>
-          <button
-            aria-label={tx("Verbindingsvenster sluiten")}
-            onClick={close}
-            className="text-ink-400 hover:text-ink-100"
-          >
-            <X size={16} />
-          </button>
+          {!inline && (
+            <button
+              aria-label={tx("Verbindingsvenster sluiten")}
+              onClick={close}
+              className="text-ink-400 hover:text-ink-100"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         {/* Body: Idle */}
@@ -216,6 +226,14 @@ export function ConnectFlow() {
                 {tx("Printer zoeken")}{" "}
               </button>
             </div>
+            <button
+              type="button"
+              className="mt-3 w-full h-9 rounded-md bg-ink-800 border border-white/5 text-ui-sm text-ink-200 hover:bg-ink-750 disabled:opacity-40"
+              disabled={printSessionBusy || isConnecting}
+              onClick={() => void reconnect()}
+            >
+              {tx("Eerder toegestane printer verbinden")}{" "}
+            </button>
             <div className="mt-5 border-t border-white/10 pt-4">
               <p className="mb-3 text-ui-sm text-ink-400">
                 {tx(
@@ -329,7 +347,7 @@ export function ConnectFlow() {
         )}
 
         {/* Footer */}
-        {step !== "connected" && (
+        {step !== "connected" && !inline && (
           <div className="flex items-center justify-between px-5 h-9 border-t border-white/5 bg-ink-900/50">
             <div className="flex items-center gap-3 text-ui-xs text-ink-500">
               <span className="flex items-center gap-1.5">

@@ -42,7 +42,7 @@ export function loadLibrary(): Library | null {
     }
     if (!Array.isArray(parsed.labels)) return null;
     parsed.labels = parsed.labels.map((label: SavedLabel) => ({
-      ...validateSavedLabel(label),
+      ...validateSavedLabel(label, { keepTimestamps: true }),
       id: label.id,
     }));
     parsed.recent = Array.isArray(parsed.recent) ? parsed.recent : [];
@@ -64,6 +64,72 @@ export function persistLibrary(lib: Library): void {
     }
     _saveTimer = null;
   }, 300);
+}
+
+// ---- Deletion tombstones (so account sync does not resurrect deleted labels) ----
+
+const DELETED_KEY = "label-studio:deleted-labels:v1";
+const MAX_TOMBSTONES = 1000;
+export type DeletedLabels = Record<string, number>;
+
+export function sanitizeDeletedLabels(value: unknown): DeletedLabels {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(
+      ([id, at]) =>
+        id.length > 0 &&
+        id.length <= 200 &&
+        typeof at === "number" &&
+        Number.isFinite(at),
+    )
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
+    .slice(0, MAX_TOMBSTONES);
+  return Object.fromEntries(entries) as DeletedLabels;
+}
+
+export function loadDeletedLabels(): DeletedLabels {
+  try {
+    return sanitizeDeletedLabels(
+      JSON.parse(localStorage.getItem(DELETED_KEY) ?? "{}"),
+    );
+  } catch {
+    return {};
+  }
+}
+
+export function saveDeletedLabels(value: DeletedLabels): void {
+  try {
+    localStorage.setItem(
+      DELETED_KEY,
+      JSON.stringify(sanitizeDeletedLabels(value)),
+    );
+  } catch {
+    /* Optional: without tombstones a deleted label may return after sync. */
+  }
+}
+
+export function recordDeletedLabel(id: string, at = Date.now()): void {
+  saveDeletedLabels({ ...loadDeletedLabels(), [id]: at });
+}
+
+/**
+ * Merge two label sets by id: the newest `updatedAt` wins, and a label deleted
+ * after its last edit stays deleted. Never drops a label that only one side has.
+ */
+export function mergeLabelSets(
+  local: SavedLabel[],
+  remote: SavedLabel[],
+  deleted: DeletedLabels,
+): SavedLabel[] {
+  const byId = new Map<string, SavedLabel>();
+  for (const item of [...local, ...remote]) {
+    const existing = byId.get(item.id);
+    if (!existing || item.updatedAt > existing.updatedAt)
+      byId.set(item.id, item);
+  }
+  return [...byId.values()]
+    .filter((item) => !(deleted[item.id] >= item.updatedAt))
+    .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 // ---- JSON export ----
@@ -152,7 +218,10 @@ export function importLabelFromJson(
   });
 }
 
-export function validateSavedLabel(value: unknown): Omit<SavedLabel, "id"> {
+export function validateSavedLabel(
+  value: unknown,
+  { keepTimestamps = false }: { keepTimestamps?: boolean } = {},
+): Omit<SavedLabel, "id"> {
   if (!value || typeof value !== "object")
     throw new Error("Ongeldig labelbestand.");
   const data = value as SavedLabel;
@@ -257,6 +326,10 @@ export function validateSavedLabel(value: unknown): Omit<SavedLabel, "id"> {
     elements: structuredClone(data.elements),
     settings,
     createdAt: Number.isFinite(data.createdAt) ? data.createdAt : Date.now(),
-    updatedAt: Date.now(),
+    // Stored copies keep their edit time so account sync can pick the newest.
+    updatedAt:
+      keepTimestamps && Number.isFinite(data.updatedAt)
+        ? data.updatedAt
+        : Date.now(),
   };
 }

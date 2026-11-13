@@ -6,15 +6,23 @@ import { luckpD1sProfile } from "./profiles/luckp-d1s.js";
 import { ficheroD11sProfile } from "./profiles/fichero-d11s.js";
 
 const devices: DeviceProfile[] = [];
+const patterns = new WeakMap<DeviceProfile, RegExp>();
 
 export function registerDevice(profile: DeviceProfile): void {
+  if (devices.some((d) => d.modelId === profile.modelId))
+    throw new Error(
+      `Device profile "${profile.modelId}" is already registered`,
+    );
+  // Compile once so an invalid pattern fails at registration, not mid-scan.
+  if (profile.namePattern)
+    patterns.set(profile, new RegExp(profile.namePattern, "i"));
   devices.push(profile);
 }
 
 export function findDeviceByName(name: string): DeviceProfile | null {
   for (const profile of devices) {
-    if (profile.namePattern && !new RegExp(profile.namePattern, "i").test(name))
-      continue;
+    const pattern = patterns.get(profile);
+    if (pattern && !pattern.test(name)) continue;
     for (const prefix of profile.namePrefixes) {
       const suffix = name.slice(prefix.length);
       if (

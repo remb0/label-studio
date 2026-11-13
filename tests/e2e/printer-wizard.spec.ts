@@ -65,8 +65,8 @@ test("Bluetooth search needs no profile and design-only restrictions remain expl
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Verbinden", exact: true }).click();
-  const dialog = page.getByRole("dialog", {
+  await page.getByRole("button", { name: "Printer", exact: true }).click();
+  const dialog = page.getByRole("region", {
     name: "Printer verbinden",
     exact: true,
   });

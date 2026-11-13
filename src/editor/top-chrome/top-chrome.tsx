@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useEditorV2Store } from "../../store/editor-store.ts";
 import { PrintButton } from "./print-button.tsx";
-import { PrinterChip } from "./printer-chip.tsx";
 import { FileChip } from "./file-chip.tsx";
 import { ThemePicker } from "./theme-picker.tsx";
 import logoSvg from "../../assets/logo.svg";
@@ -57,8 +56,6 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <img src={logoSvg} alt="Label Studio" className="w-7 h-7 shrink-0" />
           <FileChip />
         </div>
-        <PrinterChip />
-        <div className="w-px h-6 bg-white/5" />
         <div className="flex items-center gap-0.5">
           <button
             onClick={() => useEditorV2Store.temporal.getState().undo()}
@@ -135,12 +132,12 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <ThemePicker />
         </div>
         <a
-          href="https://github.com/remb0/label-studio"
+          href="https://github.com/sponsors/remb0"
           target="_blank"
           rel="noopener noreferrer"
           className="w-8 h-8 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-          title={tx("Label Studio op GitHub")}
-          aria-label={tx("Label Studio op GitHub")}
+          title={tx("Steun Label Studio via GitHub Sponsors")}
+          aria-label={tx("Steun Label Studio via GitHub Sponsors")}
         >
           <Heart size={16} />
         </a>
@@ -154,7 +151,6 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           <img src={logoSvg} alt="Label Studio" className="w-6 h-6 shrink-0" />
           <FileChip />
           <div className="flex-1" />
-          <PrinterChip />
           <PrintButton onPrint={onPrint} />
         </div>
         {/* Row 2: undo, redo, zoom, search, grid, theme */}
@@ -221,12 +217,12 @@ export function TopChrome({ onPrint }: TopChromeProps) {
           </button>
           <ThemePicker />
           <a
-            href="https://github.com/remb0/label-studio"
+            href="https://github.com/sponsors/remb0"
             target="_blank"
             rel="noopener noreferrer"
             className="w-7 h-7 flex items-center justify-center rounded-md text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 hover-fade"
-            title={tx("Label Studio op GitHub")}
-            aria-label={tx("Label Studio op GitHub")}
+            title={tx("Steun Label Studio via GitHub Sponsors")}
+            aria-label={tx("Steun Label Studio via GitHub Sponsors")}
           >
             <Heart size={14} />
           </a>

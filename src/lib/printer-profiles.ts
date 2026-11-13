@@ -39,6 +39,34 @@ export function savePreferredPrinterModel(modelId: string | null): void {
   }
 }
 
+/** Validates the parts of print settings that are safe to restore. */
+export function isValidPrintSettings(value: unknown): value is PrintSettings {
+  const s = value as PrintSettings | null;
+  return (
+    !!s &&
+    typeof s === "object" &&
+    [1, 2, 3].includes(s.density) &&
+    ["gap", "continuous"].includes(s.paperType) &&
+    ["floyd-steinberg", "threshold", "none"].includes(s.ditherMode) &&
+    Number.isFinite(s.threshold) &&
+    s.threshold >= 0 &&
+    s.threshold <= 255 &&
+    Number.isInteger(s.printWidth) &&
+    s.printWidth > 0 &&
+    s.printWidth <= 4096
+  );
+}
+
+function pickSettings(s: PrintSettings): PrintSettings {
+  return {
+    density: s.density,
+    paperType: s.paperType,
+    ditherMode: s.ditherMode,
+    threshold: s.threshold,
+    printWidth: s.printWidth,
+  };
+}
+
 export function loadPrinterProfiles(): SavedPrinterProfile[] {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "[]");
@@ -50,17 +78,7 @@ export function loadPrinterProfiles(): SavedPrinterProfile[] {
         typeof p.modelId === "string" &&
         typeof p.peripheral?.id === "string" &&
         typeof p.peripheral?.name === "string" &&
-        [1, 2, 3].includes(p.settings?.density) &&
-        ["gap", "continuous"].includes(p.settings.paperType) &&
-        ["floyd-steinberg", "threshold", "none"].includes(
-          p.settings.ditherMode,
-        ) &&
-        Number.isFinite(p.settings.threshold) &&
-        p.settings.threshold >= 0 &&
-        p.settings.threshold <= 255 &&
-        Number.isInteger(p.settings.printWidth) &&
-        p.settings.printWidth > 0 &&
-        p.settings.printWidth <= 4096
+        isValidPrintSettings(p.settings)
       );
     });
   } catch {
@@ -69,6 +87,7 @@ export function loadPrinterProfiles(): SavedPrinterProfile[] {
 }
 
 export function savePrinterProfile(profile: SavedPrinterProfile): void {
+  rememberModelPrinterSettings(profile.modelId, profile.settings);
   try {
     const profiles = loadPrinterProfiles().filter(
       (item) => item.peripheral.id !== profile.peripheral.id,
@@ -77,4 +96,56 @@ export function savePrinterProfile(profile: SavedPrinterProfile): void {
   } catch {
     /* Storage may be unavailable or full; connecting still works. */
   }
+}
+
+// ---- Per-model settings: device-independent, so they can sync to an account ----
+
+const MODEL_SETTINGS_KEY = "label-studio:printer-model-settings:v1";
+export type ModelPrinterSettings = Record<string, PrintSettings>;
+
+export function sanitizeModelPrinterSettings(
+  value: unknown,
+): ModelPrinterSettings {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: ModelPrinterSettings = {};
+  for (const [modelId, settings] of Object.entries(value).slice(0, 100))
+    if (
+      modelId.length <= 120 &&
+      (getDevice(modelId) || isDesignOnlyModel(modelId)) &&
+      isValidPrintSettings(settings)
+    )
+      result[modelId] = pickSettings(settings);
+  return result;
+}
+
+export function loadModelPrinterSettings(): ModelPrinterSettings {
+  try {
+    return sanitizeModelPrinterSettings(
+      JSON.parse(localStorage.getItem(MODEL_SETTINGS_KEY) ?? "{}"),
+    );
+  } catch {
+    return {};
+  }
+}
+
+export function saveModelPrinterSettings(value: ModelPrinterSettings): void {
+  try {
+    localStorage.setItem(
+      MODEL_SETTINGS_KEY,
+      JSON.stringify(sanitizeModelPrinterSettings(value)),
+    );
+  } catch {
+    /* Optional local preference. */
+  }
+}
+
+export function rememberModelPrinterSettings(
+  modelId: string,
+  settings: PrintSettings,
+): void {
+  if (!isValidPrintSettings(settings)) return;
+  saveModelPrinterSettings({
+    ...loadModelPrinterSettings(),
+    [modelId]: pickSettings(settings),
+  });
 }

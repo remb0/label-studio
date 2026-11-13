@@ -142,7 +142,7 @@ test("generate README screenshots with fictional demo content", async ({
     .getByRole("button", { name: "Instellingen", exact: true })
     .click();
   await expect(
-    page.getByRole("dialog", { name: "Label- en printinstellingen" }),
+    page.getByRole("region", { name: "Label- en printinstellingen" }),
   ).toBeVisible();
   await page.screenshot({ path: "docs/images/formats.png" });
   await navigation

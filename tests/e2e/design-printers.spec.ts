@@ -19,7 +19,7 @@ test("design-only printer models keep their label formats selectable", async ({
     .getByRole("navigation", { name: "Hoofdnavigatie" })
     .getByRole("button", { name: "Instellingen", exact: true })
     .click();
-  const dialog = page.getByRole("dialog", {
+  const dialog = page.getByRole("region", {
     name: "Label- en printinstellingen",
   });
   const format = dialog.getByRole("button", {

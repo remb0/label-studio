@@ -1,35 +1,45 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 : "${LABEL_STUDIO_IMAGE:?Immutable image reference required}"
+: "${LABEL_STUDIO_API_IMAGE:?Immutable API image reference required}"
 : "${EXPECTED_COMMIT:?Expected commit required}"
+: "${MYSQL_PASSWORD:?LABEL_STUDIO_MYSQL_PASSWORD secret is required}"
+[[ ${#MYSQL_PASSWORD} -ge 20 ]] || { echo 'MYSQL_PASSWORD must contain at least 20 characters.' >&2; exit 1; }
 DEPLOY_DIR="${LABEL_STUDIO_DEPLOY_DIR:-/docker/label-studio}"
 mkdir -p "$DEPLOY_DIR"
 exec 9>"$DEPLOY_DIR/deploy.lock"
 flock -n 9 || { echo 'Another Label Studio deployment is running.' >&2; exit 1; }
 case "$LABEL_STUDIO_IMAGE" in ghcr.io/remb0/label-studio@sha256:*) ;; *) echo 'Only immutable Label Studio GHCR images are accepted.' >&2; exit 1;; esac
+case "$LABEL_STUDIO_API_IMAGE" in ghcr.io/remb0/label-studio-api@sha256:*) ;; *) echo 'Only immutable Label Studio API GHCR images are accepted.' >&2; exit 1;; esac
 previous_image=$(docker inspect label-studio --format '{{.Config.Image}}' 2>/dev/null || true)
+previous_api_image=$(docker inspect label-studio-api --format '{{.Config.Image}}' 2>/dev/null || true)
 cp compose.yaml "$DEPLOY_DIR/compose.yaml"
 docker pull "$LABEL_STUDIO_IMAGE"
+docker pull "$LABEL_STUDIO_API_IMAGE"
+docker pull mysql:8.4
 export LABEL_STUDIO_BIND="${LABEL_STUDIO_BIND:-192.168.0.13}"
 export LABEL_STUDIO_PORT="${LABEL_STUDIO_PORT:-3022}"
+export PUBLIC_APP_URL="${PUBLIC_APP_URL:-https://labels.remb0.nl}"
 rollback() {
-  echo 'Health/version verification failed; restoring previous image.' >&2
-  if [[ -n "$previous_image" ]]; then
-    LABEL_STUDIO_IMAGE="$previous_image" docker compose --project-directory "$DEPLOY_DIR" up -d --no-build --pull never label-studio
+  echo 'Health/version verification failed; restoring previous application images.' >&2
+  if [[ -n "$previous_image" && -n "$previous_api_image" ]]; then
+    LABEL_STUDIO_IMAGE="$previous_image" LABEL_STUDIO_API_IMAGE="$previous_api_image" docker compose --project-directory "$DEPLOY_DIR" up -d --no-build --pull never
   else
-    docker compose --project-directory "$DEPLOY_DIR" stop label-studio
+    docker compose --project-directory "$DEPLOY_DIR" stop label-studio label-studio-api
   fi
 }
 trap rollback ERR
-docker compose --project-directory "$DEPLOY_DIR" up -d --no-build --pull never label-studio
+docker compose --project-directory "$DEPLOY_DIR" up -d --no-build --pull never
 for attempt in $(seq 1 30); do
   if curl -fsS "http://$LABEL_STUDIO_BIND:$LABEL_STUDIO_PORT/health" >/dev/null; then break; fi
   sleep 1
 done
 curl -fsS "http://$LABEL_STUDIO_BIND:$LABEL_STUDIO_PORT/health" >/dev/null
+curl -sS "http://$LABEL_STUDIO_BIND:$LABEL_STUDIO_PORT/api/auth/session" -o /dev/null -w '%{http_code}' | grep -qx '401'
 actual_commit=$(curl -fsS "http://$LABEL_STUDIO_BIND:$LABEL_STUDIO_PORT/version.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["commit"])')
 [[ "$actual_commit" == "$EXPECTED_COMMIT" ]]
 printf '%s\n' "$EXPECTED_COMMIT" > "$DEPLOY_DIR/.deployed-commit"
 printf '%s\n' "$LABEL_STUDIO_IMAGE" > "$DEPLOY_DIR/.deployed-image"
+printf '%s\n' "$LABEL_STUDIO_API_IMAGE" > "$DEPLOY_DIR/.deployed-api-image"
 trap - ERR
 echo "Label Studio deployed: $actual_commit"

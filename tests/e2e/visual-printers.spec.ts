@@ -35,7 +35,7 @@ test("visual printer choice is remembered without claiming a connection", async 
     )
     .toBe("p15");
   await expect(
-    page.getByRole("button", { name: "Printer verbinden", exact: true }),
+    page.getByRole("button", { name: "Printer", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Ontwerppreset: 40 × 12 mm/)).toBeVisible();
   await page.getByRole("button", { name: "Andere printer kiezen" }).click();
@@ -82,17 +82,15 @@ test("visual printer choice is remembered without claiming a connection", async 
     .toBe("");
 });
 
-test("printer model modal remains scrollable on a phone", async ({ page }) => {
+test("printer setup page remains scrollable on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page
     .getByRole("navigation", { name: "Hoofdnavigatie" })
     .getByRole("button", { name: "Printer", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Printer verbinden", exact: true })
-    .click();
-  const dialog = page.getByRole("dialog", {
+  await page.getByRole("button", { name: "Printer", exact: true }).click();
+  const dialog = page.getByRole("region", {
     name: "Printer verbinden",
     exact: true,
   });
@@ -112,9 +110,9 @@ test("printer model modal remains scrollable on a phone", async ({ page }) => {
   const bounds = await scan.boundingBox();
   expect(bounds!.y).toBeGreaterThanOrEqual(0);
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
-  const dialogBounds = await dialog.boundingBox();
-  expect(dialogBounds!.width).toBeLessThanOrEqual(390);
-  expect(dialogBounds!.height).toBeLessThanOrEqual(812);
-  await dialog.getByRole("button", { name: "Annuleren", exact: true }).click();
-  await expect(dialog).not.toBeVisible();
+  const setupBounds = await dialog.boundingBox();
+  expect(setupBounds!.width).toBeLessThanOrEqual(390);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });

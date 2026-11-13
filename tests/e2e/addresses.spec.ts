@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { bluetoothState, mockBluetooth } from "./helpers/mock-bluetooth";
 
 test("BoxCare CSV wizard maps, validates, corrects and prepares private local labels", async ({
   page,
@@ -148,4 +149,85 @@ test("single address renders and warns when its text overflows", async ({
       "Tekst valt buiten het etiket. Verklein of verplaats het tekstblok.",
     ),
   ).toBeVisible();
+});
+
+test("D1S prints a compact CSV batch with a cut line and a single final feed", async ({
+  page,
+}) => {
+  await mockBluetooth(page, "success");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Printer", exact: true }).click();
+  const scan = page.getByRole("button", {
+    name: "Printer zoeken",
+    exact: true,
+  });
+  const openDialog = page.getByRole("button", {
+    name: "Printer verbinden",
+    exact: true,
+  });
+  await expect(scan.or(openDialog).first()).toBeVisible();
+  if (await scan.isVisible()) {
+    await scan.click();
+    await expect(
+      page.getByText("LuckP_D1S_TEST", { exact: true }).first(),
+    ).toBeVisible();
+  } else {
+    await openDialog.click();
+    await scan.click();
+    await expect(
+      page.getByRole("button", { name: "Verbonden", exact: true }),
+    ).toBeVisible();
+  }
+
+  await page.getByRole("button", { name: "Bulklabels", exact: true }).click();
+  await page
+    .locator("input[type=file]")
+    .first()
+    .setInputFiles({
+      name: "adressen.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        "Naam;Straat;Postcode;Stad;Extra\nJan Jansen;Dorpsstraat 12;1234AB;Utrecht;\n" +
+          "Piet Peters;Markt 4;5555AB;Rotterdam;" +
+          "Bezorgen bij de receptie ".repeat(35),
+      ),
+    });
+  await page.getByRole("button", { name: "Kolommen koppelen →" }).click();
+  await page.getByRole("button", { name: "Filters instellen →" }).click();
+  await page.getByRole("button", { name: "Adressen controleren →" }).click();
+  await page.getByRole("button", { name: "Ontwerp bekijken →" }).click();
+  await page
+    .getByRole("combobox", { name: "Papier", exact: true })
+    .selectOption("continuous");
+  await page.getByRole("button", { name: "Naar printopdracht →" }).click();
+  await expect(page.getByText(/Compacte rol:/)).toBeVisible();
+  await page.getByRole("button", { name: "Afdrukken 2 etiketten" }).click();
+  await expect(page.getByText("Verzonden", { exact: true })).toHaveCount(2, {
+    timeout: 15_000,
+  });
+
+  const { packets } = await bluetoothState(page);
+  const rasterStarts = packets.flatMap((bytes, index) =>
+    bytes[0] === 0x1d && bytes[1] === 0x76 && bytes[2] === 0x30 ? [index] : [],
+  );
+  expect(rasterStarts).toHaveLength(2);
+  const rasters = rasterStarts.map((start) => {
+    const header = packets[start];
+    const height = header[6] + 256 * header[7];
+    const rasterLength = 8 + height * 48;
+    const raster = packets
+      .slice(start, start + Math.ceil(rasterLength / 100))
+      .flat();
+    expect(raster).toHaveLength(rasterLength);
+    return { height, data: raster.slice(8) };
+  });
+  expect(rasters[0].height).toBeLessThan(448);
+  expect(rasters[1].height).toBeGreaterThan(448);
+  expect(rasters[0].data.slice(0, 16 * 48)).toEqual(Array(16 * 48).fill(0));
+  expect(rasters[1].data.slice(4 * 48, 8 * 48)).toEqual(
+    Array.from({ length: 64 }, () => [0xff, 0xf0, 0]).flat(),
+  );
+  const feeds = packets.filter((bytes) => bytes.join(",") === "27,74,80");
+  expect(feeds).toHaveLength(1);
+  expect(packets.indexOf(feeds[0])).toBeGreaterThan(rasterStarts[1]);
 });

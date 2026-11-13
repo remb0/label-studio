@@ -43,6 +43,8 @@ export interface DeviceProfile {
 export interface PrintOptions {
   density?: number;
   paperType?: "gap" | "continuous";
+  /** Skip the LuckP D1S tear-off feed between labels on a continuous roll. */
+  skipEndFeed?: boolean;
   copies?: number;
   dither?: "floyd-steinberg" | "threshold" | "none";
   threshold?: number;

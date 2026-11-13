@@ -1,17 +1,5 @@
 import type { DeviceProfile, LabelSizePreset } from "../types.js";
-
-const gapSizes: LabelSizePreset[] = [
-  { widthMm: 22, heightMm: 12 },
-  { widthMm: 22, heightMm: 14 },
-  { widthMm: 26, heightMm: 15 },
-  { widthMm: 30, heightMm: 12 },
-  { widthMm: 30, heightMm: 14 },
-  { widthMm: 30, heightMm: 15 },
-  { widthMm: 40, heightMm: 12 },
-  { widthMm: 40, heightMm: 14 },
-  { widthMm: 40, heightMm: 15 },
-  { widthMm: 50, heightMm: 15 },
-];
+import { l11GapSizes as gapSizes } from "./l11-sizes.js";
 
 const continuousSizes: LabelSizePreset[] = [
   { widthMm: 22, heightMm: 12 },

@@ -9,7 +9,7 @@ test("visual sizes apply geometry and retain artwork; custom dimensions remain e
     .getByRole("button", { name: "Instellingen", exact: true })
     .first()
     .click();
-  const dialog = page.getByRole("dialog", {
+  const dialog = page.getByRole("region", {
     name: "Label- en printinstellingen",
   });
   await expect(
@@ -29,7 +29,7 @@ test("visual sizes apply geometry and retain artwork; custom dimensions remain e
     "circle",
   );
   await dialog.getByLabel("Breedte (mm)", { exact: true }).fill("35");
-  await dialog.getByRole("button", { name: "Instellingen sluiten" }).click();
+  await page.getByRole("button", { name: "Ontwerpen", exact: true }).click();
   await page.keyboard.press("ControlOrMeta+s");
   await expect
     .poll(() =>

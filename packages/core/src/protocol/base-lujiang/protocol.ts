@@ -56,7 +56,9 @@ export class BaseLujiangProtocol implements PrinterProtocol {
             command("form-feed", [0x1d, 0x0c]),
             command("label-end", [0x1f, 0x11, 0x50]),
           ]
-        : [command("feed", [0x1b, 0x4a, 0x50])]),
+        : options.skipEndFeed
+          ? []
+          : [command("feed", [0x1b, 0x4a, 0x50])]),
       command("stop", [0x10, 0xff, 0xf1, 0x45], 2000),
     ];
   }

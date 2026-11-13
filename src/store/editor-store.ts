@@ -9,6 +9,7 @@ import {
   type SavedLabel,
   loadLibrary,
   persistLibrary,
+  recordDeletedLabel,
   validateSavedLabel,
 } from "../lib/library.ts";
 
@@ -354,6 +355,7 @@ export const useEditorV2Store = create<EditorState>()(
 
       deleteLabel: (id) => {
         const { library, currentLabelId } = get();
+        recordDeletedLabel(id);
         const nextLabels = library.labels.filter((l) => l.id !== id);
         const nextRecent = library.recent.filter((x) => x !== id);
         const nextLib: Library = {

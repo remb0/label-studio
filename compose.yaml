@@ -16,3 +16,68 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    depends_on:
+      label-studio-api:
+        condition: service_healthy
+
+  label-studio-api:
+    image: ${LABEL_STUDIO_API_IMAGE:-label-studio-api:local}
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: label-studio-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-label_studio}
+      MYSQL_USER: ${MYSQL_USER:-label_studio}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-before-production}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://127.0.0.1:3022}
+      SESSION_DAYS: ${SESSION_DAYS:-30}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.4
+    container_name: label-studio-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-label_studio}
+      MYSQL_USER: ${MYSQL_USER:-label_studio}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-before-production}
+    volumes:
+      - label-studio-mysql:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  label-studio-mysql:

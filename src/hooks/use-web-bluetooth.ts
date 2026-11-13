@@ -4,6 +4,7 @@ import { Printer, type BlePeripheral } from "@thermoprint/core";
 import { WebBluetoothTransport } from "../transport/web-bluetooth.ts";
 import { usePrinterStore, applyModelDefaults } from "../store/printer-store.ts";
 import {
+  loadModelPrinterSettings,
   loadPrinterProfiles,
   savePrinterProfile,
   savePreferredPrinterModel,
@@ -121,11 +122,17 @@ export function useWebBluetooth() {
         });
 
         if (profile) {
-          const saved = loadPrinterProfiles().find(
-            (item) =>
-              item.peripheral.id === peripheral.id &&
-              item.modelId === profile.modelId,
-          );
+          // This exact printer first; otherwise the last settings used for
+          // this model (also restored from a signed-in account).
+          const saved =
+            loadPrinterProfiles().find(
+              (item) =>
+                item.peripheral.id === peripheral.id &&
+                item.modelId === profile.modelId,
+            ) ??
+            (loadModelPrinterSettings()[profile.modelId]
+              ? { settings: loadModelPrinterSettings()[profile.modelId] }
+              : undefined);
           store.getState().setModelId(profile.modelId);
           store.setState({ autoDetectedModelId: profile.modelId });
           applyModelDefaults(profile.modelId);

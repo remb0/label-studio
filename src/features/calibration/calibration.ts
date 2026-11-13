@@ -50,6 +50,65 @@ export function saveCalibration(
     KEY,
     JSON.stringify({ ...readProfiles(), [key(deviceId, modelId)]: next }),
   );
+  saveModelCalibrations({ ...loadModelCalibrations(), [modelId]: next });
+}
+
+// ---- Per-model calibration: only a starting value for another unit of the
+// same model (offered in the wizard, never applied silently when printing).
+// Device-independent, so it can follow a signed-in account. ----
+
+const MODEL_KEY = "label-studio:calibration-models:v1";
+export type ModelCalibrations = Record<string, Calibration>;
+
+export function sanitizeModelCalibrations(value: unknown): ModelCalibrations {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: ModelCalibrations = {};
+  for (const [modelId, calibration] of Object.entries(value).slice(0, 100)) {
+    if (!modelId || modelId.length > 120) continue;
+    try {
+      result[modelId] = validateCalibration(calibration);
+    } catch {
+      /* skip invalid entries */
+    }
+  }
+  return result;
+}
+
+export function loadModelCalibrations(): ModelCalibrations {
+  try {
+    return sanitizeModelCalibrations(
+      JSON.parse(localStorage.getItem(MODEL_KEY) ?? "{}"),
+    );
+  } catch {
+    return {};
+  }
+}
+
+export function saveModelCalibrations(value: ModelCalibrations): void {
+  try {
+    localStorage.setItem(
+      MODEL_KEY,
+      JSON.stringify(sanitizeModelCalibrations(value)),
+    );
+  } catch {
+    /* optional */
+  }
+}
+
+/** Wizard start value: this printer's own correction, else the model's last one. */
+export function loadCalibrationStart(
+  deviceId: string,
+  modelId: string,
+): { calibration: Calibration; fromModel: boolean } {
+  if (Object.hasOwn(readProfiles(), key(deviceId, modelId)))
+    return {
+      calibration: loadCalibration(deviceId, modelId),
+      fromModel: false,
+    };
+  const model = loadModelCalibrations()[modelId];
+  return model
+    ? { calibration: model, fromModel: true }
+    : { calibration: { ...NO_CALIBRATION }, fromModel: false };
 }
 
 /** Printer-axis translation, after document rotation/resampling. Never crop ink silently. */

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { emptyAddress } from "./address-model";
 import {
+  compactAddressBitmap,
   defaultDesign,
   previewPosition,
   renderAddress,
@@ -56,6 +57,43 @@ describe("shared address render", () => {
     expect([canvas.width, canvas.height]).toEqual([384, 448]);
     expect(ctx.rotate).toHaveBeenCalledWith(Math.PI / 2);
   });
+  it("extends a continuous bulk label along the feed without clipping its address", () => {
+    const { canvas, ctx } = mockCanvas();
+    const design = {
+      ...defaultDesign,
+      format: "continuous",
+      textY: 0,
+    } as const;
+    const longAddress = {
+      ...address,
+      extra: "Bezorgen bij receptie ".repeat(30),
+    };
+
+    expect(renderAddress(canvas, longAddress, design).overflow).toBe(true);
+    expect(
+      renderAddress(canvas, longAddress, design, null, true).overflow,
+    ).toBe(false);
+    expect(canvas.width).toBe(384);
+    expect(canvas.height).toBeGreaterThan(448);
+    expect(ctx.translate).toHaveBeenLastCalledWith(0, expect.any(Number));
+  });
+  it("extends rotated text along the feed but still checks the physical roll width", () => {
+    const { canvas } = mockCanvas();
+    const design = {
+      ...defaultDesign,
+      format: "continuous",
+      portrait: true,
+    } as const;
+    const longAddress = { ...address, name: "X".repeat(45) };
+    expect(
+      renderAddress(canvas, longAddress, design, null, true).overflow,
+    ).toBe(false);
+    expect(canvas.height).toBeGreaterThan(448);
+    expect(
+      renderAddress(canvas, longAddress, { ...design, textY: 0 }, null, true)
+        .overflow,
+    ).toBe(true);
+  });
   it("reports overflowing unbreakable words and vertically overflowing labels", () => {
     expect(
       renderAddress(
@@ -91,5 +129,31 @@ describe("shared address render", () => {
     expect(Array.from(rgba)).toEqual([
       0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255,
     ]);
+  });
+});
+
+describe("compact continuous address labels", () => {
+  it("removes outer blank rows and keeps the print and its internal spacing", () => {
+    const data = new Uint8Array(48 * 448);
+    data[48 * 180] = 0x80;
+    data[48 * 182 + 47] = 0x01;
+    const image = { width: 384, height: 448, bytesPerRow: 48, data };
+
+    const compact = compactAddressBitmap(image, true);
+    expect(compact.height).toBe(43);
+    expect(compact.data.slice(24 * 48, 27 * 48)).toEqual(
+      data.slice(180 * 48, 183 * 48),
+    );
+    expect(compact.data.slice(0, 4 * 48)).toEqual(new Uint8Array(4 * 48));
+    expect(compact.data.slice(4 * 48, 8 * 48)).toEqual(
+      Uint8Array.from(Array.from({ length: 64 }, () => [0xff, 0xf0, 0]).flat()),
+    );
+    expect(compact.data.slice(8 * 48, 24 * 48)).toEqual(
+      new Uint8Array(16 * 48),
+    );
+    expect(compact.data.slice(-16 * 48)).toEqual(new Uint8Array(16 * 48));
+    expect(compactAddressBitmap(image, false).data).toEqual(
+      compact.data.slice(8 * 48),
+    );
   });
 });

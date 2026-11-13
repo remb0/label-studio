@@ -40,6 +40,19 @@ describe("LuckP D1S legacy compatibility", () => {
     expect(commands.some((c) => c.label === "label-start")).toBe(false);
     expect(Array.from(commands.at(-2)!.data)).toEqual([27, 74, 80]);
   });
+  test("skips the tear-off feed only between continuous labels", () => {
+    const continuous = protocol.buildPrintSequence(image, {
+      paperType: "continuous",
+      skipEndFeed: true,
+    });
+    expect(continuous.slice(-2).map((command) => command.label)).toEqual([
+      "raster",
+      "stop",
+    ]);
+    expect(protocol.buildPrintSequence(image, { skipEndFeed: true })).toEqual(
+      protocol.buildPrintSequence(image),
+    );
+  });
   test("recognizes the real BLE name and keeps upstream models", () => {
     expect(findDeviceByName("LuckP_D1S_F828_BLE")?.printWidth).toBe(384);
     expect(findDeviceByName("Fichero D1S")?.protocolId).toBe("base-lujiang");

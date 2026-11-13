@@ -5,7 +5,9 @@ COPY packages/core/package.json ./packages/core/package.json
 RUN npm ci
 COPY . .
 ARG COMMIT_SHA=local
+ARG VITE_ACCOUNT_API_URL=/api
 ENV COMMIT_SHA=$COMMIT_SHA
+ENV VITE_ACCOUNT_API_URL=$VITE_ACCOUNT_API_URL
 RUN npm run build && node -e 'require("fs").writeFileSync("dist/version.json", JSON.stringify({version:require("./package.json").version,commit:process.env.COMMIT_SHA}))'
 
 FROM nginxinc/nginx-unprivileged:1.28-alpine

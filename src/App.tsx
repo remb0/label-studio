@@ -32,7 +32,6 @@ import { usePrinterStore } from "./store/printer-store.ts";
 import { useWebBluetooth, getPrinter } from "./hooks/use-web-bluetooth.ts";
 import { getDevice } from "@thermoprint/core";
 import { PrinterModelPicker } from "./features/printers/PrinterModelPicker.tsx";
-import { openPrinterConnect } from "./features/printers/open-printer-connect.ts";
 import { CalibrationWizard } from "./features/calibration/CalibrationWizard.tsx";
 import { DraftRecovery } from "./features/drafts/DraftRecovery.tsx";
 import {
@@ -43,6 +42,7 @@ import {
 
 import { AboutPage } from "./features/about/AboutPage.tsx";
 import { AccountPage } from "./features/account/AccountPage.tsx";
+import { startAccountAutoSync } from "./lib/cloud-account.ts";
 import { PrinterSubmission } from "./features/printers/PrinterSubmission.tsx";
 import { BluetoothBrowserHelp } from "./features/printers/BluetoothBrowserHelp.tsx";
 import { PrinterCompatibility } from "./features/printers/PrinterCompatibility.tsx";
@@ -51,13 +51,21 @@ import "./studio.css";
 declare const __APP_VERSION__: string;
 declare const __COMMIT_SHA__: string;
 
-type Page = "editor" | "single" | "bulk" | "printer" | "about" | "account";
+type Page =
+  | "editor"
+  | "single"
+  | "bulk"
+  | "printer"
+  | "templates"
+  | "settings"
+  | "about"
+  | "account";
 
 function PrinterWorkspace() {
   const number = useNumberFormatter();
   const tx = useT();
   const state = usePrinterStore();
-  const { disconnect, reconnect } = useWebBluetooth();
+  const { disconnect } = useWebBluetooth();
   const [diagnostic, setDiagnostic] = useState<
     { label: string; value: UiMessage }[]
   >([]);
@@ -95,6 +103,28 @@ function PrinterWorkspace() {
       release();
     }
   };
+  if (!state.isConnected) {
+    return (
+      <section className="studio-page">
+        <div className="studio-page-title">
+          <span className="studio-eyebrow">{tx("VERBINDEN & INSTELLEN")}</span>
+          <h1>{tx("Printer verbinden")}</h1>
+          <p>
+            {tx(
+              "Kies je printer in het Bluetoothvenster van je browser. Daarna herkennen we het ondersteunde model en laden we de juiste instellingen.",
+            )}
+          </p>
+        </div>
+        <div className="studio-page-panel">
+          <ConnectFlow inline />
+        </div>
+        <BluetoothBrowserHelp />
+        <PrinterCompatibility />
+        <PrinterSubmission />
+        <CalibrationWizard />
+      </section>
+    );
+  }
   return (
     <section className="studio-page">
       <div className="studio-page-title">
@@ -123,9 +153,7 @@ function PrinterWorkspace() {
           <button
             className="studio-primary"
             disabled={busy || state.isConnecting || state.isPrinting || reading}
-            onClick={
-              state.isConnected ? () => void disconnect() : openPrinterConnect
-            }
+            onClick={() => void disconnect()}
           >
             {state.isConnecting
               ? tx("Verbinden…")
@@ -133,15 +161,6 @@ function PrinterWorkspace() {
                 ? tx("Verbinding verbreken")
                 : tx("Printer verbinden")}
           </button>
-          {!state.isConnected && (
-            <button
-              className="studio-secondary"
-              disabled={busy || state.isConnecting}
-              onClick={() => void reconnect()}
-            >
-              {tx("Eerder toegestane printer verbinden")}{" "}
-            </button>
-          )}
           {state.error && (
             <p role="alert" className="studio-error">
               {tx(state.error)}
@@ -212,38 +231,41 @@ function PrinterWorkspace() {
 
 export function App() {
   const tx = useT();
-  const [page, setPage] = useState<Page>("editor");
+  const [page, setPage] = useState<Page>(() => {
+    const url = new URL(window.location.href);
+    return url.searchParams.has("reset_token") ? "account" : "editor";
+  });
   const language = useLanguage((s) => s.language);
   const setLanguage = useLanguage((s) => s.setLanguage);
-  const [panel, setPanel] = useState<"library" | "settings" | null>(null);
   const connected = usePrinterStore((s) => s.isConnected);
+  const printerName = usePrinterStore((s) => s.peripheral?.name);
+  const printerStatus = usePrinterStore((s) => s.printerStatus);
   const busy = usePrintSession();
   const navigation = [
     ["editor", "editor", PenTool],
     ["single", "single", Mail],
     ["bulk", "bulk", Rows3],
-    ["printer", "printer", PrinterIcon],
     ["about", "about", Info],
     ["account", "account", UserRound],
   ] as const;
+  useEffect(() => startAccountAutoSync(), []);
   useEffect(() => {
     const formats = () => {
-      if (!isPrintSessionBusy()) {
-        setPage("editor");
-        setPanel("settings");
-      }
+      if (!isPrintSessionBusy()) setPage("settings");
     };
     const templates = () => {
-      if (!isPrintSessionBusy()) {
-        setPage("editor");
-        setPanel("library");
-      }
+      if (!isPrintSessionBusy()) setPage("templates");
+    };
+    const printer = () => {
+      if (!isPrintSessionBusy()) setPage("printer");
     };
     window.addEventListener("label-studio:open-formats", formats);
     window.addEventListener("label-studio:open-templates", templates);
+    window.addEventListener("label-studio:open-printer", printer);
     return () => {
       window.removeEventListener("label-studio:open-formats", formats);
       window.removeEventListener("label-studio:open-templates", templates);
+      window.removeEventListener("label-studio:open-printer", printer);
     };
   }, []);
   return (
@@ -265,20 +287,42 @@ export function App() {
               key={id}
               disabled={busy}
               aria-current={page === id ? "page" : undefined}
-              onClick={() => {
-                setPage(id);
-                setPanel(null);
-              }}
+              onClick={() => setPage(id)}
             >
               <Icon size={15} />
               <span>{t(language, name)}</span>
             </button>
           ))}
-          <button disabled={busy} onClick={() => setPanel("library")}>
+          <button
+            disabled={busy}
+            aria-label={t(language, "printer")}
+            aria-current={page === "printer" ? "page" : undefined}
+            onClick={() => setPage("printer")}
+          >
+            <PrinterIcon size={15} />
+            <span>
+              {connected
+                ? `${t(language, "printer")} · ${printerStatus ? tx(printerStatus) : printerName || t(language, "connected")}`
+                : tx("Printer verbinden")}
+            </span>
+            <span
+              aria-hidden="true"
+              className={`studio-status-dot ${connected ? "connected" : ""}`}
+            />
+          </button>
+          <button
+            disabled={busy}
+            aria-current={page === "templates" ? "page" : undefined}
+            onClick={() => setPage("templates")}
+          >
             <LayoutTemplate size={15} />
             <span>{t(language, "templates")}</span>
           </button>
-          <button disabled={busy} onClick={() => setPanel("settings")}>
+          <button
+            disabled={busy}
+            aria-current={page === "settings" ? "page" : undefined}
+            onClick={() => setPage("settings")}
+          >
             <Settings size={15} />
             <span>{t(language, "settings")}</span>
           </button>
@@ -297,16 +341,6 @@ export function App() {
             ))}
           </select>
         </label>
-        <button
-          className="studio-connection"
-          disabled={busy}
-          onClick={() =>
-            connected ? setPage("printer") : openPrinterConnect()
-          }
-        >
-          <span className={connected ? "connected" : ""} />
-          {t(language, connected ? "connected" : "connect")}
-        </button>
       </nav>
       {!window.isSecureContext && (
         <div className="studio-banner">
@@ -327,6 +361,30 @@ export function App() {
           <Editor />
         ) : page === "printer" ? (
           <PrinterWorkspace />
+        ) : page === "templates" ? (
+          <section className="studio-page studio-library-page">
+            <div className="studio-page-title">
+              <span className="studio-eyebrow">{tx("BIBLIOTHEEK")}</span>
+              <h1>{tx("Sjablonen")}</h1>
+              <p>
+                {tx("Beheer startsjablonen en je eigen opgeslagen labels.")}
+              </p>
+            </div>
+            <LibraryFlyout embedded onClose={() => setPage("editor")} />
+          </section>
+        ) : page === "settings" ? (
+          <section className="studio-page studio-settings-page">
+            <div className="studio-page-title">
+              <span className="studio-eyebrow">{tx("CENTRAAL BEHEER")}</span>
+              <h1>{tx("Papier, label en interface")}</h1>
+              <p>
+                {tx(
+                  "Beheer hier alle label-, papier-, afdruk- en interface-instellingen.",
+                )}
+              </p>
+            </div>
+            <PrintSettingsFlyout embedded />
+          </section>
         ) : page === "about" ? (
           <AboutPage />
         ) : page === "account" ? (
@@ -341,26 +399,6 @@ export function App() {
           <AddressWorkspace mode={page === "bulk" ? "bulk" : "single"} />
         </div>
       </main>
-      {panel && (
-        <>
-          <button
-            className="studio-backdrop"
-            aria-label={tx("Paneel sluiten")}
-            onClick={() => setPanel(null)}
-          />
-          {panel === "library" ? (
-            <LibraryFlyout
-              onClose={() => {
-                setPanel(null);
-                setPage("editor");
-              }}
-            />
-          ) : (
-            <PrintSettingsFlyout onClose={() => setPanel(null)} />
-          )}
-        </>
-      )}
-      <ConnectFlow />
       <DraftRecovery />
     </div>
   );

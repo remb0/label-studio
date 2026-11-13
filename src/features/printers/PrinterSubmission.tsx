@@ -1,6 +1,7 @@
 import { useT } from "../../lib/i18n.ts";
 import { useState } from "react";
 import { usePrinterStore } from "../../store/printer-store.ts";
+import { submitPrinterModelProposal } from "../../lib/community-printers.ts";
 
 const repo = "https://github.com/remb0/label-studio";
 type FormData = {
@@ -143,6 +144,7 @@ export function PrinterSubmission() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(blank);
   const [feedback, setFeedback] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const peripheral = usePrinterStore((s) => s.peripheral);
   const deviceModel = usePrinterStore((s) => s.deviceModel);
@@ -201,6 +203,27 @@ export function PrinterSubmission() {
       "_blank",
       "noopener,noreferrer",
     );
+  };
+  const submitToCommunity = async () => {
+    if (!valid || submitting) return;
+    setSubmitting(true);
+    setFeedback("");
+    try {
+      await submitPrinterModelProposal({
+        ...data,
+        testResult: data.testResult as
+          "not-tested" | "connected" | "printed" | "failed",
+      });
+      setFeedback(
+        "Voorstel opgeslagen. Het wordt beoordeeld voordat het in de printercatalogus verschijnt.",
+      );
+    } catch (error) {
+      setFeedback(
+        error instanceof Error ? error.message : "Voorstel opslaan mislukt.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
   return (
     <section className="studio-card mt-5" aria-label={w.title}>
@@ -350,6 +373,13 @@ export function PrinterSubmission() {
           </pre>
           <p className="text-ui-xs">{w.notice}</p>
           <div className="flex flex-wrap gap-2">
+            <button
+              className="studio-primary"
+              disabled={submitting}
+              onClick={() => void submitToCommunity()}
+            >
+              {submitting ? tx("Opslaan…") : tx("Insturen via mijn account")}
+            </button>
             <button className="studio-primary" onClick={issue}>
               {w.github}
             </button>

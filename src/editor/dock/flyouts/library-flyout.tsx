@@ -281,10 +281,11 @@ interface MenuState {
 // ---- Main ----
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
+  embedded?: boolean;
 }
 
-export function LibraryFlyout({ onClose }: Props) {
+export function LibraryFlyout({ onClose = () => {}, embedded = false }: Props) {
   const number = useNumberFormatter();
   const tx = useT();
   const language = useLanguage((s) => s.language);
@@ -384,9 +385,9 @@ export function LibraryFlyout({ onClose }: Props) {
 
   return (
     <div
-      role="dialog"
+      role={embedded ? "region" : "dialog"}
       aria-label={tx("Sjablonen")}
-      className="fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[680px] md:h-[480px] md:max-h-[calc(100dvh-240px)] bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-xl shadow-panel z-40 overflow-hidden flex flex-col"
+      className={`${embedded ? "w-full min-h-[620px]" : "fixed inset-x-2 top-24 bottom-24 md:inset-auto md:absolute md:bottom-40 md:left-1/2 md:-translate-x-1/2 md:w-[680px] md:h-[480px] md:max-h-[calc(100dvh-240px)] z-40"} bg-ink-850/95 backdrop-blur-sm border border-white/8 rounded-xl shadow-panel overflow-hidden flex flex-col`}
     >
       {/* Header */}
       <div className="px-3 py-2 border-b border-white/5 shrink-0 space-y-2">
@@ -401,9 +402,14 @@ export function LibraryFlyout({ onClose }: Props) {
               {number(library.labels.length)} {tx("labels")}{" "}
             </span>
           </div>
-          <button onClick={onClose} className="text-ink-400 hover:text-ink-100">
-            <X size={15} />
-          </button>
+          {!embedded && (
+            <button
+              onClick={onClose}
+              className="text-ink-400 hover:text-ink-100"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
         {/* Row 2: search + actions */}
         <div className="flex items-center gap-2">

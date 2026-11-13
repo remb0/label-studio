@@ -95,7 +95,9 @@ test("starter and saved favorites stay in their groups and do not open artwork",
       exact: true,
     })
     .click();
-  await expect(page.getByRole("dialog", { name: "Sjablonen" })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Sjablonen", exact: true }),
+  ).toBeVisible();
   await expect(
     page
       .locator("[data-starter-card]")

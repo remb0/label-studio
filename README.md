@@ -24,7 +24,9 @@ Productieadres: **[labels.remb0.nl](https://labels.remb0.nl)**, bereikbaar via d
 - Kalibratiewizard met testlabel, dichtheidskeuze en veilige uitlijncorrectie per fysieke printer.
 - Web Bluetooth en directe printerondersteuning voor LuckP D1S en de 96-dot Fichero D11s met Bluetoothnaam `FICHERO_5836_BLE`, plus behouden Thermoprint-profielen.
 - Uitgebreide labelinstellingen, vormmaskers, geprinte scheidingslijnen en lichte/donkere thema's. Een scheidingslijn verdeelt het ontwerp visueel; hij start geen afzonderlijke printjobs.
-- Lokaal of in Docker draaien; geen database nodig.
+- Gastmodus lokaal zonder database, of de volledige Dockerstack met optionele MySQL-accounts.
+- Eén centrale pagina voor printerverbinding, printerstatus, kalibratie en communitycontrole; sjablonen en label-/papier-/interface-instellingen gebruiken eveneens volledige pagina's.
+- Optionele e-mailaccounts voor handmatige synchronisatie van persoonlijke labels, sjablonen en voorkeuren; gastgebruik blijft beschikbaar.
 
 ## Snel lokaal starten
 
@@ -63,7 +65,9 @@ De catalogus bevat **20 modellen en 14 modelafbeeldingen**, waaronder zes nieuwe
 
 Een ontwerpprofiel vooraf kiezen is optioneel. Met **Printer zoeken** open je direct het Bluetoothvenster; je hoeft niet eerst een model te bevestigen. Na jouw apparaatkeuze herkent de app ondersteunde modellen aan de Bluetoothnaam, controleert de verbinding en laadt passende basisinstellingen of eerder opgeslagen apparaatinstellingen. Je bestaande ontwerp en labelmaat blijven behouden. Een herkend, verbonden apparaat wordt het nieuwe voorkeursprofiel, ook wanneer eerder een ander of design-only profiel gekozen was. Annuleren, onbekende modellen en mislukte verbindingen wijzigen de voorkeur niet. Catalogusvermelding betekent geen ondersteuning voor direct printen: onbekende apparaten krijgen nooit een willekeurig protocol.
 
-De printerpagina, **Connect printer** in de editor, **Verbinden** in de navigatie en de Print-knop openen dezelfde verbindingsflow. **Printer zoeken** staat boven de optionele profielwizard en roept vanuit de klik direct de browserkiezer aan, met dezelfde apparaatfilters en servicetoestemmingen. Zoeken blijft tijdens een actieve printopdracht geblokkeerd. Een browserfout wordt getoond en kan opnieuw worden geprobeerd. Automatische tests controleren dit met een gesimuleerde Bluetooth-API; zij bewijzen geen fysieke printerverbinding.
+Het menu bevat één dynamische **Printer**-ingang. Zonder verbinding staat daar de verbindingswizard; na verbinden toont dezelfde pagina de printer, status, diagnose, kalibratie en communitycontrole. Ook editoracties en de Print-knop sturen naar deze pagina. **Printer zoeken** roept vanuit de klik direct de browserkiezer aan, met dezelfde apparaatfilters en servicetoestemmingen. Zoeken blijft tijdens een actieve printopdracht geblokkeerd. Een browserfout wordt getoond en kan opnieuw worden geprobeerd. Automatische tests controleren dit met een gesimuleerde Bluetooth-API; zij bewijzen geen fysieke printerverbinding.
+
+Onder **Communitycontrole** kan een aangemelde gebruiker voor het exact verbonden model vastleggen of verbinden, testafdruk, uitlijning, QR-scan en opnieuw verbinden zijn gecontroleerd. Inzendingen zijn eerst privé en worden pas na moderatie als geaggregeerde modelstatus getoond. Een melding activeert nooit automatisch printercode. Zie het [Bluetooth-compatibiliteitsplan](docs/bluetooth-compatibility-playbook.md) voor de veilige route naar ondersteuning van extra modellen.
 
 ### Bluetooth Classic en wifi
 
@@ -148,7 +152,11 @@ Een pull request draait lint, typecheck, tests, browserflows en een Docker-smoke
 
 ## Privacy
 
-Geen analytics, externe fonts of adresuploads. Fonts en scripts worden in de build gebundeld. Templates, concepten, favorieten, kalibratie en printervoorkeuren worden lokaal in browseropslag bewaard. Let op: templates en concepten kunnen zelf persoonlijke tekst of afbeeldingen bevatten. Wis of exporteer deze bewust op gedeelde computers.
+Geen analytics, externe fonts of adresuploads. Fonts en scripts worden in de build gebundeld. Templates, concepten, favorieten, kalibratie en printervoorkeuren worden lokaal in browseropslag bewaard. Met de optionele MySQL-account-API kan de gebruiker een persoonlijke momentopname handmatig opslaan of laden; Google-aanmelding is nog niet ingebouwd. De browser maakt nooit rechtstreeks verbinding met MySQL. Let op: templates en concepten kunnen zelf persoonlijke tekst of afbeeldingen bevatten. Wis of exporteer deze bewust op gedeelde computers. Zie [MySQL-account- en communityconfiguratie](docs/mysql-account-setup.md).
+
+## Steunen
+
+De interface en `.github/FUNDING.yml` verwijzen naar [GitHub Sponsors voor remb0](https://github.com/sponsors/remb0). Het activeren van het Sponsors-profiel, uitbetalingen en fiscale verificatie moet de accounteigenaar zelf in GitHub afronden.
 
 ## Roadmap
 

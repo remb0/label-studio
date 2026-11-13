@@ -32,6 +32,12 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
     label: "Low battery",
     color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
   },
+  // Printers such as the LuckP D1S never report completion: the data was
+  // sent, and only the physical label shows whether it printed.
+  transmitted_unconfirmed: {
+    label: "transmitted_unconfirmed",
+    color: "text-ink-300 bg-ink-800 border-white/5",
+  },
   cover_closed: {
     label: "Cover closed",
     color: "text-ink-300 bg-ink-800 border-white/5",

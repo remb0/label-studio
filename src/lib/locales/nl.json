@@ -1025,5 +1025,6 @@
   "Voorbeeld kantelen": "Voorbeeld kantelen",
   "Zoals het uit de printer komt": "Zoals het uit de printer komt",
   "Gekanteld (leesrichting)": "Gekanteld (leesrichting)",
-  "Doorvoerrichting wisselen": "Doorvoerrichting wisselen"
+  "Doorvoerrichting wisselen": "Doorvoerrichting wisselen",
+  "transmitted_unconfirmed": "Verzonden (printer bevestigt niet)"
 }

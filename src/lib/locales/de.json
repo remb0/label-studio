@@ -1025,5 +1025,6 @@
   "Voorbeeld kantelen": "Vorschau drehen",
   "Zoals het uit de printer komt": "Wie es aus dem Drucker kommt",
   "Gekanteld (leesrichting)": "Gedreht (Leserichtung)",
-  "Doorvoerrichting wisselen": "Vorschubrichtung wechseln"
+  "Doorvoerrichting wisselen": "Vorschubrichtung wechseln",
+  "transmitted_unconfirmed": "Gesendet (Drucker bestätigt nicht)"
 }

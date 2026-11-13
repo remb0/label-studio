@@ -1025,5 +1025,6 @@
   "Voorbeeld kantelen": "Girar vista previa",
   "Zoals het uit de printer komt": "Como sale de la impresora",
   "Gekanteld (leesrichting)": "Girado (sentido de lectura)",
-  "Doorvoerrichting wisselen": "Cambiar dirección de avance"
+  "Doorvoerrichting wisselen": "Cambiar dirección de avance",
+  "transmitted_unconfirmed": "Enviado (la impresora no confirma)"
 }

@@ -96,6 +96,11 @@ test("the D1S ruler test on a continuous roll does not hunt for a gap", async ({
     dialog.getByRole("button", { name: "Afdruk beoordelen" }),
   ).toBeEnabled({ timeout: 15_000 });
 
+  // The D1S cannot confirm a print; say so in words, not as a raw code.
+  await expect(
+    page.getByText("Verzonden (printer bevestigt niet)").first(),
+  ).toBeVisible();
+
   const { packets } = await bluetoothState(page);
   const joined = packets.map((bytes) => bytes.join(","));
   expect(joined).toContain("16,255,132,2"); // continuous paper

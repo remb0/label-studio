@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { bluetoothState, mockBluetooth } from "./helpers/mock-bluetooth";
 
 test("printer test guides paper and offset choices but cannot print or save without hardware", async ({
   page,
@@ -62,4 +63,42 @@ test("calibration is usable within a phone viewport", async ({ page }) => {
   await expect(
     dialog.getByRole("button", { name: "Afdruk beoordelen" }),
   ).toBeInViewport();
+});
+
+test("the D1S ruler test on a continuous roll does not hunt for a gap", async ({
+  page,
+}) => {
+  await mockBluetooth(page, "success");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Printer", exact: true }).click();
+  const scan = page.getByRole("button", {
+    name: "Printer zoeken",
+    exact: true,
+  });
+  const openDialog = page.getByRole("button", {
+    name: "Printer verbinden",
+    exact: true,
+  });
+  await expect(scan.or(openDialog).first()).toBeVisible();
+  if (await scan.isVisible()) await scan.click();
+  else {
+    await openDialog.click();
+    await scan.click();
+  }
+  await page.getByRole("button", { name: "Printertest starten" }).click();
+  const dialog = page.getByRole("dialog", { name: "Printertest" });
+  // Connecting resets the printer to gap labels; the wizard must not.
+  await dialog.getByLabel("Papiersoort").selectOption("continuous");
+  await dialog.getByLabel("Rolbreedte (mm)").fill("48");
+  await dialog.getByRole("button", { name: "Verder naar testlabel" }).click();
+  await dialog.getByRole("button", { name: "Liniaal printen" }).click();
+  await expect(
+    dialog.getByRole("button", { name: "Afdruk beoordelen" }),
+  ).toBeEnabled({ timeout: 15_000 });
+
+  const { packets } = await bluetoothState(page);
+  const joined = packets.map((bytes) => bytes.join(","));
+  expect(joined).toContain("16,255,132,2"); // continuous paper
+  expect(joined).not.toContain("29,12"); // no form feed to the next gap
+  expect(joined.filter((bytes) => bytes === "27,74,80")).toHaveLength(1);
 });

@@ -149,7 +149,15 @@ export function CalibrationWizard() {
   const dialogRef = useRef<HTMLElement>(null);
   const profile = state.modelId ? getDevice(state.modelId) : null;
   const dpi = profile?.dpi ?? 203;
-  const continuous = state.settings.paperType === "continuous";
+  // Chosen in the wizard: the printer's stored paper type falls back to the
+  // profile default (gap) on connect, which makes a D1S hunt for a gap mark
+  // and feed a long blank strip on a continuous roll.
+  const [paper, setPaper] = useState<"gap" | "continuous">("gap");
+  const supportedPapers = profile?.labelConfig?.supportedPaperTypes ?? [
+    "gap",
+    "continuous",
+  ];
+  const continuous = paper === "continuous";
   const targetId = JSON.stringify([state.peripheral?.id, state.modelId]);
   const changedDevice = open && target !== targetId;
   const verifiedAt = useMemo(
@@ -224,9 +232,18 @@ export function CalibrationWizard() {
     if (busy) return;
     const editor = useEditorV2Store.getState();
     const { acrossMm, alongMm } = rollAxes(editor.label, editor.rollDirection);
+    // The open design knows which paper is loaded better than the printer state.
+    const startPaper = supportedPapers.includes(editor.paperType)
+      ? editor.paperType
+      : state.settings.paperType;
+    setPaper(startPaper);
     setWidth(acrossMm);
     // A continuous roll has no fixed length; 40 mm fits a full 10 mm scale.
-    setHeight(continuous ? Math.max(40, Math.min(alongMm, 80)) : alongMm);
+    setHeight(
+      startPaper === "continuous"
+        ? Math.max(40, Math.min(alongMm, 80))
+        : alongMm,
+    );
     const startValue =
       state.peripheral && state.modelId
         ? loadCalibrationStart(state.peripheral.id, state.modelId)
@@ -283,7 +300,7 @@ export function CalibrationWizard() {
       await printer.print(image, {
         copies: 1,
         density,
-        paperType: state.settings.paperType,
+        paperType: paper,
         // Pure black ticks stay crisp; the grey swatches show the dot pattern.
         dither: "floyd-steinberg",
       });
@@ -315,13 +332,13 @@ export function CalibrationWizard() {
     if (!canConfirm || !CHECKS.every(([key]) => checks[key])) return;
     try {
       saveCalibration(state.peripheral!.id, state.modelId!, correction);
-      state.updateSettings({ density });
+      state.updateSettings({ density, paperType: paper });
       useEditorV2Store.setState((s) => ({
         printSettings: { ...s.printSettings, density },
         currentLabelDirty: true,
       }));
       recordPrinterVerification(state.modelId!, {
-        paperType: state.settings.paperType,
+        paperType: paper,
         widthMm: width,
         lengthMm: height,
       });
@@ -481,6 +498,28 @@ export function CalibrationWizard() {
                       )}
                 </p>
                 <div className="calibration-fields">
+                  <label>
+                    {tx("Papiersoort")}
+                    <select
+                      value={paper}
+                      onChange={(e) =>
+                        setPaper(e.target.value as "gap" | "continuous")
+                      }
+                    >
+                      <option
+                        value="gap"
+                        disabled={!supportedPapers.includes("gap")}
+                      >
+                        {tx("Losse labels (gap)")}
+                      </option>
+                      <option
+                        value="continuous"
+                        disabled={!supportedPapers.includes("continuous")}
+                      >
+                        {tx("Doorlopend")}
+                      </option>
+                    </select>
+                  </label>
                   <label>
                     {continuous
                       ? tx("Rolbreedte (mm)")

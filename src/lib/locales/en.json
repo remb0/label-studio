@@ -1025,5 +1025,6 @@
   "Voorbeeld kantelen": "Rotate preview",
   "Zoals het uit de printer komt": "As it comes out of the printer",
   "Gekanteld (leesrichting)": "Rotated (reading direction)",
-  "Doorvoerrichting wisselen": "Switch feed direction"
+  "Doorvoerrichting wisselen": "Switch feed direction",
+  "transmitted_unconfirmed": "Sent (printer does not confirm)"
 }

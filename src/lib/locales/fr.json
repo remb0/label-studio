@@ -1025,5 +1025,6 @@
   "Voorbeeld kantelen": "Faire pivoter l'aperçu",
   "Zoals het uit de printer komt": "Comme à la sortie de l'imprimante",
   "Gekanteld (leesrichting)": "Pivoté (sens de lecture)",
-  "Doorvoerrichting wisselen": "Changer le sens d'avance"
+  "Doorvoerrichting wisselen": "Changer le sens d'avance",
+  "transmitted_unconfirmed": "Envoyé (l'imprimante ne confirme pas)"
 }
